@@ -4,8 +4,9 @@
 Application mobile de livraison développée avec React Native, Expo et TypeScript.
 
 ## Stack
-- React Native + Expo SDK 57
+- React Native + Expo SDK 54
 - TypeScript (strict)
+
 - Expo Router v4
 - Supabase (Auth, Database, Storage)
 - PostgreSQL via Supabase
