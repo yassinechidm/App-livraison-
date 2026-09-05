@@ -4,7 +4,7 @@
 Application mobile de livraison développée avec React Native, Expo et TypeScript.
 
 ## Stack
-- React Native + Expo SDK 54
+- React Native + Expo SDK 57
 - TypeScript (strict)
 
 - Expo Router v4
