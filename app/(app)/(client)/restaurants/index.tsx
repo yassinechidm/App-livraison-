@@ -1,20 +1,20 @@
+import CartFloatingButton from '@/components/ui/CartFloatingButton';
+import RestaurantCard from '@/components/ui/RestaurantCard';
+import Colors from '@/constants/Colors';
+import { favoritesService } from '@/services/favorites.service';
+import { RESTAURANT_FILTERS, restaurantService } from '@/services/restaurant.service';
+import { Restaurant } from '@/types/restaurant.types';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Image,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import RestaurantCard from '@/components/ui/RestaurantCard';
-import CartFloatingButton from '@/components/ui/CartFloatingButton';
-import Colors from '@/constants/Colors';
-import { restaurantService, RESTAURANT_FILTERS } from '@/services/restaurant.service';
-import { favoritesService } from '@/services/favorites.service';
-import { Restaurant } from '@/types/restaurant.types';
 
 export default function RestaurantsListScreen() {
   const router = useRouter();
@@ -39,12 +39,13 @@ export default function RestaurantsListScreen() {
   const allFilters = [
     { id: 'all', name: 'Tous', emoji: '🌟' },
     { id: 'favorites', name: `Favoris (${favoriteIds.length})`, emoji: '❤️' },
-    { id: 'free-delivery', name: 'Livraison Gratuite', emoji: '🛵' },
-    { id: 'fast', name: 'Moins de 25 min', emoji: '⚡' },
     { id: 'promo', name: 'Offres & Promos', emoji: '🏷️' },
-    { id: 'top-rated', name: 'Mieux notés (+95%)', emoji: '👍' },
+    { id: 'free-delivery', name: 'Livraison Offerte', emoji: '🛵' },
+    { id: 'top-rated', name: 'Mieux notés (★ 4.5+)', emoji: '⭐' },
+    { id: 'fast', name: 'Moins de 25 min', emoji: '⚡' },
     ...RESTAURANT_FILTERS.filter((f) => f.id !== 'all' && f.id !== 'promo'),
   ];
+
 
   const displayedRestaurants = restaurants.filter((r) => {
     if (selectedFilter === 'favorites') {
@@ -377,11 +378,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   brandPromoBadge: {
-    backgroundColor: '#E11D48',
+    backgroundColor: Colors.secondary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
   },
+
   brandPromoText: {
     fontSize: 9,
     fontWeight: '800',

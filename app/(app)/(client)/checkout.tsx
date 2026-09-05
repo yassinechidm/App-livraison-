@@ -1,24 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Colors from '@/constants/Colors';
-import { cartService } from '@/services/cart.service';
-import { orderService } from '@/services/order.service';
 import { addressService } from '@/services/address.service';
 import { authService } from '@/services/auth.service';
+import { cartService } from '@/services/cart.service';
+import { orderService } from '@/services/order.service';
 import { CartState } from '@/types/cart.types';
 import { Address, PaymentMethodType } from '@/types/order.types';
 import { BANK_DETAILS } from '@/types/payment.types';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -342,12 +342,13 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-  Platform,
-  Linking,
-} from 'react-native';
 import Colors from '@/constants/Colors';
 import { Order } from '@/types/order.types';
+import React, { useState } from 'react';
+import {
+    Linking,
+    Modal,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 interface LiveTrackingMapModalProps {
   visible: boolean;
@@ -117,7 +117,7 @@ export default function LiveTrackingMapModal({ visible, order, onClose }: LiveTr
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: rgba(0, 119, 255, 0.35);
+            background: rgba(0, 205, 188, 0.35);
             animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
           }
           .courier-body {
@@ -126,14 +126,15 @@ export default function LiveTrackingMapModal({ visible, order, onClose }: LiveTr
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #0077FF;
+            background: #00CDBC;
             border: 3px solid #FFFFFF;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 14px rgba(0,119,255,0.6);
+            box-shadow: 0 4px 14px rgba(0,205,188,0.6);
             transition: transform 0.3s ease;
           }
+
           @keyframes pulse-ring {
             0% { transform: scale(0.6); opacity: 0.9; }
             70% { transform: scale(1.6); opacity: 0; }
@@ -481,7 +482,7 @@ const styles = StyleSheet.create({
   liveIndicatorBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0077FF',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -492,6 +493,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+
   liveIndicatorDot: {
     width: 8,
     height: 8,

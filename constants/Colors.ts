@@ -1,70 +1,79 @@
-// Quick Livraison color palette — light theme with blue/green accents
+// Deliveroo Design System Palette
 const Colors = {
-  // Primary — Quick Livraison electric blue (from logo)
-  primary: '#0066FF',
-  primaryLight: '#2B7FFF',
-  primaryDark: '#004ECC',
+  // Primary — Deliveroo Signature Teal
+  primary: '#00CDBC',
+  primaryLight: '#33D7C9',
+  primaryDark: '#00B8A9',
+  primaryDeep: '#007E7A',
+  primaryMuted: '#E8F8F5',
 
-  // Secondary — Quick Livraison green (CTA, success)
-  secondary: '#00B602',
-  secondaryLight: '#22C55E',
-  secondaryDark: '#009302',
+  // Secondary / Accents — Deliveroo Coral / Tangerine for Promos & Offers
+  secondary: '#FF5A35',
+  secondaryLight: '#FF7B5C',
+  secondaryDark: '#E04A26',
+  secondaryMuted: '#FFF0ED',
+
+  // Deliveroo Plus / Royal Purple
+  plusPurple: '#4D2C5E',
+  plusPurpleLight: '#F3EDF7',
 
   // Backgrounds
-  background: '#F8FAFC',
+  background: '#F9F9F8',
   backgroundWhite: '#FFFFFF',
   backgroundCard: '#FFFFFF',
-  backgroundInput: '#FFFFFF',
-  backgroundOverlay: 'rgba(2, 67, 137, 0.08)',
-  backgroundMuted: '#F1F5F9',
+  backgroundInput: '#F5F5F4',
+  backgroundOverlay: 'rgba(0, 205, 188, 0.12)',
+  backgroundMuted: '#F0F0EE',
 
-  // Text
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
+  // Text — Deliveroo Charcoal System
+  textPrimary: '#2E3333',
+  textSecondary: '#585C5C',
+  textMuted: '#8F95A0',
   textInverse: '#FFFFFF',
-  textLink: '#024389',
+  textLink: '#00CDBC',
 
   // Status
-  success: '#00B602',
-  error: '#EF4444',
-  errorLight: '#FEF2F2',
-  warning: '#F59E0B',
-  warningLight: '#FFFBEB',
-  info: '#3B82F6',
-  infoLight: '#EFF6FF',
+  success: '#00B67A',
+  successLight: '#E6F8F2',
+  error: '#FF4D4D',
+  errorLight: '#FFF0F0',
+  warning: '#FF9E00',
+  warningLight: '#FFF8E6',
+  info: '#00CDBC',
+  infoLight: '#E8F8F5',
 
-  // Parcel statuses
-  statusPending: '#F59E0B',
-  statusPendingBg: '#FFFBEB',
-  statusPickedUp: '#3B82F6',
-  statusPickedUpBg: '#EFF6FF',
-  statusInTransit: '#8B5CF6',
-  statusInTransitBg: '#F5F3FF',
-  statusDelivered: '#00B602',
-  statusDeliveredBg: '#F0FDF4',
-  statusReturned: '#EF4444',
-  statusReturnedBg: '#FEF2F2',
+  // Order & Courier statuses
+  statusPending: '#FF9E00',
+  statusPendingBg: '#FFF8E6',
+  statusPickedUp: '#00CDBC',
+  statusPickedUpBg: '#E8F8F5',
+  statusInTransit: '#00CDBC',
+  statusInTransitBg: '#E8F8F5',
+  statusDelivered: '#00B67A',
+  statusDeliveredBg: '#E6F8F2',
+  statusReturned: '#FF4D4D',
+  statusReturnedBg: '#FFF0F0',
 
   // Borders
-  border: '#E2E8F0',
-  borderLight: '#F1F5F9',
-  borderFocus: '#024389',
+  border: '#EFEFEA',
+  borderLight: '#F5F5F4',
+  borderFocus: '#00CDBC',
 
   // Tab bar
   tabBarBackground: '#FFFFFF',
-  tabIconDefault: '#94A3B8',
-  tabIconSelected: '#024389',
+  tabIconDefault: '#8F95A0',
+  tabIconSelected: '#00CDBC',
 
   // Shadows
-  shadowColor: '#0F172A',
+  shadowColor: '#2E3333',
 
   // Misc
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
-  emerald: '#10B981',
-  emeraldLight: '#ECFDF5',
+  emerald: '#00B67A',
+  emeraldLight: '#E6F8F2',
 } as const;
 
 export default Colors;
+

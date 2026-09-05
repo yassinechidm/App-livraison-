@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import Colors from '@/constants/Colors';
-import { Restaurant } from '@/types/restaurant.types';
 import { favoritesService } from '@/services/favorites.service';
+import { Restaurant } from '@/types/restaurant.types';
+import React, { useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -24,11 +24,14 @@ export default function RestaurantCard({ restaurant, onPress }: RestaurantCardPr
     favoritesService.toggleFavorite(restaurant.id);
   }
 
+  // Convert percentage (e.g. 96%) to 5-star rating (e.g. 4.8)
+  const starRating = (restaurant.rating_percent ? (restaurant.rating_percent / 20).toFixed(1) : '4.7');
+
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={onPress}
-      activeOpacity={0.85}
+      activeOpacity={0.88}
     >
       {/* Cover Image Container */}
       <View style={styles.imageContainer}>
@@ -38,12 +41,21 @@ export default function RestaurantCard({ restaurant, onPress }: RestaurantCardPr
           resizeMode="cover"
         />
 
-        {/* Promo Badge Tag */}
+        {/* Deliveroo Promo Badge */}
         {restaurant.promo_badge ? (
           <View style={styles.promoBadge}>
             <Text style={styles.promoBadgeText}>{restaurant.promo_badge}</Text>
           </View>
+        ) : restaurant.delivery_fee_promo ? (
+          <View style={[styles.promoBadge, { backgroundColor: Colors.primary }]}>
+            <Text style={styles.promoBadgeText}>{restaurant.delivery_fee_promo}</Text>
+          </View>
         ) : null}
+
+        {/* Delivery Time Pill on Image */}
+        <View style={styles.deliveryTimePill}>
+          <Text style={styles.deliveryTimePillText}>⏱ {restaurant.delivery_time}</Text>
+        </View>
 
         {/* Favorite Heart Button */}
         <TouchableOpacity
@@ -51,46 +63,34 @@ export default function RestaurantCard({ restaurant, onPress }: RestaurantCardPr
           onPress={handleToggleFavorite}
           activeOpacity={0.8}
         >
-          <Text style={[styles.favoriteHeart, isFavorite && styles.favoriteHeartActive]}>
+          <Text style={styles.favoriteHeart}>
             {isFavorite ? '❤️' : '🤍'}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Info Section */}
+      {/* Info Section Deliveroo Style */}
       <View style={styles.infoSection}>
-        <View style={styles.titleRow}>
-          <Text style={styles.restaurantName} numberOfLines={1}>
-            {restaurant.name}
-          </Text>
-        </View>
-
-        <Text style={styles.cuisineType} numberOfLines={1}>
-          {restaurant.cuisine_type}
+        <Text style={styles.restaurantName} numberOfLines={1}>
+          {restaurant.name}
         </Text>
 
-        <View style={styles.metaRow}>
-          {/* Rating */}
-          <View style={styles.ratingBox}>
-            <Text style={styles.ratingIcon}>👍</Text>
-            <Text style={styles.ratingText}>
-              {restaurant.rating_percent}% ({restaurant.rating_count})
-            </Text>
-          </View>
+        {/* Rating and Cuisine */}
+        <View style={styles.ratingRow}>
+          <Text style={styles.starIcon}>★</Text>
+          <Text style={styles.starText}>{starRating}</Text>
+          <Text style={styles.ratingCount}>({restaurant.rating_count})</Text>
+          <Text style={styles.metaDot}>•</Text>
+          <Text style={styles.cuisineText} numberOfLines={1}>{restaurant.cuisine_type}</Text>
+        </View>
 
-          <Text style={styles.dot}>•</Text>
-
-          {/* Delivery Promo Badge */}
-          {restaurant.delivery_fee_promo ? (
-            <View style={styles.deliveryPromoBadge}>
-              <Text style={styles.deliveryPromoText}>
-                {restaurant.delivery_fee_promo}
-              </Text>
-            </View>
-          ) : null}
-
-          {/* Time */}
-          <Text style={styles.deliveryTime}>{restaurant.delivery_time}</Text>
+        {/* Distance and Delivery Fee */}
+        <View style={styles.deliveryRow}>
+          <Text style={styles.deliveryText}>
+            {restaurant.delivery_fee === 0 ? 'Livraison offerte' : `Livraison ${Number(restaurant.delivery_fee).toFixed(0)} DH`}
+          </Text>
+          <Text style={styles.metaDot}>•</Text>
+          <Text style={styles.distanceText}>À 1,2 km</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -99,21 +99,21 @@ export default function RestaurantCard({ restaurant, onPress }: RestaurantCardPr
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
+    backgroundColor: Colors.backgroundWhite,
+    borderRadius: 14,
     overflow: 'hidden',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     shadowColor: Colors.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
   imageContainer: {
-    height: 150,
-    backgroundColor: '#E2E8F0',
+    height: 165,
+    backgroundColor: '#EFEFEA',
     position: 'relative',
   },
   coverImage: {
@@ -122,101 +122,120 @@ const styles = StyleSheet.create({
   },
   promoBadge: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: '#E11D48',
+    top: 10,
+    left: 10,
+    backgroundColor: Colors.secondary,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 10,
+    borderRadius: 6,
+    shadowColor: Colors.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   promoBadgeText: {
     color: Colors.white,
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
+    letterSpacing: -0.1,
+  },
+  deliveryTimePill: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  deliveryTimePillText: {
+    color: Colors.textPrimary,
+    fontSize: 11,
+    fontWeight: '800',
   },
   favoriteButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    top: 10,
+    right: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
   },
   favoriteButtonActive: {
-    backgroundColor: '#FFF1F2',
-    borderWidth: 1,
-    borderColor: '#FECDD3',
+    backgroundColor: Colors.white,
   },
   favoriteHeart: {
-    fontSize: 16,
-  },
-  favoriteHeartActive: {
-    fontSize: 17,
+    fontSize: 15,
   },
   infoSection: {
-    padding: 14,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   restaurantName: {
     fontSize: 16,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    flex: 1,
-  },
-  cuisineType: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    marginBottom: 8,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  ratingBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  ratingIcon: {
-    fontSize: 12,
-  },
-  ratingText: {
-    fontSize: 12,
     fontWeight: '800',
     color: Colors.textPrimary,
+    marginBottom: 4,
+    letterSpacing: -0.2,
   },
-  dot: {
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  starIcon: {
+    color: '#007E7A',
+    fontSize: 13,
+    marginRight: 3,
+  },
+  starText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#007E7A',
+    marginRight: 3,
+  },
+  ratingCount: {
     fontSize: 12,
     color: Colors.textMuted,
   },
-  deliveryPromoBadge: {
-    backgroundColor: '#E11D48',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
+  metaDot: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    marginHorizontal: 6,
   },
-  deliveryPromoText: {
-    color: Colors.white,
-    fontSize: 10,
-    fontWeight: '800',
+  cuisineText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+    flexShrink: 1,
   },
-  deliveryTime: {
+  deliveryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deliveryText: {
     fontSize: 12,
     color: Colors.textSecondary,
     fontWeight: '600',
   },
+  distanceText: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    fontWeight: '500',
+  },
 });
+

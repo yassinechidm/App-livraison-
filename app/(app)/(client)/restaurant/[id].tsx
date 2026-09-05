@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  TextInput,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import MenuItemRow from '@/components/ui/MenuItemRow';
 import CartFloatingButton from '@/components/ui/CartFloatingButton';
+import MenuItemRow from '@/components/ui/MenuItemRow';
 import Colors from '@/constants/Colors';
-import { restaurantService } from '@/services/restaurant.service';
 import { cartService } from '@/services/cart.service';
 import { favoritesService } from '@/services/favorites.service';
-import { Restaurant, MenuItem } from '@/types/restaurant.types';
+import { restaurantService } from '@/services/restaurant.service';
 import { CartState } from '@/types/cart.types';
+import { Restaurant } from '@/types/restaurant.types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Dimensions,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -300,9 +300,9 @@ export default function RestaurantDetailScreen() {
           {/* Rating, Time & Fees Strip */}
           <View style={styles.metaStrip}>
             <View style={styles.metaItem}>
-              <Text style={styles.metaIcon}>👍</Text>
-              <Text style={styles.metaTextBold}>
-                {restaurant.rating_percent}%
+              <Text style={[styles.metaIcon, { color: '#007E7A' }]}>★</Text>
+              <Text style={[styles.metaTextBold, { color: '#007E7A' }]}>
+                {(restaurant.rating_percent ? (restaurant.rating_percent / 20).toFixed(1) : '4.7')}
               </Text>
               <Text style={styles.metaTextSub}>({restaurant.rating_count})</Text>
             </View>
@@ -314,12 +314,15 @@ export default function RestaurantDetailScreen() {
 
             <View style={styles.metaItem}>
               <Text style={styles.metaIcon}>🛵</Text>
-              <Text style={styles.metaTextBold}>15,00 MAD</Text>
-              <View style={styles.gratuitBadge}>
-                <Text style={styles.gratuitText}>Gratuit</Text>
-              </View>
+              <Text style={styles.metaTextBold}>{Number(restaurant.delivery_fee).toFixed(0)} DH</Text>
+              {restaurant.free_delivery_threshold && (
+                <View style={styles.gratuitBadge}>
+                  <Text style={styles.gratuitText}>Dès {restaurant.free_delivery_threshold} DH</Text>
+                </View>
+              )}
             </View>
           </View>
+
 
           {/* Status Badge & Opening Hours */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 }}>

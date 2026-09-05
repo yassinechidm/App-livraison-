@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Tabs } from 'expo-router';
-import { Text, StyleSheet, View } from 'react-native';
-import Colors from '@/constants/Colors';
 import Logo from '@/components/ui/Logo';
+import Colors from '@/constants/Colors';
 import { cartService } from '@/services/cart.service';
+import { Tabs } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 function TabIcon({
   emoji,
@@ -79,23 +79,20 @@ export default function ClientTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Accueil',
-          headerTitle: 'Quick Livraison',
-          headerLeft: () => (
-            <View style={{ marginLeft: 16 }}>
-              <Logo size={28} rounded={false} imageStyle={{ borderRadius: 8 }} />
-            </View>
+          title: 'Découvrir',
+          headerTitle: () => (
+            <Logo size={28} showText={true} />
           ),
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="🏠" focused={focused} />
+            <TabIcon emoji="🧭" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="catalog"
         options={{
-          title: 'Explorer',
-          headerTitle: 'Catalogue & Produits',
+          title: 'Recherche',
+          headerTitle: 'Rechercher un plat, un resto',
           tabBarIcon: ({ focused }) => (
             <TabIcon emoji="🔍" focused={focused} />
           ),
@@ -105,9 +102,9 @@ export default function ClientTabLayout() {
         name="cart"
         options={{
           title: 'Panier',
-          headerTitle: 'Mon Panier',
+          headerTitle: 'Mon Panier Deliveroo',
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="🛒" focused={focused} badgeCount={cartCount} />
+            <TabIcon emoji="🛍️" focused={focused} badgeCount={cartCount} />
           ),
         }}
       />
@@ -117,7 +114,7 @@ export default function ClientTabLayout() {
           title: 'Commandes',
           headerTitle: 'Mes Commandes',
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="📦" focused={focused} />
+            <TabIcon emoji="🧾" focused={focused} />
           ),
         }}
       />
@@ -125,13 +122,14 @@ export default function ClientTabLayout() {
         name="profile"
         options={{
           title: 'Compte',
-          headerTitle: 'Mon Profil Client',
+          headerTitle: 'Mon Compte',
           tabBarIcon: ({ focused }) => (
             <TabIcon emoji="👤" focused={focused} />
           ),
         }}
       />
     </Tabs>
+
   );
 }
 

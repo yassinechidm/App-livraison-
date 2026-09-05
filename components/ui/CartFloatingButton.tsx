@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { cartService } from '@/services/cart.service';
 import { CartState } from '@/types/cart.types';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function CartFloatingButton() {
   const router = useRouter();
@@ -25,17 +25,16 @@ export default function CartFloatingButton() {
       <TouchableOpacity
         style={styles.button}
         onPress={() => router.push('/(app)/(client)/(tabs)/cart' as any)}
-        activeOpacity={0.9}
+        activeOpacity={0.92}
       >
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{cartState.itemCount}</Text>
+        <View style={styles.leftRow}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{cartState.itemCount}</Text>
+          </View>
+          <Text style={styles.centerText}>Voir le panier</Text>
         </View>
 
-        <Text style={styles.centerText}>Voir mon panier</Text>
-
-        <View style={styles.totalBox}>
-          <Text style={styles.totalText}>{cartState.total.toFixed(2)} DH</Text>
-        </View>
+        <Text style={styles.totalText}>{cartState.total.toFixed(2)} DH</Text>
       </TouchableOpacity>
     </View>
   );
@@ -44,7 +43,7 @@ export default function CartFloatingButton() {
 const styles = StyleSheet.create({
   floatingContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 16,
     left: 16,
     right: 16,
     zIndex: 999,
@@ -54,43 +53,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Colors.primary,
-    borderRadius: 20,
+    borderRadius: 10,
     paddingVertical: 14,
     paddingHorizontal: 18,
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  leftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   badge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   badgeText: {
-    fontSize: 14,
-    fontWeight: '900',
+    fontSize: 13,
+    fontWeight: '800',
     color: Colors.white,
   },
   centerText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.white,
+    letterSpacing: -0.2,
+  },
+  totalText: {
     fontSize: 15,
     fontWeight: '800',
     color: Colors.white,
-    letterSpacing: 0.3,
-  },
-  totalBox: {
-    backgroundColor: Colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  totalText: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: Colors.primary,
   },
 });
+

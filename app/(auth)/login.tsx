@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
-import { Link, useRouter } from 'expo-router';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Colors from '@/constants/Colors';
 import Logo from '@/components/ui/Logo';
+import Colors from '@/constants/Colors';
 import { authService } from '@/services/auth.service';
+import { Link, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('client@quicklivraison.ma');
@@ -94,15 +94,16 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header / Brand */}
+        {/* Header / Brand Deliveroo */}
         <View style={styles.header}>
-          <Logo size={72} style={styles.logo} />
-          <Text style={styles.brandName}>Quick Livraison</Text>
+          <Logo size={64} style={styles.logo} />
+          <Text style={styles.brandName}>deliveroo</Text>
           <Text style={styles.title}>Bienvenue !</Text>
           <Text style={styles.subtitle}>
-            Connectez-vous à votre espace client
+            Vos plats et courses préférés livrés chez vous
           </Text>
         </View>
+
 
         {/* Demo Accounts Banner */}
         <View style={styles.demoBanner}>

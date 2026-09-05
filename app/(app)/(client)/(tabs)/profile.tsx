@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
-import { User } from '@supabase/supabase-js';
-import { useRouter } from 'expo-router';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Colors from '@/constants/Colors';
 import { authService } from '@/services/auth.service';
+import { User } from '@supabase/supabase-js';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function ClientProfileScreen() {
   const router = useRouter();
@@ -163,11 +163,12 @@ const styles = StyleSheet.create({
   },
   roleBadge: {
     marginTop: 8,
-    backgroundColor: '#EBF2FF',
+    backgroundColor: Colors.primaryMuted,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
   },
+
   roleBadgeText: {
     fontSize: 12,
     fontWeight: '700',

@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import Colors from '@/constants/Colors';
-import { OrderStatus, ORDER_STATUS_CONFIG } from '@/types/order.types';
+import { ORDER_STATUS_CONFIG, OrderStatus } from '@/types/order.types';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface OrderTimelineProps {
   currentStatus: OrderStatus;
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   nodePassed: {
-    backgroundColor: '#EBF2FF',
+    backgroundColor: Colors.primaryMuted,
     borderColor: Colors.primary,
   },
   nodeCurrent: {

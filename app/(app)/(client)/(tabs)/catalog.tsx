@@ -1,20 +1,20 @@
+import CartFloatingButton from '@/components/ui/CartFloatingButton';
+import ProductCard from '@/components/ui/ProductCard';
+import Colors from '@/constants/Colors';
+import { cartService } from '@/services/cart.service';
+import { productService } from '@/services/product.service';
+import { Category, Product } from '@/types/product.types';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  RefreshControl,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import ProductCard from '@/components/ui/ProductCard';
-import CartFloatingButton from '@/components/ui/CartFloatingButton';
-import Colors from '@/constants/Colors';
-import { productService } from '@/services/product.service';
-import { cartService } from '@/services/cart.service';
-import { Category, Product } from '@/types/product.types';
 
 export default function CatalogScreen() {
   const router = useRouter();
@@ -50,11 +50,12 @@ export default function CatalogScreen() {
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher un produit ou restaurant..."
+            placeholder="Plats, épicerie, restaurants..."
             placeholderTextColor={Colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
+
           {searchQuery ? (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
               <Text style={styles.clearIcon}>✕</Text>

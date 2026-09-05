@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-} from 'react-native';
-import { Link } from 'expo-router';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Colors from '@/constants/Colors';
 import Logo from '@/components/ui/Logo';
+import Colors from '@/constants/Colors';
 import { authService } from '@/services/auth.service';
+import { Link } from 'expo-router';
+import React, { useState } from 'react';
+import {
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 
 export default function RegisterScreen() {
   const [fullName, setFullName] = useState('');
@@ -102,8 +102,9 @@ export default function RegisterScreen() {
           <Logo size={64} style={styles.logo} />
           <Text style={styles.title}>Créer un compte</Text>
           <Text style={styles.subtitle}>
-            Rejoignez Quick Livraison et commencez à expédier
+            Rejoignez Deliveroo et commandez vos plats favoris
           </Text>
+
         </View>
 
         {/* Form */}
