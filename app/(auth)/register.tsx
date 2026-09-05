@@ -102,7 +102,7 @@ export default function RegisterScreen() {
           <Logo size={64} style={styles.logo} />
           <Text style={styles.title}>Créer un compte</Text>
           <Text style={styles.subtitle}>
-            Rejoignez Deliveroo et commandez vos plats favoris
+            Rejoignez Quickly Livraison et commandez vos plats favoris
           </Text>
 
         </View>

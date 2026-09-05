@@ -1,6 +1,6 @@
 import Colors from '@/constants/Colors';
 import React from 'react';
-import { ImageStyle, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Image, ImageStyle, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 interface LogoProps {
   size?: number;
@@ -8,18 +8,18 @@ interface LogoProps {
   style?: ViewStyle;
   imageStyle?: ImageStyle;
   showText?: boolean;
+  variant?: 'blue' | 'white';
 }
 
 export default function Logo({
   size = 56,
   rounded = true,
   style,
+  imageStyle,
   showText = false,
+  variant = 'blue',
 }: LogoProps) {
   const borderRadius = rounded ? Math.round(size * 0.28) : 8;
-  const earHeight = Math.round(size * 0.38);
-  const earWidth = Math.round(size * 0.18);
-  const eyeSize = Math.max(3, Math.round(size * 0.08));
 
   return (
     <View style={[styles.wrapper, style]}>
@@ -30,26 +30,39 @@ export default function Logo({
             width: size,
             height: size,
             borderRadius,
+            backgroundColor: variant === 'blue' ? Colors.primary : Colors.white,
           },
         ]}
       >
-        {/* Deliveroo Roo Silhouette */}
-        <View style={styles.rooHead}>
-          {/* Ears */}
-          <View style={styles.earsRow}>
-            <View style={[styles.ear, { width: earWidth, height: earHeight, transform: [{ rotate: '-10deg' }] }]} />
-            <View style={[styles.ear, { width: earWidth, height: earHeight, transform: [{ rotate: '12deg' }] }]} />
-          </View>
-          {/* Snout & Eyes */}
-          <View style={styles.face}>
-            <View style={[styles.eye, { width: eyeSize, height: eyeSize, borderRadius: eyeSize / 2 }]} />
-            <View style={[styles.eye, { width: eyeSize, height: eyeSize, borderRadius: eyeSize / 2 }]} />
-          </View>
-        </View>
+        <Image
+          source={
+            variant === 'blue'
+              ? require('@/assets/images/quickly-logo-transparent.png')
+              : require('@/assets/images/quickly-logo-blue.png')
+          }
+          style={[
+            {
+              width: size * 0.76,
+              height: size * 0.76,
+            },
+            imageStyle,
+          ]}
+          resizeMode="contain"
+        />
       </View>
       {showText && (
         <View style={styles.textContainer}>
-          <Text style={styles.brandTitle}>deliveroo</Text>
+          <View style={styles.textRow}>
+            <Text style={[styles.brandTitle, variant === 'white' && { color: Colors.white }]}>
+              Quickly
+            </Text>
+            <Text style={[styles.brandBadge, variant === 'white' && { backgroundColor: Colors.white, color: Colors.primary }]}>
+              EXPRESS
+            </Text>
+          </View>
+          <Text style={[styles.brandSubtitle, variant === 'white' && { color: 'rgba(255,255,255,0.85)' }]}>
+            LIVRAISON RAPIDE
+          </Text>
         </View>
       )}
     </View>
@@ -62,7 +75,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: Colors.primary,
@@ -70,40 +82,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 4,
-    position: 'relative',
-  },
-  rooHead: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  earsRow: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: -2,
-  },
-  ear: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  face: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 2,
-  },
-  eye: {
-    backgroundColor: Colors.primary,
+    overflow: 'hidden',
   },
   textContainer: {
     marginLeft: 10,
+    justifyContent: 'center',
+  },
+  textRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   brandTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
     color: Colors.primary,
     letterSpacing: -0.6,
   },
+  brandBadge: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: Colors.white,
+    backgroundColor: Colors.secondary,
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+    letterSpacing: 0.5,
+    overflow: 'hidden',
+  },
+  brandSubtitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.textMuted,
+    letterSpacing: 1,
+    marginTop: -1,
+  },
 });
+
 

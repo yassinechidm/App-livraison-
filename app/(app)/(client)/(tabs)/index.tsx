@@ -293,7 +293,7 @@ export default function ClientHomeScreen() {
           >
             <View style={styles.bannerContent}>
               <View style={styles.bannerTagPurple}>
-                <Text style={styles.bannerTagText}>DELIVEROO PLUS</Text>
+                <Text style={styles.bannerTagText}>QUICKLY PLUS</Text>
               </View>
               <Text style={styles.bannerTitle}>Livraison gratuite illimitée</Text>
               <Text style={styles.bannerSubtitle}>Économisez sur chaque commande au quotidien.</Text>
@@ -302,9 +302,9 @@ export default function ClientHomeScreen() {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Section: À la une sur Deliveroo */}
+        {/* Section: À la une sur Quickly */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>À la une sur Deliveroo</Text>
+          <Text style={styles.sectionTitle}>À la une sur Quickly</Text>
           <TouchableOpacity onPress={() => router.push('/(app)/(client)/restaurants' as any)}>
             <Text style={styles.sectionLink}>Tout voir</Text>
           </TouchableOpacity>

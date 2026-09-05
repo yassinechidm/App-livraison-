@@ -94,13 +94,14 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header / Brand Deliveroo */}
+        {/* Header / Brand Quickly Livraison */}
         <View style={styles.header}>
-          <Logo size={64} style={styles.logo} />
-          <Text style={styles.brandName}>deliveroo</Text>
+          <Logo size={70} style={styles.logo} />
+          <Text style={styles.brandName}>quickly</Text>
+          <Text style={styles.brandSub}>LIVRAISON</Text>
           <Text style={styles.title}>Bienvenue !</Text>
           <Text style={styles.subtitle}>
-            Vos plats et courses préférés livrés chez vous
+            Vos plats et courses préférés livrés en un éclair
           </Text>
         </View>
 
@@ -217,12 +218,18 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   brandName: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '900',
     color: Colors.primary,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 10,
+    letterSpacing: -0.5,
+    marginTop: 8,
+  },
+  brandSub: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: Colors.textMuted,
+    letterSpacing: 2,
+    marginBottom: 12,
   },
   title: {
     fontSize: 28,

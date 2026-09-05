@@ -102,7 +102,7 @@ export default function ClientTabLayout() {
         name="cart"
         options={{
           title: 'Panier',
-          headerTitle: 'Mon Panier Deliveroo',
+          headerTitle: 'Mon Panier Quickly',
           tabBarIcon: ({ focused }) => (
             <TabIcon emoji="🛍️" focused={focused} badgeCount={cartCount} />
           ),

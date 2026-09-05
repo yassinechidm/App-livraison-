@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "App-livraison-",
-    "slug": "App-livraison-",
+    "name": "Quickly Livraison",
+    "slug": "quickly-livraison",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "applivraison",
+    "scheme": "quicklylivraison",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true

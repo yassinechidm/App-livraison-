@@ -1,78 +1,78 @@
-// Deliveroo Design System Palette
+// Quickly Livraison Design System Palette
 const Colors = {
-  // Primary — Deliveroo Signature Teal
-  primary: '#00CDBC',
-  primaryLight: '#33D7C9',
-  primaryDark: '#00B8A9',
-  primaryDeep: '#007E7A',
-  primaryMuted: '#E8F8F5',
+  // Primary — Quickly Signature Royal Blue (#0260E6)
+  primary: '#0260E6',
+  primaryLight: '#2F7DF6',
+  primaryDark: '#004EC4',
+  primaryDeep: '#003A99',
+  primaryMuted: '#EBF3FF',
 
-  // Secondary / Accents — Deliveroo Coral / Tangerine for Promos & Offers
+  // Secondary / Accents — Fast Orange/Coral for Promos, Speed, Badges
   secondary: '#FF5A35',
   secondaryLight: '#FF7B5C',
   secondaryDark: '#E04A26',
   secondaryMuted: '#FFF0ED',
 
-  // Deliveroo Plus / Royal Purple
-  plusPurple: '#4D2C5E',
-  plusPurpleLight: '#F3EDF7',
+  // Quickly Plus / VIP Dark Slate
+  plusPurple: '#1E293B',
+  plusPurpleLight: '#F1F5F9',
 
   // Backgrounds
-  background: '#F9F9F8',
+  background: '#F8FAFC',
   backgroundWhite: '#FFFFFF',
   backgroundCard: '#FFFFFF',
-  backgroundInput: '#F5F5F4',
-  backgroundOverlay: 'rgba(0, 205, 188, 0.12)',
-  backgroundMuted: '#F0F0EE',
+  backgroundInput: '#F1F5F9',
+  backgroundOverlay: 'rgba(2, 96, 230, 0.12)',
+  backgroundMuted: '#EDF2F7',
 
-  // Text — Deliveroo Charcoal System
-  textPrimary: '#2E3333',
-  textSecondary: '#585C5C',
-  textMuted: '#8F95A0',
+  // Text — Modern Clean Typography
+  textPrimary: '#0F172A',
+  textSecondary: '#475569',
+  textMuted: '#94A3B8',
   textInverse: '#FFFFFF',
-  textLink: '#00CDBC',
+  textLink: '#0260E6',
 
   // Status
-  success: '#00B67A',
-  successLight: '#E6F8F2',
-  error: '#FF4D4D',
-  errorLight: '#FFF0F0',
-  warning: '#FF9E00',
-  warningLight: '#FFF8E6',
-  info: '#00CDBC',
-  infoLight: '#E8F8F5',
+  success: '#10B981',
+  successLight: '#ECFDF5',
+  error: '#EF4444',
+  errorLight: '#FEF2F2',
+  warning: '#F59E0B',
+  warningLight: '#FFFBEB',
+  info: '#0260E6',
+  infoLight: '#EBF3FF',
 
   // Order & Courier statuses
-  statusPending: '#FF9E00',
-  statusPendingBg: '#FFF8E6',
-  statusPickedUp: '#00CDBC',
-  statusPickedUpBg: '#E8F8F5',
-  statusInTransit: '#00CDBC',
-  statusInTransitBg: '#E8F8F5',
-  statusDelivered: '#00B67A',
-  statusDeliveredBg: '#E6F8F2',
-  statusReturned: '#FF4D4D',
-  statusReturnedBg: '#FFF0F0',
+  statusPending: '#F59E0B',
+  statusPendingBg: '#FFFBEB',
+  statusPickedUp: '#0260E6',
+  statusPickedUpBg: '#EBF3FF',
+  statusInTransit: '#0260E6',
+  statusInTransitBg: '#EBF3FF',
+  statusDelivered: '#10B981',
+  statusDeliveredBg: '#ECFDF5',
+  statusReturned: '#EF4444',
+  statusReturnedBg: '#FEF2F2',
 
   // Borders
-  border: '#EFEFEA',
-  borderLight: '#F5F5F4',
-  borderFocus: '#00CDBC',
+  border: '#E2E8F0',
+  borderLight: '#F1F5F9',
+  borderFocus: '#0260E6',
 
   // Tab bar
   tabBarBackground: '#FFFFFF',
-  tabIconDefault: '#8F95A0',
-  tabIconSelected: '#00CDBC',
+  tabIconDefault: '#94A3B8',
+  tabIconSelected: '#0260E6',
 
   // Shadows
-  shadowColor: '#2E3333',
+  shadowColor: '#0F172A',
 
   // Misc
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
-  emerald: '#00B67A',
-  emeraldLight: '#E6F8F2',
+  emerald: '#10B981',
+  emeraldLight: '#ECFDF5',
 } as const;
 
 export default Colors;
