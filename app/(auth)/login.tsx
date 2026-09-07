@@ -2,7 +2,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { authService } from "@/services/auth.service";
 import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     Alert,
     Image,
@@ -191,9 +191,6 @@ export default function LoginScreen() {
             onPress={() => handleSocialLogin("google")}
           >
             <Image
-              source={{
-                uri: "file:///C:/Users/hp/.gemini/antigravity/brain/d21653af-7eb6-459c-aecd-b440e3c66907/.user_uploaded/media_1788749676357.png",
-              }}
               source={require("../../assets/images/google_custom.png")}
               style={styles.socialImageIcon}
               resizeMode="contain"
@@ -206,9 +203,6 @@ export default function LoginScreen() {
             onPress={() => handleSocialLogin("apple")}
           >
             <Image
-              source={{
-                uri: "file:///C:/Users/hp/.gemini/antigravity/brain/d21653af-7eb6-459c-aecd-b440e3c66907/.user_uploaded/media_1788749676369.png",
-              }}
               source={require("../../assets/images/apple_custom.png")}
               style={styles.socialImageIcon}
               resizeMode="contain"

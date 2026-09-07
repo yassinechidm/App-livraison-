@@ -1,6 +1,10 @@
 import { supabase } from "@/lib/supabase";
 import { SignInCredentials, SignUpCredentials } from "@/types/auth.types";
 import { ADMIN_EMAILS, UserRole } from "@/types/user.types";
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+
+WebBrowser.maybeCompleteAuthSession();
 
 // Mock session for demo mode when Supabase is not yet configured
 let currentSession: any = null;
@@ -252,10 +256,34 @@ export const authService = {
 
   async signInWithSocial(provider: "google" | "apple") {
     try {
+      const redirectUrl = Linking.createURL('auth/callback');
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
       });
+
       if (error) throw new Error(error.message);
+
+      if (data?.url) {
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+        if (result.type === 'success' && result.url) {
+          const { queryParams } = Linking.parse(result.url);
+          if (queryParams?.access_token && queryParams?.refresh_token) {
+            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+              access_token: queryParams.access_token as string,
+              refresh_token: queryParams.refresh_token as string,
+            });
+            if (sessionError) throw sessionError;
+            if (sessionData.session) {
+              notifyListeners(sessionData.session);
+              return sessionData;
+            }
+          }
+        }
+      }
       return data;
     } catch {
       // Fallback social demo session
