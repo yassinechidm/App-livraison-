@@ -617,6 +617,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
+    width: '100%',
+    maxWidth: 720,
+    alignSelf: 'center',
   },
   locationSelector: {
     flexDirection: 'row',
@@ -648,7 +651,7 @@ const styles = StyleSheet.create({
   locationTitle: {
     fontWeight: '900',
     color: colors.text,
-    maxWidth: 220,
+    flexShrink: 1,
   },
   headerRightActions: {
     flexDirection: 'row',
@@ -675,6 +678,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 110,
+    width: '100%',
+    maxWidth: 720,
+    alignSelf: 'center',
   },
   modeToggleContainer: {
     flexDirection: 'row',
@@ -905,6 +911,9 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: spacing.md,
     right: spacing.md,
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center',
   },
   floatingCartBar: {
     backgroundColor: colors.primary,
@@ -912,7 +921,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: 14,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.full,
     elevation: 8,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 6 },

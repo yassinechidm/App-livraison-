@@ -5,7 +5,7 @@ import Colors from '@/constants/Colors';
 import { cartService } from '@/services/cart.service';
 import { AnyPurchasableItem, CartState } from '@/types/cart.types';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Image,
     ScrollView,
@@ -101,16 +101,17 @@ export default function CartScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.modeTabEmoji}>🛵</Text>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text
                 style={[
                   styles.modeTabTitle,
                   cartState.deliveryMode === 'DELIVERY' && styles.modeTabTitleActive,
                 ]}
+                numberOfLines={1}
               >
                 Livraison à domicile
               </Text>
-              <Text style={styles.modeTabSub}>
+              <Text style={styles.modeTabSub} numberOfLines={1}>
                 {isFreeDelivery ? 'Gratuit' : '15,00 MAD'}
               </Text>
             </View>
@@ -125,16 +126,17 @@ export default function CartScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.modeTabEmoji}>🥡</Text>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text
                 style={[
                   styles.modeTabTitle,
                   cartState.deliveryMode === 'PICKUP' && styles.modeTabTitleActive,
                 ]}
+                numberOfLines={1}
               >
-                À emporter (Click & Collect)
+                À emporter
               </Text>
-              <Text style={styles.modeTabSub}>0,00 MAD • Prêt en 15 min</Text>
+              <Text style={styles.modeTabSub} numberOfLines={1}>0,00 MAD • 15 min</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -352,6 +354,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+    maxWidth: 680,
+    width: '100%',
+    alignSelf: 'center',
   },
   modeSwitcherContainer: {
     flexDirection: 'row',

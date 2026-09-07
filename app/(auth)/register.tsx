@@ -1,10 +1,8 @@
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import Logo from "@/components/ui/Logo";
-import Colors from "@/constants/Colors";
 import { authService } from "@/services/auth.service";
 import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     Alert,
     KeyboardAvoidingView,
@@ -232,6 +230,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#38BDF8",
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
   },
   brandContainer: {
     flexDirection: "row",
@@ -258,6 +259,9 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingBottom: 40,
     flex: 1,
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
   },
   title: {
     fontSize: 26,

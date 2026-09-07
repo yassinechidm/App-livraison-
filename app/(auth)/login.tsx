@@ -285,6 +285,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
     backgroundColor: "#38BDF8",
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
   },
   skipButton: {
     position: "absolute",
@@ -331,6 +334,9 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingBottom: 40,
     flex: 1,
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
   },
   welcomeText: {
     fontSize: 28,
@@ -347,18 +353,18 @@ const styles = StyleSheet.create({
   },
   phoneInputRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     marginBottom: 24,
   },
   prefixCard: {
     borderWidth: 1,
     borderColor: "#E2E8F0",
     borderRadius: 16,
-    paddingHorizontal: 14,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     backgroundColor: "#FAFAFA",
     justifyContent: "center",
-    minWidth: 100,
+    minWidth: 90,
   },
   prefixLabel: {
     fontSize: 11,
@@ -369,13 +375,13 @@ const styles = StyleSheet.create({
   prefixContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
   },
   flagText: {
-    fontSize: 16,
+    fontSize: 15,
   },
   prefixNumber: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     color: "#2D3748",
   },
@@ -390,7 +396,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
     borderRadius: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     backgroundColor: "#FAFAFA",
     justifyContent: "center",

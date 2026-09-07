@@ -5,7 +5,7 @@ import { cartService } from '@/services/cart.service';
 import { productService } from '@/services/product.service';
 import { Category, Product } from '@/types/product.types';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     RefreshControl,
     ScrollView,
@@ -168,6 +168,9 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     backgroundColor: Colors.white,
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center',
   },
   searchBar: {
     flexDirection: 'row',
@@ -197,6 +200,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
     paddingVertical: 10,
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center',
   },
   categoryPillsScroll: {
     paddingHorizontal: 16,
@@ -222,6 +228,9 @@ const styles = StyleSheet.create({
   productsScroll: {
     padding: 16,
     paddingBottom: 100,
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center',
   },
   resultCount: {
     fontSize: 12,

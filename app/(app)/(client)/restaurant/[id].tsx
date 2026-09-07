@@ -7,19 +7,16 @@ import { restaurantService } from '@/services/restaurant.service';
 import { CartState } from '@/types/cart.types';
 import { Restaurant } from '@/types/restaurant.types';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-    Dimensions,
     Image,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
-
-const { width } = Dimensions.get('window');
 
 export default function RestaurantDetailScreen() {
   const router = useRouter();
@@ -585,6 +582,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100,
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center',
   },
   coverWrapper: {
     height: 180,
@@ -711,6 +711,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
     paddingVertical: 12,
     borderTopWidth: 1,
     borderBottomWidth: 1,

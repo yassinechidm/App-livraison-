@@ -9,7 +9,7 @@ import { CartState } from '@/types/cart.types';
 import { Address, PaymentMethodType } from '@/types/order.types';
 import { BANK_DETAILS } from '@/types/payment.types';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Alert,
     ScrollView,
@@ -347,6 +347,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+    maxWidth: 680,
+    width: '100%',
+    alignSelf: 'center',
   },
 
   header: {
@@ -463,7 +466,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
     borderRadius: 16,
-    padding: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
     alignItems: 'center',

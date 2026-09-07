@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  TextInput,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import QuantitySelector from '@/components/ui/QuantitySelector';
 import Colors from '@/constants/Colors';
+import { cartService } from '@/services/cart.service';
 import { productService } from '@/services/product.service';
 import { restaurantService } from '@/services/restaurant.service';
-import { cartService } from '@/services/cart.service';
 import { AnyPurchasableItem, SelectedCustomization } from '@/types/cart.types';
 import { CustomizationGroup } from '@/types/restaurant.types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function ProductDetailScreen() {
   const router = useRouter();
@@ -419,6 +419,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 120,
+    maxWidth: 680,
+    width: '100%',
+    alignSelf: 'center',
   },
   imageContainer: {
     height: 220,
@@ -705,6 +708,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    maxWidth: 680,
+    width: '100%',
+    alignSelf: 'center',
     backgroundColor: Colors.white,
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0',

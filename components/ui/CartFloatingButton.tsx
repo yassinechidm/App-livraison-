@@ -2,7 +2,7 @@ import Colors from '@/constants/Colors';
 import { cartService } from '@/services/cart.service';
 import { CartState } from '@/types/cart.types';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function CartFloatingButton() {
@@ -47,13 +47,16 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     zIndex: 999,
+    alignItems: 'center',
   },
   button: {
+    width: '100%',
+    maxWidth: 540,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Colors.primary,
-    borderRadius: 10,
+    borderRadius: 28,
     paddingVertical: 14,
     paddingHorizontal: 18,
     shadowColor: Colors.primary,

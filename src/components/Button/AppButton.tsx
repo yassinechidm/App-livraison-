@@ -1,7 +1,7 @@
+import { borderRadius, colors, spacing } from '@/src/theme';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Button as PaperButton } from 'react-native-paper';
-import { borderRadius, colors, spacing } from '@/src/theme';
 import { AppButtonProps, ButtonVariant } from './types';
 
 export const AppButton: React.FC<AppButtonProps> = ({

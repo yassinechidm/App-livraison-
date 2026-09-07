@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-} from 'react-native';
-import { Link } from 'expo-router';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Colors from '@/constants/Colors';
 import { authService } from '@/services/auth.service';
+import { Link } from 'expo-router';
+import { useState } from 'react';
+import {
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -148,6 +147,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#38BDF8',
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
   },
   brandContainer: {
     flexDirection: 'row',
@@ -174,6 +176,9 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingBottom: 40,
     flex: 1,
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
   },
   header: {
     alignItems: 'center',

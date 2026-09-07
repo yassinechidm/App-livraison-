@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-  Linking,
-  Modal,
-  TextInput,
-  Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import OrderTimeline from '@/components/ui/OrderTimeline';
 import Colors from '@/constants/Colors';
 import { orderService } from '@/services/order.service';
 import { Order, ORDER_STATUS_CONFIG } from '@/types/order.types';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+    Alert,
+    Linking,
+    Modal,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function ClientOrdersScreen() {
   const router = useRouter();
@@ -444,6 +444,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
     gap: 8,
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center',
   },
   filterBtn: {
     paddingHorizontal: 14,
@@ -466,6 +469,9 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
     gap: 14,
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center',
   },
   orderCard: {
     backgroundColor: Colors.white,

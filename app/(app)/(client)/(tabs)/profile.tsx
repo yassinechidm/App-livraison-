@@ -4,7 +4,7 @@ import Colors from '@/constants/Colors';
 import { authService } from '@/services/auth.service';
 import { User } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Alert,
     ScrollView,
@@ -132,6 +132,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
   },
   profileHeader: {
     alignItems: 'center',

@@ -1,5 +1,4 @@
 import Colors from '@/constants/Colors';
-import React from 'react';
 import {
     ActivityIndicator,
     StyleSheet,
@@ -110,7 +109,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
   },
   disabled: {
     opacity: 0.5,
@@ -119,6 +118,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: -0.2,
+    textAlign: 'center',
   },
 });
 

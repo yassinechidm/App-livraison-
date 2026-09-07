@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import Card from '@/components/ui/Card';
 import Colors from '@/constants/Colors';
-import { adminService, AdminDashboardStats } from '@/services/admin.service';
+import { AdminDashboardStats, adminService } from '@/services/admin.service';
+import { Courier, courierService } from '@/services/courier.service';
 import { orderService } from '@/services/order.service';
-import { courierService, Courier } from '@/services/courier.service';
-import { promoService, PromoCode } from '@/services/promo.service';
+import { PromoCode, promoService } from '@/services/promo.service';
 import { Order, ORDER_STATUS_CONFIG } from '@/types/order.types';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 // Top selling dishes computed dynamically from real orders
 function computeTopSellingDishes(allOrders: Order[]) {
@@ -379,6 +379,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -416,7 +419,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   kpiCard: {
-    width: '48%',
+    flex: 1,
+    minWidth: '46%',
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 14,
