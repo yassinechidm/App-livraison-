@@ -1,4 +1,4 @@
-export type UserRole = 'CLIENT' | 'ADMIN' | 'client' | 'admin';
+export type UserRole = "client" | "delivery" | "admin" | "CLIENT" | "ADMIN";
 
 export interface UserProfile {
   id: string;
@@ -9,6 +9,9 @@ export interface UserProfile {
 }
 
 // Admin emails — only users with these emails get admin access
-export const ADMIN_EMAILS = [
-  'admin@quicklivraison.ma',
+export const ADMIN_EMAILS = ["admin@quicklivraison.ma"];
+
+export const DELIVERY_EMAILS = [
+  "delivery@quicklivraison.ma",
+  "livreur@quicklivraison.ma",
 ];

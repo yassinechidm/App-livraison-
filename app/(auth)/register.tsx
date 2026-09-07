@@ -1,10 +1,10 @@
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Logo from '@/components/ui/Logo';
-import Colors from '@/constants/Colors';
-import { authService } from '@/services/auth.service';
-import { Link } from 'expo-router';
-import { useState } from 'react';
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Logo from "@/components/ui/Logo";
+import Colors from "@/constants/Colors";
+import { authService } from "@/services/auth.service";
+import { Link, useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
     Alert,
     KeyboardAvoidingView,
@@ -12,51 +12,52 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    View,
-} from 'react-native';
+    View
+} from "react-native";
 
 export default function RegisterScreen() {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [city, setCity] = useState('');
-  const [businessName, setBusinessName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const router = useRouter();
 
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
 
     if (!fullName.trim()) {
-      newErrors.fullName = 'Le nom complet est requis';
+      newErrors.fullName = "Le nom complet est requis";
     }
 
     if (!email.trim()) {
-      newErrors.email = 'L\'email est requis';
+      newErrors.email = "L'email est requis";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      newErrors.email = 'Email invalide';
+      newErrors.email = "Email invalide";
     }
 
     if (!phone.trim()) {
-      newErrors.phone = 'Le téléphone est requis';
+      newErrors.phone = "Le téléphone est requis";
     }
 
     if (!city.trim()) {
-      newErrors.city = 'La ville est requise';
+      newErrors.city = "La ville/quartier est requis";
     }
 
     if (!password) {
-      newErrors.password = 'Le mot de passe est requis';
+      newErrors.password = "Le mot de passe est requis";
     } else if (password.length < 6) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+      newErrors.password = "Au moins 6 caractères";
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = 'La confirmation est requise';
+      newErrors.confirmPassword = "La confirmation est requise";
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
+      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
     }
 
     setErrors(newErrors);
@@ -71,17 +72,19 @@ export default function RegisterScreen() {
       const data = await authService.signUp({ email: email.trim(), password });
 
       if (data.user && !data.session) {
-        // Email confirmation is required
         Alert.alert(
-          'Vérifiez votre email',
-          'Un email de confirmation a été envoyé à votre adresse. Veuillez le vérifier pour activer votre compte.',
-          [{ text: 'OK' }]
+          "Vérifiez votre email",
+          "Un email de confirmation a été envoyé à votre adresse. Veuillez le vérifier pour activer votre compte.",
+          [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
         );
+      } else {
+        // Automatically signed in, navigate to main client app
+        router.replace("/(app)/(client)/(tabs)" as any);
       }
-      // If session exists, auth guard will handle navigation automatically
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Une erreur est survenue';
-      Alert.alert('Erreur d\'inscription', message);
+      const message =
+        error instanceof Error ? error.message : "Une erreur est survenue";
+      Alert.alert("Erreur d'inscription", message);
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +93,7 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -99,16 +102,16 @@ export default function RegisterScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Logo size={64} style={styles.logo} />
+          <Logo size={56} style={styles.logo} />
           <Text style={styles.title}>Créer un compte</Text>
           <Text style={styles.subtitle}>
-            Rejoignez Quickly Livraison et commandez vos plats favoris
+            Rejoignez la communauté Quick Livraison à Oujda 🇲🇦
           </Text>
 
         </View>
 
-        {/* Form */}
-        <View style={styles.form}>
+        {/* Card containing Registration Form */}
+        <View style={styles.card}>
           <Input
             label="Nom complet"
             placeholder="Votre nom complet"
@@ -148,7 +151,7 @@ export default function RegisterScreen() {
 
           <Input
             label="Nom de boutique (optionnel)"
-            placeholder="Ma Boutique"
+            placeholder="Ex: Ma Pâtisserie, Epicerie..."
             value={businessName}
             onChangeText={setBusinessName}
           />
@@ -172,7 +175,7 @@ export default function RegisterScreen() {
           />
 
           <Button
-            title="S'inscrire"
+            title="Créer mon compte"
             onPress={handleRegister}
             isLoading={isLoading}
             variant="success"
@@ -180,19 +183,29 @@ export default function RegisterScreen() {
           />
         </View>
 
-        {/* Footer */}
+        {/* Footer Link */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Déjà un compte ?{' '}
-            <Link href="/(auth)/login">
+            Déjà inscrit ?{" "}
+            <Link href="/(auth)/login" asChild>
               <Text style={styles.footerLink}>Se connecter</Text>
             </Link>
           </Text>
         </View>
 
-        {/* Terms */}
+        {/* Terms and Legal Disclaimers */}
         <Text style={styles.terms}>
-          En vous inscrivant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité.
+          En créant un compte, vous acceptez nos{" "}
+          <Link href="/(auth)/legal-terms" asChild>
+            <Text style={styles.legalHighlight}>Conditions d'utilisation</Text>
+          </Link>{" "}
+          et notre{" "}
+          <Link href="/(auth)/legal-terms" asChild>
+            <Text style={styles.legalHighlight}>
+              Politique de confidentialité
+            </Text>
+          </Link>
+          .
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -206,73 +219,66 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+    paddingTop: 45,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 32,
+    alignItems: "center",
+    marginBottom: 20,
   },
   logo: {
-    marginBottom: 16,
-  },
-  logoBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textInverse,
-    letterSpacing: -1,
+    marginBottom: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: "800",
     color: Colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: 4,
     letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
+    textAlign: "center",
+    lineHeight: 18,
   },
-  form: {
-    marginBottom: 24,
+  card: {
+    backgroundColor: Colors.backgroundWhite,
+    borderRadius: 16,
+    padding: 18,
+    shadowColor: Colors.shadowColor,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    marginBottom: 16,
   },
   registerButton: {
-    marginTop: 8,
+    marginTop: 10,
   },
   footer: {
-    alignItems: 'center',
-    marginBottom: 16,
+    alignItems: "center",
+    marginBottom: 20,
   },
   footerText: {
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
   },
   footerLink: {
     color: Colors.primary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   terms: {
     color: Colors.textMuted,
     fontSize: 11,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 16,
     paddingHorizontal: 16,
+  },
+  legalHighlight: {
+    color: Colors.primary,
+    fontWeight: "600",
+    textDecorationLine: "underline",
   },
 });
