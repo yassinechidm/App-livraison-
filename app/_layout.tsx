@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { Slot, useRouter, useSegments } from 'expo-router';
