@@ -309,13 +309,13 @@ export const HomeScreen: React.FC = () => {
           decelerationRate="fast"
           snapToInterval={310}
         >
-          {/* Banner 1: Free Delivery */}
+          {/* Banner 1: Free Delivery above 300 DH */}
           <Surface style={[styles.bannerCard, styles.bannerBlue]} elevation={0}>
             <View style={styles.bannerBadge}>
-              <Text style={styles.bannerBadgeText}>OFFRE SPÉCIALE</Text>
+              <Text style={styles.bannerBadgeText}>LIVRAISON OFFERTE</Text>
             </View>
             <Text style={styles.bannerHeading}>Livraison 100% offerte</Text>
-            <Text style={styles.bannerSub}>Sur votre première commande avec le code QUICKLY</Text>
+            <Text style={styles.bannerSub}>Dès 300 DH d'achat sur vos restaurants préférés à Oujda</Text>
             <AppButton
               title="En profiter"
               size="sm"
@@ -325,20 +325,20 @@ export const HomeScreen: React.FC = () => {
             />
           </Surface>
 
-          {/* Banner 2: Mega Deals */}
+          {/* Banner 2: Loyalty offer - 3 orders, 4th is free */}
           <Surface style={[styles.bannerCard, styles.bannerWarm]} elevation={0}>
             <View style={[styles.bannerBadge, styles.bannerBadgeWarm]}>
               <Tag size={10} color={colors.textInverse} />
-              <Text style={styles.bannerBadgeText}>PROMOS FLASH</Text>
+              <Text style={styles.bannerBadgeText}>PROGRAMME FIDÉLITÉ</Text>
             </View>
-            <Text style={[styles.bannerHeading, styles.bannerHeadingDark]}>Jusqu'à -30%</Text>
-            <Text style={[styles.bannerSub, styles.bannerSubDark]}>Sur les meilleurs burgers et tacos d'Oujda</Text>
+            <Text style={[styles.bannerHeading, styles.bannerHeadingDark]}>4ème livraison offerte</Text>
+            <Text style={[styles.bannerSub, styles.bannerSubDark]}>Commandez 3 fois, votre 4ème livraison est 100% gratuite !</Text>
             <AppButton
-              title="Voir les offres"
+              title="Commander"
               size="sm"
               variant="primary"
               style={styles.bannerCta}
-              onPress={() => setActiveFilter('free_delivery')}
+              onPress={() => router.push('/(app)/(client)/restaurants' as any)}
             />
           </Surface>
         </ScrollView>

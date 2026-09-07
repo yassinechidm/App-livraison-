@@ -529,7 +529,7 @@ export default function RestaurantDetailScreen() {
         <View style={styles.freeDeliveryBanner}>
           <Text style={styles.freeDeliveryIcon}>🏷️</Text>
           <Text style={styles.freeDeliveryText}>
-            Atteignez <Text style={styles.boldText}>100,00 MAD</Text> pour bénéficier de la livraison gratuite
+            Atteignez <Text style={styles.boldText}>300,00 MAD</Text> pour bénéficier de la livraison gratuite
           </Text>
         </View>
 

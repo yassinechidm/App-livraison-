@@ -50,9 +50,10 @@ export default function CheckoutScreen() {
       }
     });
 
-    // Check loyalty: 5+ past orders = free delivery
+    // Check loyalty: order 3 times, 4th order is free delivery
     const pastCount = orderService.getPastOrderCount();
-    cartService.setLoyaltyFreeDelivery(pastCount >= 5);
+    const isFourthOrderFree = pastCount > 0 && (pastCount % 4 === 3 || pastCount >= 3);
+    cartService.setLoyaltyFreeDelivery(isFourthOrderFree);
 
     return unsubscribe;
   }, []);
@@ -306,7 +307,7 @@ export default function CheckoutScreen() {
         {cartState.freeDeliveryReason === 'loyalty' && (
           <View style={{ backgroundColor: '#FEF3C7', borderRadius: 10, padding: 10, marginTop: 6 }}>
             <Text style={{ fontSize: 12, color: '#B45309', fontWeight: '700', textAlign: 'center' }}>
-              ⭐ Client fidèle — livraison GRATUITE (5+ commandes) !
+              ⭐ Client fidèle — 4ème livraison 100% GRATUITE (3 commandes passées) !
             </Text>
           </View>
         )}
@@ -315,7 +316,7 @@ export default function CheckoutScreen() {
         {!cartState.freeDeliveryReason && cartState.deliveryMode === 'DELIVERY' && cartState.subtotal > 0 && (
           <View style={{ backgroundColor: '#EBF2FF', borderRadius: 10, padding: 10, marginTop: 6 }}>
             <Text style={{ fontSize: 11, color: Colors.primary, fontWeight: '600', textAlign: 'center' }}>
-              🚚 Plus que {(300 - cartState.subtotal).toFixed(0)} DH pour la livraison gratuite !
+              🚚 Plus que {Math.max(0, 300 - cartState.subtotal).toFixed(0)} DH pour la livraison gratuite !
             </Text>
           </View>
         )}

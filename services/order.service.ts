@@ -96,12 +96,12 @@ export const orderService = {
     const subtotal = input.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
     const isPickup = input.delivery_mode === 'PICKUP';
 
-    // Check loyalty: 5+ past orders = free delivery
+    // Check loyalty: 3 past orders = 4th order free delivery
     loadOrdersFromStorage();
     const pastOrderCount = SHARED_ORDERS.filter(
       (o) => o.status !== 'CANCELLED'
     ).length;
-    const isLoyaltyFree = pastOrderCount >= 5;
+    const isLoyaltyFree = pastOrderCount > 0 && (pastOrderCount % 4 === 3 || pastOrderCount >= 3);
     const isThresholdFree = subtotal >= 300 && !isPickup;
 
     const delivery_fee = isPickup || isLoyaltyFree || isThresholdFree ? 0 : 15.0;

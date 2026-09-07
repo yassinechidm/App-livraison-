@@ -79,7 +79,7 @@ export default function CartScreen() {
   }
 
   // Free delivery progress calculation
-  const threshold = cartState.freeDeliveryThreshold || 100;
+  const threshold = cartState.freeDeliveryThreshold || 300;
   const progress = Math.min(1, cartState.subtotal / threshold);
   const remainingForFree = Math.max(0, threshold - cartState.subtotal);
   const isFreeDelivery = cartState.subtotal >= threshold && cartState.deliveryMode === 'DELIVERY';
@@ -312,8 +312,10 @@ export default function CartScreen() {
             >
               {cartState.deliveryMode === 'PICKUP'
                 ? 'Gratuit'
+                : cartState.freeDeliveryReason === 'loyalty'
+                ? 'Gratuit (Fidélité 4ème commande 🎉)'
                 : isFreeDelivery
-                ? 'Gratuit (Promo 100 DH)'
+                ? 'Gratuit (Offerte dès 300 DH)'
                 : `${cartState.deliveryFee.toFixed(2)} MAD`}
             </Text>
           </View>
