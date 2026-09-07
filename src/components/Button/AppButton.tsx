@@ -104,7 +104,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.full,
     justifyContent: 'center',
   },
   fullWidth: {

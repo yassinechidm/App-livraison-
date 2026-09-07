@@ -66,9 +66,9 @@ const variantStyles = StyleSheet.create({
   primary: {
     backgroundColor: Colors.primary,
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
     elevation: 3,
   },
   secondary: {
@@ -77,11 +77,11 @@ const variantStyles = StyleSheet.create({
     borderColor: Colors.border,
   },
   success: {
-    backgroundColor: Colors.secondary,
-    shadowColor: Colors.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
     elevation: 3,
   },
   ghost: {
@@ -106,8 +106,8 @@ const variantTextStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   base: {
-    height: 50,
-    borderRadius: 10,
+    height: 52,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: -0.2,
   },
 });

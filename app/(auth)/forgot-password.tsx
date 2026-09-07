@@ -58,64 +58,76 @@ export default function ForgotPasswordScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={[styles.iconCircle, isSent && styles.iconCircleSuccess]}>
-            <Text style={styles.emoji}>{isSent ? '✅' : '🔐'}</Text>
+        {/* Top Header Background (bleu ciel / sky blue) */}
+        <View style={styles.topHeader}>
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandTitle}>QuickL</Text>
+            <View style={styles.locationPin}>
+              <Text style={styles.locationPinText}>📍</Text>
+            </View>
           </View>
-          <Text style={styles.title}>
-            {isSent ? 'Email envoyé !' : 'Mot de passe oublié'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {isSent
-              ? 'Vérifiez votre boîte de réception et suivez les instructions pour réinitialiser votre mot de passe.'
-              : 'Entrez votre email et nous vous enverrons un lien de réinitialisation.'}
-          </Text>
         </View>
 
-        {/* Form or Success */}
-        {!isSent ? (
-          <View style={styles.form}>
-            <Input
-              label="Email"
-              placeholder="votre@email.com"
-              value={email}
-              onChangeText={setEmail}
-              error={error}
-              keyboardType="email-address"
-              autoComplete="email"
-            />
-
-            <Button
-              title="Envoyer le lien"
-              onPress={handleReset}
-              isLoading={isLoading}
-              style={styles.resetButton}
-            />
-          </View>
-        ) : (
-          <View style={styles.form}>
-            <View style={styles.successCard}>
-              <Text style={styles.successEmoji}>📬</Text>
-              <Text style={styles.successText}>
-                Un email a été envoyé à{'\n'}
-                <Text style={styles.successEmail}>{email}</Text>
-              </Text>
+        {/* White bottom sheet */}
+        <View style={styles.sheet}>
+          <View style={styles.header}>
+            <View style={[styles.iconCircle, isSent && styles.iconCircleSuccess]}>
+              <Text style={styles.emoji}>{isSent ? '✅' : '🔐'}</Text>
             </View>
-            <Button
-              title="Renvoyer l'email"
-              onPress={handleReset}
-              variant="secondary"
-              isLoading={isLoading}
-            />
+            <Text style={styles.title}>
+              {isSent ? 'Email envoyé !' : 'Mot de passe oublié'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {isSent
+                ? 'Vérifiez votre boîte de réception et suivez les instructions pour réinitialiser votre mot de passe.'
+                : 'Entrez votre email et nous vous enverrons un lien de réinitialisation.'}
+            </Text>
           </View>
-        )}
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Link href="/(auth)/login">
-            <Text style={styles.footerLink}>← Retour à la connexion</Text>
-          </Link>
+          {/* Form or Success */}
+          {!isSent ? (
+            <View style={styles.form}>
+              <Input
+                label="Email"
+                placeholder="votre@email.com"
+                value={email}
+                onChangeText={setEmail}
+                error={error}
+                keyboardType="email-address"
+                autoComplete="email"
+              />
+
+              <Button
+                title="Envoyer le lien"
+                onPress={handleReset}
+                isLoading={isLoading}
+                style={styles.resetButton}
+              />
+            </View>
+          ) : (
+            <View style={styles.form}>
+              <View style={styles.successCard}>
+                <Text style={styles.successEmoji}>📬</Text>
+                <Text style={styles.successText}>
+                  Un email a été envoyé à{'\n'}
+                  <Text style={styles.successEmail}>{email}</Text>
+                </Text>
+              </View>
+              <Button
+                title="Renvoyer l'email"
+                onPress={handleReset}
+                variant="secondary"
+                isLoading={isLoading}
+              />
+            </View>
+          )}
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Link href="/(auth)/login">
+              <Text style={styles.footerLink}>← Retour à la connexion</Text>
+            </Link>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -125,82 +137,112 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#0066FF',
   },
   scrollContent: {
     flexGrow: 1,
+    backgroundColor: '#38BDF8',
+  },
+  topHeader: {
+    height: 160,
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#38BDF8',
+  },
+  brandContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  brandTitle: {
+    fontSize: 44,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -1.5,
+  },
+  locationPin: {
+    marginLeft: 6,
+  },
+  locationPinText: {
+    fontSize: 30,
+  },
+  sheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingTop: 32,
+    paddingBottom: 40,
+    flex: 1,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 36,
+    marginBottom: 24,
   },
   iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.backgroundOverlay,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#EBF3FF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   iconCircleSuccess: {
-    backgroundColor: Colors.statusDeliveredBg,
+    backgroundColor: '#DCFCE7',
   },
   emoji: {
-    fontSize: 32,
+    fontSize: 28,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1A202C',
     marginBottom: 8,
-    letterSpacing: -0.5,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
+    fontSize: 13,
+    color: '#718096',
     textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 16,
+    lineHeight: 20,
   },
   form: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   resetButton: {
     marginTop: 8,
+    backgroundColor: '#0066FF',
+    borderRadius: 28,
+    height: 54,
   },
   successCard: {
-    backgroundColor: Colors.statusDeliveredBg,
+    backgroundColor: '#DCFCE7',
     borderRadius: 16,
-    padding: 24,
+    padding: 20,
     alignItems: 'center',
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: Colors.secondary + '20',
   },
   successEmoji: {
-    fontSize: 40,
-    marginBottom: 12,
+    fontSize: 36,
+    marginBottom: 8,
   },
   successText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: '#2D3748',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   successEmail: {
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: '#1A202C',
   },
   footer: {
     alignItems: 'center',
   },
   footerLink: {
-    color: Colors.primary,
-    fontWeight: '700',
+    color: '#0066FF',
+    fontWeight: '800',
     fontSize: 14,
   },
 });

@@ -100,18 +100,24 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Logo size={56} style={styles.logo} />
+        {/* Top Header Background (bleu ciel / sky blue) */}
+        <View style={styles.topHeader}>
+          {/* Logo Brand Title (White text) */}
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandTitle}>QuickL</Text>
+            <View style={styles.locationPin}>
+              <Text style={styles.locationPinText}>📍</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* White bottom sheet */}
+        <View style={styles.sheet}>
           <Text style={styles.title}>Créer un compte</Text>
           <Text style={styles.subtitle}>
             Rejoignez la communauté Quick Livraison à Oujda 🇲🇦
           </Text>
 
-        </View>
-
-        {/* Card containing Registration Form */}
-        <View style={styles.card}>
           <Input
             label="Nom complet"
             placeholder="Votre nom complet"
@@ -178,35 +184,35 @@ export default function RegisterScreen() {
             title="Créer mon compte"
             onPress={handleRegister}
             isLoading={isLoading}
-            variant="success"
+            variant="primary"
             style={styles.registerButton}
           />
-        </View>
 
-        {/* Footer Link */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Déjà inscrit ?{" "}
-            <Link href="/(auth)/login" asChild>
-              <Text style={styles.footerLink}>Se connecter</Text>
+          {/* Footer Link */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Déjà inscrit ?{" "}
+              <Link href="/(auth)/login" asChild>
+                <Text style={styles.footerLink}>Se connecter</Text>
+              </Link>
+            </Text>
+          </View>
+
+          {/* Terms and Legal Disclaimers */}
+          <Text style={styles.terms}>
+            En créant un compte, vous acceptez nos{" "}
+            <Link href="/(auth)/legal-terms" asChild>
+              <Text style={styles.legalHighlight}>Conditions d'utilisation</Text>
+            </Link>{" "}
+            et notre{" "}
+            <Link href="/(auth)/legal-terms" asChild>
+              <Text style={styles.legalHighlight}>
+                Politique de confidentialité
+              </Text>
             </Link>
+            .
           </Text>
         </View>
-
-        {/* Terms and Legal Disclaimers */}
-        <Text style={styles.terms}>
-          En créant un compte, vous acceptez nos{" "}
-          <Link href="/(auth)/legal-terms" asChild>
-            <Text style={styles.legalHighlight}>Conditions d'utilisation</Text>
-          </Link>{" "}
-          et notre{" "}
-          <Link href="/(auth)/legal-terms" asChild>
-            <Text style={styles.legalHighlight}>
-              Politique de confidentialité
-            </Text>
-          </Link>
-          .
-        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -215,69 +221,85 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: "#0066FF",
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-    paddingTop: 45,
+    backgroundColor: "#38BDF8",
   },
-  header: {
+  topHeader: {
+    height: 160,
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    backgroundColor: "#38BDF8",
   },
-  logo: {
-    marginBottom: 8,
+  brandContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  brandTitle: {
+    fontSize: 44,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: -1.5,
+  },
+  locationPin: {
+    marginLeft: 6,
+  },
+  locationPinText: {
+    fontSize: 30,
+  },
+  sheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 40,
+    flex: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: Colors.textPrimary,
+    fontSize: 26,
+    fontWeight: "900",
+    color: "#1A202C",
+    textAlign: "center",
     marginBottom: 4,
-    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: "#718096",
     textAlign: "center",
-    lineHeight: 18,
-  },
-  card: {
-    backgroundColor: Colors.backgroundWhite,
-    borderRadius: 16,
-    padding: 18,
-    shadowColor: Colors.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   registerButton: {
     marginTop: 10,
+    backgroundColor: "#0066FF",
+    borderRadius: 28,
+    height: 54,
   },
   footer: {
     alignItems: "center",
-    marginBottom: 20,
+    marginTop: 20,
+    marginBottom: 16,
   },
   footerText: {
-    color: Colors.textSecondary,
+    color: "#718096",
     fontSize: 13,
   },
   footerLink: {
-    color: Colors.primary,
-    fontWeight: "700",
+    color: "#0066FF",
+    fontWeight: "800",
   },
   terms: {
-    color: Colors.textMuted,
+    color: "#A0AEC0",
     fontSize: 11,
     textAlign: "center",
     lineHeight: 16,
     paddingHorizontal: 16,
   },
   legalHighlight: {
-    color: Colors.primary,
+    color: "#0066FF",
     fontWeight: "600",
     textDecorationLine: "underline",
   },
