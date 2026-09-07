@@ -2,7 +2,7 @@ import Colors from '@/constants/Colors';
 import { cartService } from '@/services/cart.service';
 import { Tabs } from 'expo-router';
 import { Home, MapPin, Search, ShoppingCart, User } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
