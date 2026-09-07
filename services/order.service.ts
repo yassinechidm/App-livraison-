@@ -1,7 +1,7 @@
-import { Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { CreateOrderInput, Order, OrderItem, OrderStatus } from '@/types/order.types';
+import { Platform } from 'react-native';
 import { authService } from './auth.service';
-import { Order, OrderStatus, CreateOrderInput, OrderItem } from '@/types/order.types';
 import { cartService } from './cart.service';
 
 function isValidUUID(str?: string): boolean {
