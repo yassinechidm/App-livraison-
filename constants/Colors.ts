@@ -1,70 +1,81 @@
-// Quick Livraison color palette — light theme with blue/green accents
-const Colors = {
-  // Primary — Quick Livraison electric blue (from logo)
-  primary: '#0066FF',
-  primaryLight: '#2B7FFF',
-  primaryDark: '#004ECC',
+import { colors } from '@/src/theme';
 
-  // Secondary — Quick Livraison green (CTA, success)
-  secondary: '#00B602',
-  secondaryLight: '#22C55E',
-  secondaryDark: '#009302',
+// Quickly Livraison Design System Palette
+const Colors = {
+  // Primary — Modern Vibrant Blue (#2563EB)
+  primary: colors.primary,
+  primaryLight: colors.primaryLight,
+  primaryDark: colors.primaryDark,
+  primaryDeep: colors.primaryDark,
+  primaryMuted: colors.primaryLight,
+
+  // Secondary / Accents — Fast Orange/Coral for Promos, Speed, Badges
+  secondary: colors.secondary,
+  secondaryLight: colors.secondaryLight,
+  secondaryDark: '#E04A26',
+  secondaryMuted: '#FFF0ED',
+
+  // Quickly Plus / VIP Dark Slate
+  plusPurple: '#1E293B',
+  plusPurpleLight: '#F1F5F9',
 
   // Backgrounds
-  background: '#F8FAFC',
-  backgroundWhite: '#FFFFFF',
-  backgroundCard: '#FFFFFF',
-  backgroundInput: '#FFFFFF',
-  backgroundOverlay: 'rgba(2, 67, 137, 0.08)',
-  backgroundMuted: '#F1F5F9',
+  background: colors.background,
+  backgroundWhite: colors.surface,
+  backgroundCard: colors.surface,
+  backgroundInput: colors.surfaceVariant,
+  backgroundOverlay: colors.overlay,
+  backgroundMuted: '#EDF2F7',
 
-  // Text
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-  textInverse: '#FFFFFF',
-  textLink: '#024389',
+  // Text — Modern Clean Typography
+  textPrimary: colors.text,
+  textSecondary: colors.textSecondary,
+  textMuted: colors.textMuted,
+  textInverse: colors.textInverse,
+  textLink: colors.primary,
 
   // Status
-  success: '#00B602',
-  error: '#EF4444',
-  errorLight: '#FEF2F2',
-  warning: '#F59E0B',
-  warningLight: '#FFFBEB',
-  info: '#3B82F6',
-  infoLight: '#EFF6FF',
+  success: colors.success,
+  successLight: colors.successLight,
+  error: colors.error,
+  errorLight: colors.errorLight,
+  warning: colors.warning,
+  warningLight: colors.warningLight,
+  info: colors.primary,
+  infoLight: colors.primaryLight,
 
-  // Parcel statuses
-  statusPending: '#F59E0B',
-  statusPendingBg: '#FFFBEB',
-  statusPickedUp: '#3B82F6',
-  statusPickedUpBg: '#EFF6FF',
-  statusInTransit: '#8B5CF6',
-  statusInTransitBg: '#F5F3FF',
-  statusDelivered: '#00B602',
-  statusDeliveredBg: '#F0FDF4',
-  statusReturned: '#EF4444',
-  statusReturnedBg: '#FEF2F2',
+  // Order & Courier statuses
+  statusPending: colors.warning,
+  statusPendingBg: colors.warningLight,
+  statusPickedUp: colors.primary,
+  statusPickedUpBg: colors.primaryLight,
+  statusInTransit: colors.primary,
+  statusInTransitBg: colors.primaryLight,
+  statusDelivered: colors.success,
+  statusDeliveredBg: colors.successLight,
+  statusReturned: colors.error,
+  statusReturnedBg: colors.errorLight,
 
   // Borders
-  border: '#E2E8F0',
-  borderLight: '#F1F5F9',
-  borderFocus: '#024389',
+  border: colors.border,
+  borderLight: colors.border,
+  borderFocus: colors.borderFocus,
 
   // Tab bar
-  tabBarBackground: '#FFFFFF',
-  tabIconDefault: '#94A3B8',
-  tabIconSelected: '#024389',
+  tabBarBackground: colors.surface,
+  tabIconDefault: colors.textMuted,
+  tabIconSelected: colors.primary,
 
   // Shadows
-  shadowColor: '#0F172A',
+  shadowColor: colors.text,
 
   // Misc
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
-  emerald: '#10B981',
-  emeraldLight: '#ECFDF5',
+  emerald: colors.success,
+  emeraldLight: colors.successLight,
 } as const;
 
 export default Colors;
+

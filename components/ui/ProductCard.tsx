@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Product } from '@/types/product.types';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QuantitySelector from './QuantitySelector';
 
 interface ProductCardProps {
@@ -123,16 +123,17 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   addButton: {
-    backgroundColor: '#EBF2FF',
+    backgroundColor: Colors.primaryMuted,
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.primary + '40',
   },
   addButtonText: {
     fontSize: 12,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.primaryDeep,
   },
+
 });

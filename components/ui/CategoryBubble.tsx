@@ -1,7 +1,7 @@
-import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Category } from '@/types/product.types';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface CategoryBubbleProps {
   category: Category;
@@ -41,30 +41,30 @@ export default function CategoryBubble({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    width: 80,
+    width: 76,
     marginRight: 10,
   },
   containerSelected: {
-    transform: [{ scale: 1.03 }],
+    transform: [{ scale: 1.04 }],
   },
   circle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#EBF2FF',
+    width: 58,
+    height: 58,
+    borderRadius: 16,
+    backgroundColor: Colors.backgroundWhite,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
     marginBottom: 6,
     shadowColor: Colors.shadowColor,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 4,
     elevation: 2,
   },
   circleSelected: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryMuted,
     borderColor: Colors.primary,
   },
   emoji: {
@@ -73,12 +73,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 11,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 14,
   },
   titleSelected: {
-    color: Colors.primary,
+    color: Colors.primaryDeep,
     fontWeight: '800',
   },
 });
+

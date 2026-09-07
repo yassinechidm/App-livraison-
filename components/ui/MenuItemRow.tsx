@@ -29,55 +29,47 @@ export default function MenuItemRow({
       onPress={onPress}
       activeOpacity={isAvailable ? 0.85 : 0.6}
     >
-      {/* Dish Photo */}
+      {/* Dish Details (Left side in Deliveroo) */}
+      <View style={styles.content}>
+        <Text
+          style={[styles.name, !isAvailable && styles.textDisabled]}
+          numberOfLines={2}
+        >
+          {item.name}
+        </Text>
+
+        <Text style={styles.description} numberOfLines={2}>
+          {item.description}
+        </Text>
+
+        <View style={styles.bottomRow}>
+          <Text style={[styles.price, !isAvailable && styles.textDisabled]}>
+            {item.price.toFixed(2)} DH
+          </Text>
+
+          {item.is_popular && (
+            <View style={styles.popularBadge}>
+              <Text style={styles.popularBadgeText}>Populaire</Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Dish Photo on Right (Deliveroo format) */}
       <View style={styles.imageWrapper}>
         <Image
           source={{ uri: item.image_url }}
           style={[styles.image, !isAvailable && styles.imageDisabled]}
           resizeMode="cover"
         />
-        {!isAvailable && (
+
+        {!isAvailable ? (
           <View style={styles.soldOutOverlay}>
             <Text style={styles.soldOutText}>ÉPUISÉ</Text>
           </View>
-        )}
-      </View>
-
-      {/* Dish Details */}
-      <View style={styles.content}>
-        <View style={styles.headerRow}>
-          <Text
-            style={[styles.name, !isAvailable && styles.textDisabled]}
-            numberOfLines={2}
-          >
-            {item.name}
-          </Text>
-          <Text style={[styles.price, !isAvailable && styles.textDisabled]}>
-            {item.price.toFixed(2)} MAD
-          </Text>
-        </View>
-
-        <Text style={styles.description} numberOfLines={3}>
-          {item.description}
-        </Text>
-
-        {/* Social Proof Tag & Add Button Row */}
-        <View style={styles.footerRow}>
-          {!isAvailable ? (
-            <View style={styles.soldOutBadge}>
-              <Text style={styles.soldOutBadgeText}>🚫 Rupture de stock</Text>
-            </View>
-          ) : item.order_count_badge ? (
-            <View style={styles.socialTag}>
-              <Text style={styles.socialTagEmoji}>🛍️</Text>
-              <Text style={styles.socialTagText}>{item.order_count_badge}</Text>
-            </View>
-          ) : (
-            <View />
-          )}
-
-          {isAvailable ? (
-            quantityInCart > 0 ? (
+        ) : (
+          <View style={styles.actionOverlay}>
+            {quantityInCart > 0 ? (
               <QuantitySelector
                 quantity={quantityInCart}
                 onIncrement={onIncrement}
@@ -88,17 +80,13 @@ export default function MenuItemRow({
               <TouchableOpacity
                 style={styles.addBtn}
                 onPress={onAddToCart}
-                activeOpacity={0.75}
+                activeOpacity={0.8}
               >
                 <Text style={styles.addBtnIcon}>+</Text>
               </TouchableOpacity>
-            )
-          ) : (
-            <View style={styles.disabledBtn}>
-              <Text style={styles.disabledBtnText}>Indisponible</Text>
-            </View>
-          )}
-        </View>
+            )}
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -107,23 +95,67 @@ export default function MenuItemRow({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.backgroundWhite,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    gap: 14,
+    borderBottomColor: Colors.border,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
   },
   containerDisabled: {
     backgroundColor: '#FAFAFA',
-    opacity: 0.75,
+    opacity: 0.7,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+    letterSpacing: -0.2,
+  },
+  description: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  price: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  popularBadge: {
+    backgroundColor: Colors.secondaryMuted,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  popularBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.secondary,
+  },
+  textDisabled: {
+    color: Colors.textMuted,
+    textDecorationLine: 'line-through',
   },
   imageWrapper: {
-    width: 90,
-    height: 90,
-    borderRadius: 16,
+    width: 96,
+    height: 96,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.backgroundMuted,
     position: 'relative',
   },
   image: {
@@ -139,113 +171,44 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   soldOutText: {
     color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 11,
-    letterSpacing: 0.8,
-    backgroundColor: '#EF4444',
+    fontWeight: '800',
+    fontSize: 10,
+    backgroundColor: Colors.error,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
-  content: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    flex: 1,
-    letterSpacing: 0.2,
-  },
-  price: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-  },
-  textDisabled: {
-    color: Colors.textMuted,
-    textDecorationLine: 'line-through',
-  },
-  description: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    lineHeight: 16,
-    marginVertical: 4,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  socialTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  socialTagEmoji: {
-    fontSize: 11,
-  },
-  socialTagText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-  },
-  soldOutBadge: {
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  soldOutBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#DC2626',
+  actionOverlay: {
+    position: 'absolute',
+    bottom: 6,
+    right: 6,
   },
   addBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
   addBtnIcon: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.primary,
     lineHeight: 20,
   },
-  disabledBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: '#E2E8F0',
-  },
-  disabledBtnText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748B',
-  },
 });
+

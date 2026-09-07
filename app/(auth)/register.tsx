@@ -107,6 +107,7 @@ export default function RegisterScreen() {
           <Text style={styles.subtitle}>
             Rejoignez la communauté Quick Livraison à Oujda 🇲🇦
           </Text>
+
         </View>
 
         {/* Card containing Registration Form */}

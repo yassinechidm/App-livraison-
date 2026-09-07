@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import QuantitySelector from '@/components/ui/QuantitySelector';
 import Colors from '@/constants/Colors';
 import { cartService } from '@/services/cart.service';
-import { CartState, AnyPurchasableItem } from '@/types/cart.types';
+import { AnyPurchasableItem, CartState } from '@/types/cart.types';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 const CROSS_SELL_SUGGESTIONS: AnyPurchasableItem[] = [
   {
@@ -332,12 +332,13 @@ export default function CartScreen() {
           </Text>
         </View>
 
-        {/* Checkout CTA */}
+        {/* Checkout CTA Deliveroo */}
         <Button
-          title={`Valider la commande • ${cartState.total.toFixed(2)} MAD →`}
+          title={`Passer commande • ${cartState.total.toFixed(2)} DH →`}
           onPress={() => router.push('/(app)/(client)/checkout' as any)}
           style={styles.checkoutBtn}
         />
+
       </ScrollView>
     </View>
   );
@@ -346,7 +347,7 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background,
   },
   scrollContent: {
     padding: 16,
@@ -362,16 +363,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.backgroundWhite,
     padding: 10,
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
   },
   modeTabActive: {
     borderColor: Colors.primary,
-    backgroundColor: '#EBF2FF',
+    backgroundColor: Colors.primaryMuted,
   },
+
   modeTabEmoji: {
     fontSize: 20,
   },

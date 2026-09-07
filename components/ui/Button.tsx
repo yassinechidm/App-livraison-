@@ -1,13 +1,13 @@
+import Colors from '@/constants/Colors';
 import React from 'react';
 import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  ViewStyle,
-  TextStyle,
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TextStyle,
+    TouchableOpacity,
+    ViewStyle,
 } from 'react-native';
-import Colors from '@/constants/Colors';
 
 interface ButtonProps {
   title: string;
@@ -66,23 +66,23 @@ const variantStyles = StyleSheet.create({
   primary: {
     backgroundColor: Colors.primary,
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   secondary: {
-    backgroundColor: Colors.transparent,
-    borderWidth: 1.5,
+    backgroundColor: Colors.backgroundWhite,
+    borderWidth: 1,
     borderColor: Colors.border,
   },
   success: {
     backgroundColor: Colors.secondary,
     shadowColor: Colors.secondary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   ghost: {
     backgroundColor: Colors.transparent,
@@ -106,18 +106,19 @@ const variantTextStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   base: {
-    height: 52,
-    borderRadius: 26,
+    height: 50,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
   },
   disabled: {
     opacity: 0.5,
   },
   text: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    letterSpacing: -0.2,
   },
 });
+
