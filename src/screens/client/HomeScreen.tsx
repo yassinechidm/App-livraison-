@@ -1,48 +1,45 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  FlatList,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { Badge as PaperBadge, Chip, Surface, Text } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import {
-  ArrowRight,
-  Bell,
-  Bike,
-  ChevronDown,
-  Clock,
-  Crosshair,
-  MapPin,
-  PackageCheck,
-  Search,
-  ShoppingBag,
-  SlidersHorizontal,
-  Sparkles,
-  Tag,
+    ArrowRight,
+    Bell,
+    Bike,
+    ChevronDown,
+    Clock,
+    Crosshair,
+    MapPin,
+    PackageCheck,
+    Search,
+    SlidersHorizontal,
+    Tag
 } from 'lucide-react-native';
-
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AppBottomSheet,
-  AppButton,
-  CategoryCard,
-  EmptyState,
-  LoadingState,
-  RestaurantCard,
-} from '@/src/components';
-import { borderRadius, colors, spacing } from '@/src/theme';
-import { CategoryItem, Restaurant } from '@/src/types/restaurant.types';
-import { Order } from '@/src/types/order.types';
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { Chip, Surface, Text } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { OUJDA_NEIGHBORHOODS } from '@/constants/mockData';
 import { cartService } from '@/services/cart.service';
 import { locationService } from '@/services/location.service';
 import { orderService } from '@/services/order.service';
 import { restaurantService } from '@/services/restaurant.service';
+import {
+    AppBottomSheet,
+    AppButton,
+    CategoryCard,
+    EmptyState,
+    LoadingState,
+    RestaurantCard,
+} from '@/src/components';
+import { borderRadius, colors, spacing } from '@/src/theme';
+import { Order } from '@/src/types/order.types';
+import { CategoryItem, Restaurant } from '@/src/types/restaurant.types';
 
 const CATEGORIES: CategoryItem[] = [
   { id: 'all', name: 'Tous', iconName: 'Sparkles' },
@@ -1006,3 +1003,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+

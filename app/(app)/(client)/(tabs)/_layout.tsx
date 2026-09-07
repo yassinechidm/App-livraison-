@@ -1,8 +1,7 @@
-import Logo from '@/components/ui/Logo';
 import Colors from '@/constants/Colors';
 import { cartService } from '@/services/cart.service';
-import { CircleUserRound, Home, ReceiptText, Search, ShoppingBag } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
+import { CircleUserRound, Home, ReceiptText, Search, ShoppingBag } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
