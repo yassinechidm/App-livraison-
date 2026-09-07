@@ -4,7 +4,7 @@ import Logo from '@/components/ui/Logo';
 import Colors from '@/constants/Colors';
 import { authService } from '@/services/auth.service';
 import { Link } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     Alert,
     KeyboardAvoidingView,

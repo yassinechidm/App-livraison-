@@ -2,7 +2,7 @@ import Logo from '@/components/ui/Logo';
 import Colors from '@/constants/Colors';
 import { cartService } from '@/services/cart.service';
 import { Tabs } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 function TabIcon({

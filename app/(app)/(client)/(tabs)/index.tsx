@@ -8,7 +8,7 @@ import { restaurantService } from '@/services/restaurant.service';
 import { Order } from '@/types/order.types';
 import { Restaurant } from '@/types/restaurant.types';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     FlatList,
     Modal,

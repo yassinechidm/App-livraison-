@@ -1,5 +1,4 @@
 import Colors from '@/constants/Colors';
-import React from 'react';
 import { Image, ImageStyle, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 interface LogoProps {
