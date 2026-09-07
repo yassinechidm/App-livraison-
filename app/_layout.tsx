@@ -7,6 +7,11 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { authService } from '@/services/auth.service';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { paperTheme } from '@/src/theme';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PaperProvider } from 'react-native-paper';
+import Toast from 'react-native-toast-message';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -91,9 +96,14 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <StatusBar style="dark" />
-      <Slot />
-    </>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PaperProvider theme={paperTheme}>
+        <BottomSheetModalProvider>
+          <StatusBar style="dark" />
+          <Slot />
+          <Toast />
+        </BottomSheetModalProvider>
+      </PaperProvider>
+    </GestureHandlerRootView>
   );
 }
