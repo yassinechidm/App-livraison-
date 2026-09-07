@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
+import Colors from "@/constants/Colors";
+import React, { useState } from "react";
 import {
-  View,
-  TextInput,
-  Text,
-  StyleSheet,
-  TextInputProps,
-  TouchableOpacity,
-} from 'react-native';
-import Colors from '@/constants/Colors';
+    StyleSheet,
+    Text,
+    TextInput,
+    TextInputProps,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   isPassword?: boolean;
+  containerStyle?: any;
 }
 
 export default function Input({
@@ -20,13 +21,14 @@ export default function Input({
   error,
   isPassword = false,
   style,
+  containerStyle,
   ...props
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <View
         style={[
@@ -50,7 +52,7 @@ export default function Input({
             style={styles.eyeButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text style={styles.eyeText}>{showPassword ? '🙈' : '👁️'}</Text>
+            <Text style={styles.eyeText}>{showPassword ? "🙈" : "👁️"}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -66,13 +68,13 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.textSecondary,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
     letterSpacing: 0.2,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.backgroundInput,
     borderRadius: 14,
     borderWidth: 1.5,
@@ -98,8 +100,8 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     paddingHorizontal: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   eyeText: {
     fontSize: 18,
@@ -109,6 +111,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 6,
     marginLeft: 4,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });
