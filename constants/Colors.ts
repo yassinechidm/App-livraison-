@@ -1,15 +1,17 @@
+import { colors } from '@/src/theme';
+
 // Quickly Livraison Design System Palette
 const Colors = {
-  // Primary — Quickly Signature Royal Blue (#0260E6)
-  primary: '#0260E6',
-  primaryLight: '#2F7DF6',
-  primaryDark: '#004EC4',
-  primaryDeep: '#003A99',
-  primaryMuted: '#EBF3FF',
+  // Primary — Modern Vibrant Blue (#2563EB)
+  primary: colors.primary,
+  primaryLight: colors.primaryLight,
+  primaryDark: colors.primaryDark,
+  primaryDeep: colors.primaryDark,
+  primaryMuted: colors.primaryLight,
 
   // Secondary / Accents — Fast Orange/Coral for Promos, Speed, Badges
-  secondary: '#FF5A35',
-  secondaryLight: '#FF7B5C',
+  secondary: colors.secondary,
+  secondaryLight: colors.secondaryLight,
   secondaryDark: '#E04A26',
   secondaryMuted: '#FFF0ED',
 
@@ -18,61 +20,61 @@ const Colors = {
   plusPurpleLight: '#F1F5F9',
 
   // Backgrounds
-  background: '#F8FAFC',
-  backgroundWhite: '#FFFFFF',
-  backgroundCard: '#FFFFFF',
-  backgroundInput: '#F1F5F9',
-  backgroundOverlay: 'rgba(2, 96, 230, 0.12)',
+  background: colors.background,
+  backgroundWhite: colors.surface,
+  backgroundCard: colors.surface,
+  backgroundInput: colors.surfaceVariant,
+  backgroundOverlay: colors.overlay,
   backgroundMuted: '#EDF2F7',
 
   // Text — Modern Clean Typography
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-  textInverse: '#FFFFFF',
-  textLink: '#0260E6',
+  textPrimary: colors.text,
+  textSecondary: colors.textSecondary,
+  textMuted: colors.textMuted,
+  textInverse: colors.textInverse,
+  textLink: colors.primary,
 
   // Status
-  success: '#10B981',
-  successLight: '#ECFDF5',
-  error: '#EF4444',
-  errorLight: '#FEF2F2',
-  warning: '#F59E0B',
-  warningLight: '#FFFBEB',
-  info: '#0260E6',
-  infoLight: '#EBF3FF',
+  success: colors.success,
+  successLight: colors.successLight,
+  error: colors.error,
+  errorLight: colors.errorLight,
+  warning: colors.warning,
+  warningLight: colors.warningLight,
+  info: colors.primary,
+  infoLight: colors.primaryLight,
 
   // Order & Courier statuses
-  statusPending: '#F59E0B',
-  statusPendingBg: '#FFFBEB',
-  statusPickedUp: '#0260E6',
-  statusPickedUpBg: '#EBF3FF',
-  statusInTransit: '#0260E6',
-  statusInTransitBg: '#EBF3FF',
-  statusDelivered: '#10B981',
-  statusDeliveredBg: '#ECFDF5',
-  statusReturned: '#EF4444',
-  statusReturnedBg: '#FEF2F2',
+  statusPending: colors.warning,
+  statusPendingBg: colors.warningLight,
+  statusPickedUp: colors.primary,
+  statusPickedUpBg: colors.primaryLight,
+  statusInTransit: colors.primary,
+  statusInTransitBg: colors.primaryLight,
+  statusDelivered: colors.success,
+  statusDeliveredBg: colors.successLight,
+  statusReturned: colors.error,
+  statusReturnedBg: colors.errorLight,
 
   // Borders
-  border: '#E2E8F0',
-  borderLight: '#F1F5F9',
-  borderFocus: '#0260E6',
+  border: colors.border,
+  borderLight: colors.border,
+  borderFocus: colors.borderFocus,
 
   // Tab bar
-  tabBarBackground: '#FFFFFF',
-  tabIconDefault: '#94A3B8',
-  tabIconSelected: '#0260E6',
+  tabBarBackground: colors.surface,
+  tabIconDefault: colors.textMuted,
+  tabIconSelected: colors.primary,
 
   // Shadows
-  shadowColor: '#0F172A',
+  shadowColor: colors.text,
 
   // Misc
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
-  emerald: '#10B981',
-  emeraldLight: '#ECFDF5',
+  emerald: colors.success,
+  emeraldLight: colors.successLight,
 } as const;
 
 export default Colors;
