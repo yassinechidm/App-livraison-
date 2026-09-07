@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { CourierMarkerProps } from './types';
 import CourierMarkerWeb from './CourierMarker.web';
+import { CourierMarkerProps } from './types';
 
 export const CourierMarker: React.FC<CourierMarkerProps> = (props) => {
   if (Platform.OS === 'web') {

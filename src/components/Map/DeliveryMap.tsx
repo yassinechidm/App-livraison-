@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { DeliveryMapProps } from './types';
 import DeliveryMapWeb from './DeliveryMap.web';
+import { DeliveryMapProps } from './types';
 
 export const DeliveryMap: React.FC<DeliveryMapProps> = (props) => {
   if (Platform.OS === 'web') {

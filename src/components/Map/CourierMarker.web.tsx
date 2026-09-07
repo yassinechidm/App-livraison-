@@ -1,7 +1,7 @@
+import { borderRadius, colors } from '@/src/theme';
+import { Bike } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Bike } from 'lucide-react-native';
-import { borderRadius, colors } from '@/src/theme';
 import { CourierMarkerProps } from './types';
 
 export const CourierMarkerWeb: React.FC<CourierMarkerProps> = () => {
@@ -46,3 +46,4 @@ const styles = StyleSheet.create({
 });
 
 export default CourierMarkerWeb;
+

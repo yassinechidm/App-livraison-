@@ -1,8 +1,8 @@
+import { borderRadius, colors } from '@/src/theme';
+import { Home, Utensils } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
-import { Home, Utensils } from 'lucide-react-native';
-import { borderRadius, colors } from '@/src/theme';
 import CourierMarker from './CourierMarker';
 import { DeliveryMapProps } from './types';
 
@@ -92,3 +92,4 @@ const styles = StyleSheet.create({
 });
 
 export default DeliveryMapNative;
+

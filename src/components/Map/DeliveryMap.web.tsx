@@ -1,8 +1,8 @@
+import { borderRadius, colors, spacing } from '@/src/theme';
+import { Bike, Home, Utensils } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { Bike, Home, MapPin, Utensils } from 'lucide-react-native';
-import { borderRadius, colors, spacing } from '@/src/theme';
 import { DeliveryMapProps } from './types';
 
 export const DeliveryMapWeb: React.FC<DeliveryMapProps> = ({
@@ -115,3 +115,4 @@ const styles = StyleSheet.create({
 });
 
 export default DeliveryMapWeb;
+
