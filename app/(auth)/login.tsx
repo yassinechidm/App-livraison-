@@ -5,20 +5,20 @@ import { authService } from "@/services/auth.service";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
@@ -294,26 +294,27 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   topHeader: {
-    height: 140,
+    height: Math.max(SCREEN_HEIGHT * 0.32, 250),
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
     backgroundColor: Colors.primary,
+    paddingTop: Platform.OS === "android" ? 30 : 20,
   },
   skipButton: {
     position: "absolute",
-    top: 24,
+    top: Platform.OS === "android" ? 36 : 48,
     right: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 7,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
     zIndex: 10,
   },
   skipButtonText: {
@@ -324,10 +325,10 @@ const styles = StyleSheet.create({
   brandContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 14,
+    marginTop: 20,
   },
   brandTitle: {
-    fontSize: 40,
+    fontSize: 46,
     fontWeight: "900",
     color: "#FFFFFF",
     letterSpacing: -1.5,
@@ -336,15 +337,15 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   locationPinText: {
-    fontSize: 28,
+    fontSize: 34,
   },
   sheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
     paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 28,
+    paddingTop: 28,
+    paddingBottom: 36,
     flex: 1,
     width: "100%",
     overflow: "hidden",

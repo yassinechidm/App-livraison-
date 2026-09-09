@@ -804,13 +804,17 @@ const styles = StyleSheet.create({
   },
   headerTitleRow: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 14,
+    paddingBottom: 6,
+    alignItems: "center",
+    justifyContent: "center",
   },
   mainTitle: {
     fontSize: 28,
     fontWeight: "900",
     color: "#3C3489",
+    textAlign: "center",
+    letterSpacing: -0.5,
   },
 
   // Tabs matching Screenshot #2 & #4

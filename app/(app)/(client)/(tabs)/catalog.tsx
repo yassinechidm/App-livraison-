@@ -7,7 +7,7 @@ import { LocationPickerModal } from "@/src/components/LocationPickerModal";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { Category, Product } from "@/types/product.types";
 import { useRouter } from "expo-router";
-import { ChevronDown, Home, Search, Store, X } from "lucide-react-native";
+import { Search, Store, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Dimensions,
@@ -66,27 +66,16 @@ export default function DiscoverCatalogScreen() {
 
   return (
     <View style={styles.container}>
-      {/* ── Top Header Section (Screenshot #1) ── */}
+      {/* ── Top Header Section ── */}
       <View style={styles.organicHeader}>
         <SafeAreaView edges={["top"]} style={styles.headerSafe}>
-          {/* Centered Top Address Pill */}
-          <TouchableOpacity
-            style={styles.addressPill}
-            onPress={() => setIsLocationModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <Home size={18} color="#3C3489" style={{ marginRight: 8 }} />
-            <Text style={styles.addressPillText} numberOfLines={1}>
-              {selectedAddress}
-            </Text>
-            <ChevronDown size={18} color="#3C3489" style={{ marginLeft: 6 }} />
-          </TouchableOpacity>
-
-          {/* Discover Title & Graphic Hero */}
           <View style={styles.heroRow}>
-            <Text style={styles.discoverTitle}>Discover</Text>
+            <View style={{ width: 56 }} />
+            <Text style={styles.discoverTitle}>
+              {t("catalog.title", "Discover")}
+            </Text>
             <View style={styles.magnifierCircle}>
-              <Search size={44} color="#3C3489" strokeWidth={2.5} />
+              <Search size={28} color="#3C3489" strokeWidth={2.4} />
             </View>
           </View>
         </SafeAreaView>
@@ -256,51 +245,39 @@ const styles = StyleSheet.create({
   },
   headerSafe: {
     alignItems: "center",
-    paddingTop: Platform.OS === "android" ? 12 : 0,
-  },
-  addressPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.background,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 24,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 4,
-    maxWidth: SCREEN_WIDTH * 0.85,
-    marginTop: 4,
-  },
-  addressPillText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#3C3489",
-    maxWidth: SCREEN_WIDTH * 0.6,
+    paddingTop: Platform.OS === "android" ? 16 : 8,
   },
   heroRow: {
     width: "100%",
-    paddingHorizontal: 28,
-    marginTop: 24,
+    paddingHorizontal: 20,
+    marginTop: 4,
+    marginBottom: 4,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   discoverTitle: {
-    fontSize: 32,
+    flex: 1,
+    textAlign: "center",
+    fontSize: 28,
     fontWeight: "900",
-    color: "#3C3489",
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
   },
   magnifierCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#FFD166",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 3,
+    borderWidth: 2.5,
     borderColor: "#FFFFFF",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   scrollContent: {
     paddingBottom: 90,

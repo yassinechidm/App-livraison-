@@ -1,7 +1,7 @@
-import { useLanguage } from "@/src/context/LanguageContext";
 import Colors from "@/constants/Colors";
 import { restaurantService } from "@/services/restaurant.service";
 import { LocationPickerModal } from "@/src/components/LocationPickerModal";
+import { useLanguage } from "@/src/context/LanguageContext";
 import { useRouter } from "expo-router";
 import {
     Bike,
@@ -17,8 +17,11 @@ import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Animated,
     Dimensions,
+    Easing,
     Modal,
+    PanResponder,
     Platform,
     SafeAreaView,
     ScrollView,
@@ -32,7 +35,37 @@ import Svg, { Path } from "react-native-svg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-function GreenCrescentIcon({ size = 42 }: { size?: number }) {
+const PENTAGON_CONTAINER_SIZE = Math.min(SCREEN_WIDTH - 24, 360);
+const PENTAGON_RADIUS = PENTAGON_CONTAINER_SIZE * 0.32;
+const CX = PENTAGON_CONTAINER_SIZE / 2;
+const CY = PENTAGON_CONTAINER_SIZE / 2 - 8;
+const BUBBLE_WIDTH = 90;
+const BUBBLE_CIRCLE_SIZE = 84;
+
+const PENTAGON_POS = {
+  food: {
+    x: CX - PENTAGON_RADIUS * 0.5878,
+    y: CY - PENTAGON_RADIUS * 0.809,
+  },
+  groceries: {
+    x: CX + PENTAGON_RADIUS * 0.5878,
+    y: CY - PENTAGON_RADIUS * 0.809,
+  },
+  shops: {
+    x: CX + PENTAGON_RADIUS * 0.9511,
+    y: CY + PENTAGON_RADIUS * 0.309,
+  },
+  packageDelivery: {
+    x: CX,
+    y: CY + PENTAGON_RADIUS,
+  },
+  pharmacy: {
+    x: CX - PENTAGON_RADIUS * 0.9511,
+    y: CY + PENTAGON_RADIUS * 0.309,
+  },
+};
+
+function GreenCrescentIcon({ size = 34 }: { size?: number }) {
   return (
     <Svg
       width={size}
@@ -50,10 +83,206 @@ function GreenCrescentIcon({ size = 42 }: { size?: number }) {
   );
 }
 
+interface DraggableBubbleProps {
+  x: number;
+  y: number;
+  index: number;
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+  width: number;
+  circleSize: number;
+}
+
+const DraggableBubble: React.FC<DraggableBubbleProps> = ({
+  x,
+  y,
+  index,
+  icon,
+  label,
+  onPress,
+  width,
+  circleSize,
+}) => {
+  const pan = React.useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const scale = React.useRef(new Animated.Value(1)).current;
+  const floatY = React.useRef(new Animated.Value(0)).current;
+  const [isDragging, setIsDragging] = React.useState(false);
+  const floatAnimRef = React.useRef<Animated.CompositeAnimation | null>(null);
+
+  const startFloat = React.useCallback(() => {
+    floatAnimRef.current?.stop();
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatY, {
+          toValue: -5,
+          duration: 1700 + index * 200,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatY, {
+          toValue: 4,
+          duration: 1700 + index * 200,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    floatAnimRef.current = anim;
+    anim.start();
+  }, [index, floatY]);
+
+  React.useEffect(() => {
+    const delay = setTimeout(startFloat, index * 220);
+    return () => {
+      clearTimeout(delay);
+      floatAnimRef.current?.stop();
+    };
+  }, [index, startFloat]);
+
+  const panResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, g) =>
+          Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3,
+        onPanResponderGrant: () => {
+          setIsDragging(true);
+          floatAnimRef.current?.stop();
+          pan.setOffset({
+            x: (pan.x as any)._value || 0,
+            y: (pan.y as any)._value || 0,
+          });
+          pan.setValue({ x: 0, y: 0 });
+
+          Animated.spring(scale, {
+            toValue: 1.16,
+            bounciness: 6,
+            speed: 14,
+            useNativeDriver: true,
+          }).start();
+        },
+        onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
+          useNativeDriver: false,
+        }),
+        onPanResponderRelease: (_, g) => {
+          pan.flattenOffset();
+          setIsDragging(false);
+
+          const dist = Math.hypot(g.dx, g.dy);
+          if (dist < 8) {
+            // Tap feedback & trigger action
+            Animated.sequence([
+              Animated.timing(scale, {
+                toValue: 0.9,
+                duration: 75,
+                useNativeDriver: true,
+              }),
+              Animated.spring(scale, {
+                toValue: 1,
+                bounciness: 8,
+                speed: 16,
+                useNativeDriver: true,
+              }),
+            ]).start(() => {
+              startFloat();
+            });
+            onPress();
+          } else {
+            // Spring back automatically to home place with playful bouncy recoil
+            Animated.parallel([
+              Animated.spring(pan, {
+                toValue: { x: 0, y: 0 },
+                bounciness: 14,
+                speed: 12,
+                useNativeDriver: true,
+              }),
+              Animated.spring(scale, {
+                toValue: 1,
+                bounciness: 8,
+                speed: 14,
+                useNativeDriver: true,
+              }),
+            ]).start(() => {
+              startFloat();
+            });
+          }
+        },
+        onPanResponderTerminate: () => {
+          pan.flattenOffset();
+          setIsDragging(false);
+          Animated.parallel([
+            Animated.spring(pan, {
+              toValue: { x: 0, y: 0 },
+              bounciness: 12,
+              speed: 12,
+              useNativeDriver: true,
+            }),
+            Animated.spring(scale, {
+              toValue: 1,
+              bounciness: 8,
+              speed: 14,
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
+            startFloat();
+          });
+        },
+      }),
+    [onPress, startFloat, pan, scale],
+  );
+
+  const rotateInterpolation = pan.x.interpolate({
+    inputRange: [-140, 0, 140],
+    outputRange: ["-18deg", "0deg", "18deg"],
+    extrapolate: "clamp",
+  });
+
+  return (
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={[
+        styles.bubbleCol,
+        {
+          position: "absolute",
+          left: x - width / 2,
+          top: y - circleSize / 2,
+          zIndex: isDragging ? 999 : 1,
+          elevation: isDragging ? 16 : 4,
+          transform: [
+            { translateX: pan.x },
+            { translateY: Animated.add(pan.y, floatY) },
+            { scale },
+            { rotate: rotateInterpolation },
+          ],
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.bubbleOuterCircle,
+          isDragging && styles.bubbleOuterCircleActive,
+        ]}
+      >
+        <View style={styles.bubbleCircle}>{icon}</View>
+      </View>
+      <View style={styles.bubbleBadge}>
+        <Text
+          style={styles.bubbleBadgeText}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+        >
+          {label}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+};
+
 export const HomeScreen: React.FC = () => {
   const router = useRouter();
   const { t } = useLanguage();
-
 
   // Address and modal states
   const [selectedAddress, setSelectedAddress] = useState(
@@ -124,111 +353,86 @@ export const HomeScreen: React.FC = () => {
         <View style={styles.organicWaveBackdrop} />
 
         <SafeAreaView style={styles.safeArea}>
-          {/* ── 5 Glovo Category Bubbles ── */}
+          {/* ── 5 Glovo Category Bubbles in Pentagon Shape ── */}
           <View style={styles.bubblesContainer}>
-            {/* Row 1: Food & Groceries */}
-            <View style={styles.bubblesRow}>
-              {/* Bubble 1: Food */}
-              <View style={styles.bubbleCol}>
-                <TouchableOpacity
-                  style={styles.bubbleOuterCircle}
-                  onPress={() =>
-                    router.push("/(app)/(client)/(tabs)/catalog" as any)
-                  }
-                  activeOpacity={0.82}
-                >
-                  <View style={styles.bubbleCircle}>
-                    <UtensilsCrossed
-                      size={40}
-                      color="#D97706"
-                      strokeWidth={2.2}
-                    />
-                  </View>
-                </TouchableOpacity>
-                <View style={styles.bubbleBadge}>
-                  <Text style={styles.bubbleBadgeText}>{t("home.food", "Food")}</Text>
-                </View>
-              </View>
+            <View style={styles.pentagonWrapper}>
+              {/* Bubble 1: Food (Top-Left) */}
+              <DraggableBubble
+                index={0}
+                x={PENTAGON_POS.food.x}
+                y={PENTAGON_POS.food.y}
+                width={BUBBLE_WIDTH}
+                circleSize={BUBBLE_CIRCLE_SIZE}
+                label={t("home.food", "Food")}
+                onPress={() =>
+                  router.push("/(app)/(client)/(tabs)/catalog" as any)
+                }
+                icon={
+                  <UtensilsCrossed
+                    size={34}
+                    color="#D97706"
+                    strokeWidth={2.2}
+                  />
+                }
+              />
 
-              {/* Bubble 2: Groceries */}
-              <View style={styles.bubbleCol}>
-                <TouchableOpacity
-                  style={styles.bubbleOuterCircle}
-                  onPress={() =>
-                    router.push("/(app)/(client)/(tabs)/catalog" as any)
-                  }
-                  activeOpacity={0.82}
-                >
-                  <View style={styles.bubbleCircle}>
-                    <ShoppingCart size={40} color="#16A34A" strokeWidth={2.2} />
-                  </View>
-                </TouchableOpacity>
-                <View style={styles.bubbleBadge}>
-                  <Text style={styles.bubbleBadgeText}>{t("home.groceries", "Groceries")}</Text>
-                </View>
-              </View>
-            </View>
+              {/* Bubble 2: Groceries (Top-Right) */}
+              <DraggableBubble
+                index={1}
+                x={PENTAGON_POS.groceries.x}
+                y={PENTAGON_POS.groceries.y}
+                width={BUBBLE_WIDTH}
+                circleSize={BUBBLE_CIRCLE_SIZE}
+                label={t("home.groceries", "Groceries")}
+                onPress={() =>
+                  router.push("/(app)/(client)/(tabs)/catalog" as any)
+                }
+                icon={
+                  <ShoppingCart size={34} color="#16A34A" strokeWidth={2.2} />
+                }
+              />
 
-            {/* Row 2: Pharmacy & Shops */}
-            <View style={[styles.bubblesRow, { marginTop: 24 }]}>
-              {/* Bubble 3: Pharmacy (NEW option requested) */}
-              <View style={styles.bubbleCol}>
-                <TouchableOpacity
-                  style={styles.bubbleOuterCircle}
-                  onPress={() =>
-                    router.push("/(app)/(client)/(tabs)/catalog" as any)
-                  }
-                  activeOpacity={0.82}
-                >
-                  <View style={styles.bubbleCircle}>
-                    <GreenCrescentIcon size={42} />
-                  </View>
-                </TouchableOpacity>
-                <View style={styles.bubbleBadge}>
-                  <Text style={styles.bubbleBadgeText}>{t("home.pharmacy", "Pharmacy")}</Text>
-                </View>
-              </View>
+              {/* Bubble 3: Pharmacy (Middle-Left) */}
+              <DraggableBubble
+                index={2}
+                x={PENTAGON_POS.pharmacy.x}
+                y={PENTAGON_POS.pharmacy.y}
+                width={BUBBLE_WIDTH}
+                circleSize={BUBBLE_CIRCLE_SIZE}
+                label={t("home.pharmacy", "Pharmacy")}
+                onPress={() =>
+                  router.push("/(app)/(client)/(tabs)/catalog" as any)
+                }
+                icon={<GreenCrescentIcon size={34} />}
+              />
 
-              {/* Bubble 4: Shops */}
-              <View style={styles.bubbleCol}>
-                <TouchableOpacity
-                  style={styles.bubbleOuterCircle}
-                  onPress={() =>
-                    router.push("/(app)/(client)/(tabs)/catalog" as any)
-                  }
-                  activeOpacity={0.82}
-                >
-                  <View style={styles.bubbleCircle}>
-                    <ShoppingBag size={40} color="#0284C7" strokeWidth={2.2} />
-                  </View>
-                </TouchableOpacity>
-                <View style={styles.bubbleBadge}>
-                  <Text style={styles.bubbleBadgeText}>{t("home.shops", "Shops")}</Text>
-                </View>
-              </View>
-            </View>
+              {/* Bubble 4: Shops (Middle-Right) */}
+              <DraggableBubble
+                index={3}
+                x={PENTAGON_POS.shops.x}
+                y={PENTAGON_POS.shops.y}
+                width={BUBBLE_WIDTH}
+                circleSize={BUBBLE_CIRCLE_SIZE}
+                label={t("home.shops", "Shops")}
+                onPress={() =>
+                  router.push("/(app)/(client)/(tabs)/catalog" as any)
+                }
+                icon={
+                  <ShoppingBag size={34} color="#0284C7" strokeWidth={2.2} />
+                }
+              />
 
-            {/* Row 3: Package Delivery (Centered) */}
-            <View
-              style={[
-                styles.bubblesRow,
-                { marginTop: 24, justifyContent: "center" },
-              ]}
-            >
-              <View style={styles.bubbleCol}>
-                <TouchableOpacity
-                  style={styles.bubbleOuterCircle}
-                  onPress={() => setIsPackageModalVisible(true)}
-                  activeOpacity={0.82}
-                >
-                  <View style={styles.bubbleCircle}>
-                    <Bike size={42} color="#F59E0B" strokeWidth={2.2} />
-                  </View>
-                </TouchableOpacity>
-                <View style={styles.bubbleBadge}>
-                  <Text style={styles.bubbleBadgeText}>{t("home.packageDelivery", "Package Delivery")}</Text>
-                </View>
-              </View>
+              {/* Bubble 5: Package Delivery (Bottom-Center) */}
+              <DraggableBubble
+                index={4}
+                x={PENTAGON_POS.packageDelivery.x}
+                y={PENTAGON_POS.packageDelivery.y}
+                width={BUBBLE_WIDTH}
+                circleSize={BUBBLE_CIRCLE_SIZE}
+                label={t("home.packageDelivery", "Package Delivery")}
+                onPress={() => setIsPackageModalVisible(true)}
+                icon={<Bike size={34} color="#F59E0B" strokeWidth={2.2} />}
+              />
             </View>
           </View>
 
@@ -428,12 +632,12 @@ const styles = StyleSheet.create({
   },
   organicWaveBackdrop: {
     position: "absolute",
-    top: 60,
-    right: -40,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    alignSelf: "center",
+    top: "16%",
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   safeArea: {
     flex: 1,
@@ -467,34 +671,44 @@ const styles = StyleSheet.create({
     maxWidth: SCREEN_WIDTH * 0.6,
   },
 
-  // Category Bubbles (Image 2)
+  // Category Bubbles (Pentagon Arrangement)
   bubblesContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 28,
-    marginVertical: 10,
-  },
-  bubblesRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
     alignItems: "center",
+    paddingHorizontal: 8,
+    marginVertical: 4,
+  },
+  pentagonWrapper: {
+    width: PENTAGON_CONTAINER_SIZE,
+    height: PENTAGON_CONTAINER_SIZE + 24,
+    position: "relative",
   },
   bubbleCol: {
     alignItems: "center",
+    width: BUBBLE_WIDTH,
   },
   bubbleOuterCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: BUBBLE_CIRCLE_SIZE,
+    height: BUBBLE_CIRCLE_SIZE,
+    borderRadius: BUBBLE_CIRCLE_SIZE / 2,
     backgroundColor: "rgba(255, 255, 255, 0.4)",
     alignItems: "center",
     justifyContent: "center",
     padding: 4,
   },
+  bubbleOuterCircleActive: {
+    backgroundColor: "rgba(255, 255, 255, 0.75)",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.32,
+    shadowRadius: 18,
+    elevation: 14,
+  },
   bubbleCircle: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
+    width: BUBBLE_CIRCLE_SIZE - 10,
+    height: BUBBLE_CIRCLE_SIZE - 10,
+    borderRadius: (BUBBLE_CIRCLE_SIZE - 10) / 2,
     backgroundColor: "#FFFFFF",
     borderWidth: 3,
     borderColor: "#FFFFFF",
@@ -508,10 +722,13 @@ const styles = StyleSheet.create({
   },
   bubbleBadge: {
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 14,
-    marginTop: 8,
+    width: BUBBLE_WIDTH,
+    height: 26,
+    borderRadius: 13,
+    marginTop: 6,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -519,9 +736,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   bubbleBadgeText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "800",
     color: "#3C3489",
+    textAlign: "center",
   },
 
   // Bottom Status Card (Image 2)
