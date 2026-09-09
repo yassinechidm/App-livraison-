@@ -8,8 +8,8 @@ function TabIcon({ Icon, focused }: { Icon: any; focused: boolean }) {
     <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
       <Icon
         size={20}
-        strokeWidth={focused ? 2.7 : 2}
-        color={focused ? Colors.primary : Colors.tabIconDefault}
+        strokeWidth={focused ? 2.6 : 2}
+        color={focused ? "#5C5BDB" : "#7F77DD"}
       />
     </View>
   );
@@ -19,16 +19,16 @@ export default function DeliveryTabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.tabIconDefault,
+        tabBarActiveTintColor: "#5C5BDB",
+        tabBarInactiveTintColor: "#7F77DD",
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabLabel,
-        headerStyle: { backgroundColor: Colors.backgroundWhite },
-        headerTintColor: Colors.textPrimary,
+        headerStyle: { backgroundColor: "#FFFFFF" },
+        headerTintColor: "#3C3489",
         headerTitleStyle: {
           fontWeight: "800",
           fontSize: 18,
-          color: Colors.textPrimary,
+          color: "#3C3489",
         },
         headerShadowVisible: false,
       }}
@@ -57,7 +57,7 @@ export default function DeliveryTabsLayout() {
         name="profile"
         options={{
           title: "Profil",
-          headerTitle: "Profil Livreur",
+          headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon Icon={UserCircle} focused={focused} />
           ),
@@ -69,13 +69,17 @@ export default function DeliveryTabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: Colors.tabBarBackground,
-    borderTopColor: Colors.borderLight,
+    backgroundColor: "#FFFFFF",
+    borderTopColor: "#CECBF6",
     borderTopWidth: 1,
     height: 68,
     paddingBottom: 10,
     paddingTop: 7,
     elevation: 8,
+    shadowColor: "#3C3489",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
   tabLabel: { fontSize: 10, fontWeight: "700", marginTop: 2 },
   iconContainer: {
@@ -85,5 +89,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  iconContainerActive: { backgroundColor: Colors.primaryMuted },
+  iconContainerActive: { backgroundColor: "rgba(92, 91, 219, 0.12)" },
 });

@@ -594,7 +594,7 @@ export default function AdminOrdersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
   },
   filterSection: {
     backgroundColor: Colors.white,
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 16,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F7F7FF",
   },
   filterPillActive: {
     backgroundColor: Colors.primary,
@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
     gap: 12,
   },
   listHeader: {
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   orderCardHeader: {
     flexDirection: "row",
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   itemsList: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
     borderRadius: 12,
     padding: 10,
     marginVertical: 6,
@@ -761,7 +761,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#F1F5F9",
   },
   printTicketBtn: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F7F7FF",
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 10,
@@ -898,7 +898,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     marginBottom: 10,
     gap: 12,
   },
@@ -956,7 +956,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     marginBottom: 8,
     gap: 12,
   },

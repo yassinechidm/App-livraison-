@@ -1223,7 +1223,7 @@ export default function AdminProductsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
   },
   topTabSwitcher: {
     flexDirection: "row",
@@ -1323,7 +1323,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     marginBottom: 10,
   },
   restoBannerRow: {
@@ -1373,7 +1373,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   dishRow: {
     flexDirection: "row",
@@ -1460,7 +1460,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   restoRow: {
     flexDirection: "row",
@@ -1533,7 +1533,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   emptyEmoji: {
     fontSize: 40,
@@ -1555,7 +1555,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   productRow: {
     flexDirection: "row",

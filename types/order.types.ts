@@ -56,6 +56,9 @@ export interface Order {
   driver_name?: string;
   driver_phone?: string;
   driver_id?: string;
+  courier_rating?: number; // 1 to 5 stars for delivery driver
+  courier_review_text?: string;
+  courier_tags?: string[];
   delivery_lat?: number;
   delivery_lng?: number;
   courier_lat?: number;

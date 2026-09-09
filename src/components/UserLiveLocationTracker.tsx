@@ -1,9 +1,10 @@
-import Constants from "expo-constants";
+import { GOOGLE_MAPS_API_KEY, hasGoogleMapsKey } from "@/constants/Maps";
 import * as Location from "expo-location";
 import { MapPin, Navigation } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
+    Image,
     Platform,
     StyleSheet,
     Text,
@@ -16,12 +17,14 @@ import type { Region } from "react-native-maps";
 // "codegenNativeComponent is not a function" on react-native-web
 let MapViewComponent: any = null;
 let MarkerComponent: any = null;
+let PROVIDER_GOOGLE: any = undefined;
 
 if (Platform.OS !== "web") {
   try {
     const Maps = require("react-native-maps");
-    MapViewComponent = Maps.default;
+    MapViewComponent = Maps.default || Maps;
     MarkerComponent = Maps.Marker;
+    PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
   } catch (err) {
     console.warn("[UserLiveLocationTracker] Safe maps load notice:", err);
   }
@@ -193,19 +196,18 @@ export const UserLiveLocationTracker: React.FC<
     longitudeDelta,
   };
 
-  const isExpoGo =
-    Constants?.appOwnership === "expo" ||
-    Constants?.executionEnvironment === "storeClient";
+  const hasValidGoogleKey = hasGoogleMapsKey();
 
-  // Render native MapView on standalone native builds; fallback to vector map on Web & Expo Go
+  // Render native MapView on standalone native builds or native devices
   const isNativeSupported =
-    Platform.OS !== "web" && !isExpoGo && MapViewComponent && MarkerComponent;
+    Platform.OS !== "web" && MapViewComponent && MarkerComponent;
 
   if (isNativeSupported) {
     return (
       <View style={[styles.container, style]}>
         <MapViewComponent
           ref={mapRef}
+          provider={PROVIDER_GOOGLE}
           style={StyleSheet.absoluteFill}
           initialRegion={initialRegion}
           showsUserLocation={false}
@@ -240,6 +242,14 @@ export const UserLiveLocationTracker: React.FC<
   // Web / Fallback Interactive Canvas representation
   return (
     <View style={[styles.container, styles.webCanvasContainer, style]}>
+      {/* Real Google Maps Satellite / Roadmap Imagery */}
+      <Image
+        source={{
+          uri: `https://maps.googleapis.com/maps/api/staticmap?center=${userCoords.latitude},${userCoords.longitude}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:blue%7C${userCoords.latitude},${userCoords.longitude}&key=${GOOGLE_MAPS_API_KEY}`,
+        }}
+        style={StyleSheet.absoluteFill}
+        resizeMode="cover"
+      />
       <View style={styles.webGridOverlay} />
 
       <View style={styles.webHeaderBadge}>

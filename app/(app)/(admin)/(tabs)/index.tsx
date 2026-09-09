@@ -519,11 +519,11 @@ export default function AdminDashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
   },
   header: {
     flexDirection: "row",
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   adminBadge: {
-    backgroundColor: "#EBF2FF",
+    backgroundColor: "rgba(92, 91, 219, 0.12)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   kpiCardHighlight: {
     backgroundColor: "#F8FAFF",
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   metricBox: {
     alignItems: "center",
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     gap: 12,
   },
   topSellingRow: {
@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
   },
   topSellingProgressBg: {
     height: 6,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F7F7FF",
     borderRadius: 3,
     overflow: "hidden",
   },
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     gap: 10,
   },
   courierRow: {
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   reviewHeader: {
     flexDirection: "row",
@@ -769,7 +769,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   orderPreviewHeader: {
     flexDirection: "row",

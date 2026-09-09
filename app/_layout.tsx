@@ -1,6 +1,7 @@
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { supabase } from "@/lib/supabase";
 import { authService } from "@/services/auth.service";
+import { LanguageProvider } from "@/src/context/LanguageContext";
 import { paperTheme } from "@/src/theme";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Session } from "@supabase/supabase-js";
@@ -15,8 +16,8 @@ import { PaperProvider } from "react-native-paper";
 import Toast from "react-native-toast-message";
 
 export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary
+    // Catch any errors thrown by the Layout component.
+    ErrorBoundary
 } from "expo-router";
 
 import { Platform } from "react-native";
@@ -145,11 +146,13 @@ export default function RootLayout() {
       style={{ flex: 1, width: "100%", overflow: "hidden" }}
     >
       <PaperProvider theme={paperTheme}>
-        <BottomSheetModalProvider>
-          <StatusBar style="dark" />
-          <Slot />
-          <Toast />
-        </BottomSheetModalProvider>
+        <LanguageProvider>
+          <BottomSheetModalProvider>
+            <StatusBar style="dark" />
+            <Slot />
+            <Toast />
+          </BottomSheetModalProvider>
+        </LanguageProvider>
       </PaperProvider>
     </GestureHandlerRootView>
   );

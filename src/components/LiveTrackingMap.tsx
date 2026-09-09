@@ -1,9 +1,11 @@
 import Colors from "@/constants/Colors";
+import { GOOGLE_MAPS_API_KEY, hasGoogleMapsKey } from "@/constants/Maps";
 import { liveLocationService } from "@/services/liveLocation.service";
 import Constants from "expo-constants";
 import { Bike, MapPin, Navigation, UtensilsCrossed } from "lucide-react-native";
 import React, { useMemo } from "react";
 import {
+    Image,
     Linking,
     Platform,
     StyleSheet,
@@ -16,13 +18,15 @@ import {
 let MapView: any = null;
 let Marker: any = null;
 let Polyline: any = null;
+let PROVIDER_GOOGLE: any = undefined;
 
 if (Platform.OS !== "web") {
   try {
     const Maps = require("react-native-maps");
-    MapView = Maps.default;
+    MapView = Maps.default || Maps;
     Marker = Maps.Marker;
     Polyline = Maps.Polyline;
+    PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
   } catch (err) {
     console.warn("[LiveTrackingMap] react-native-maps load notice:", err);
   }
@@ -86,9 +90,11 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
     Constants?.appOwnership === "expo" ||
     Constants?.executionEnvironment === "storeClient";
 
+  const hasValidGoogleKey = hasGoogleMapsKey();
+
   // ── Native MapView rendering (iOS/Android) ──
   const isNativeMapSupported =
-    Platform.OS !== "web" && !isExpoGo && MapView && Marker && !mapError;
+    Platform.OS !== "web" && MapView && Marker && !mapError;
 
   if (isNativeMapSupported) {
     const region = {
@@ -104,7 +110,15 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
 
     return (
       <View style={[styles.container, { height }]}>
-        <MapView style={styles.map} initialRegion={region}>
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={styles.map}
+          initialRegion={region}
+          onError={(err: any) => {
+            console.warn("[LiveTrackingMap] Native Map error:", err);
+            setMapError(true);
+          }}
+        >
           {/* Restaurant Marker */}
           {restaurantLocation && (
             <Marker
@@ -222,10 +236,14 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
     <View style={[styles.container, { height }]}>
       {/* Dynamic Simulated Map Canvas */}
       <View style={styles.webMapBackground}>
-        {/* Map Road Patterns */}
-        <View style={styles.streetGridHorizontal} />
-        <View style={styles.streetGridVertical} />
-        <View style={styles.routeLineVisual} />
+        {/* Real Google Maps Satellite / Roadmap Imagery */}
+        <Image
+          source={{
+            uri: `https://maps.googleapis.com/maps/api/staticmap?center=${deliveryLocation.latitude},${deliveryLocation.longitude}&zoom=15&size=600x300&scale=2&maptype=roadmap&markers=color:orange%7C${restaurantLocation?.latitude},${restaurantLocation?.longitude}&markers=color:blue%7C${courierLocation.latitude},${courierLocation.longitude}&markers=color:green%7C${deliveryLocation.latitude},${deliveryLocation.longitude}&key=${GOOGLE_MAPS_API_KEY}`,
+          }}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+        />
 
         {/* Pins */}
         <View style={[styles.visualPin, styles.restaurantPinPos]}>

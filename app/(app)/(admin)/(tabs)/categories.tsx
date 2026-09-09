@@ -499,7 +499,7 @@ export default function AdminCategoriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
   },
   topTabsContainer: {
     flexDirection: "row",
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
   },
   headerTitle: {
     fontSize: 14,
@@ -555,14 +555,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
   },
   promoCard: {
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   promoRow: {
     flexDirection: "row",
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   catRow: {
     flexDirection: "row",

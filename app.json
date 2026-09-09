@@ -10,13 +10,13 @@
     "ios": {
       "supportsTablet": true,
       "config": {
-        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        "googleMapsApiKey": "AIzaSyDWlDCjLf_BL85fhXhdLHOqOvgVKSjVbbw"
       }
     },
     "android": {
       "config": {
         "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+          "apiKey": "AIzaSyDWlDCjLf_BL85fhXhdLHOqOvgVKSjVbbw"
         }
       },
       "adaptiveIcon": {
@@ -47,6 +47,12 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Quickly Livraison a besoin de votre position pour le suivi de livraison."
+        }
+      ],
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "AIzaSyDWlDCjLf_BL85fhXhdLHOqOvgVKSjVbbw"
         }
       ]
     ],

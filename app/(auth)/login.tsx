@@ -183,7 +183,7 @@ export default function LoginScreen() {
               <TextInput
                 style={styles.phoneTextInput}
                 placeholder="6 00 00 00 00"
-                placeholderTextColor="#A0AEC0"
+                placeholderTextColor="#7F77DD"
                 keyboardType="phone-pad"
                 value={phone}
                 onChangeText={setPhone}
@@ -258,7 +258,7 @@ export default function LoginScreen() {
                 onPress={handleEmailLogin}
                 isLoading={isLoading}
                 variant="primary"
-                style={{ backgroundColor: "#0066FF", borderRadius: 25 }}
+                style={{ backgroundColor: Colors.cta, borderRadius: 25 }}
               />
             </View>
           )}
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     width: "100%",
-    backgroundColor: "#38BDF8",
+    backgroundColor: Colors.primary,
   },
   topHeader: {
     height: 140,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-    backgroundColor: "#38BDF8",
+    backgroundColor: Colors.primary,
   },
   skipButton: {
     position: "absolute",
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   skipButtonText: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#1A202C",
+    color: "#3C3489",
   },
   brandContainer: {
     flexDirection: "row",
@@ -352,13 +352,13 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: "900",
-    color: "#1A202C",
+    color: "#3C3489",
     textAlign: "center",
     marginBottom: 4,
   },
   subtitleText: {
     fontSize: 13,
-    color: "#718096",
+    color: "#7F77DD",
     textAlign: "center",
     marginBottom: 18,
   },
@@ -370,18 +370,18 @@ const styles = StyleSheet.create({
   },
   prefixCard: {
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: Colors.background,
     justifyContent: "center",
     width: 95,
     flexShrink: 0,
   },
   prefixLabel: {
     fontSize: 11,
-    color: "#A0AEC0",
+    color: "#7F77DD",
     fontWeight: "600",
     marginBottom: 2,
   },
@@ -396,11 +396,11 @@ const styles = StyleSheet.create({
   prefixNumber: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#2D3748",
+    color: "#3C3489",
   },
   dropdownArrow: {
     fontSize: 10,
-    color: "#A0AEC0",
+    color: "#7F77DD",
     fontWeight: "700",
     marginLeft: 2,
   },
@@ -408,35 +408,35 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: Colors.background,
     justifyContent: "center",
   },
   phoneLabel: {
     fontSize: 11,
-    color: "#A0AEC0",
+    color: "#7F77DD",
     fontWeight: "600",
     marginBottom: 2,
   },
   phoneTextInput: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#2D3748",
+    color: "#3C3489",
     padding: 0,
     height: 22,
     width: "100%",
   },
   continueButton: {
-    backgroundColor: "#0066FF",
+    backgroundColor: Colors.cta,
     borderRadius: 28,
     height: 50,
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#0066FF",
+    shadowColor: Colors.cta,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -461,11 +461,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#CECBF6",
   },
   orText: {
     fontSize: 12,
-    color: "#A0AEC0",
+    color: "#7F77DD",
     paddingHorizontal: 14,
     fontWeight: "600",
   },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     borderRadius: 28,
     height: 48,
     width: "100%",
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   socialText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#2D3748",
+    color: "#3C3489",
   },
   otherMethodsBtn: {
     alignItems: "center",
@@ -504,21 +504,21 @@ const styles = StyleSheet.create({
   },
   otherMethodsText: {
     fontSize: 13,
-    color: "#0066FF",
+    color: Colors.primary,
     fontWeight: "800",
   },
   emailContainer: {
     marginTop: 4,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: Colors.background,
   },
   footerText: {
     fontSize: 11,
-    color: "#718096",
+    color: "#7F77DD",
     textAlign: "center",
     lineHeight: 15,
     marginTop: 14,
@@ -527,6 +527,6 @@ const styles = StyleSheet.create({
   footerLink: {
     fontWeight: "600",
     textDecorationLine: "underline",
-    color: "#718096",
+    color: "#7F77DD",
   },
 });

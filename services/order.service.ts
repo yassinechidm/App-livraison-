@@ -510,6 +510,37 @@ export const orderService = {
     return order;
   },
 
+  async rateCourier(
+    orderId: string,
+    rating: number,
+    reviewText?: string,
+    tags?: string[],
+  ): Promise<Order> {
+    const order = SHARED_ORDERS.find(
+      (o) => o.id === orderId || o.order_number === orderId,
+    );
+    if (order) {
+      order.courier_rating = rating;
+      order.courier_review_text = reviewText;
+      order.courier_tags = tags;
+      order.updated_at = new Date().toISOString();
+      notify();
+    }
+
+    try {
+      await (supabase as any)
+        .from("orders")
+        .update({
+          courier_rating: rating,
+          courier_review_text: reviewText || null,
+        })
+        .eq("id", orderId);
+    } catch {}
+
+    if (!order) throw new Error("Commande non trouvée");
+    return order;
+  },
+
   async reorder(order: Order): Promise<void> {
     if (!order.items || order.items.length === 0) return;
     order.items.forEach((item) => {
@@ -580,6 +611,9 @@ function _mapDbOrder(row: any, items: any[]): Order {
     driver_name: row.driver_name || undefined,
     driver_phone: row.driver_phone || undefined,
     driver_id: row.driver_id || undefined,
+    courier_rating: row.courier_rating || undefined,
+    courier_review_text: row.courier_review_text || undefined,
+    courier_tags: row.courier_tags || undefined,
     delivery_lat: Number(row.delivery_lat) || 34.6867,
     delivery_lng: Number(row.delivery_lng) || -1.9114,
     courier_lat: Number(row.courier_lat) || 34.688,

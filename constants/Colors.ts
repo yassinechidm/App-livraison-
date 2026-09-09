@@ -1,4 +1,4 @@
-import { colors } from '@/src/theme';
+import { colors } from "@/src/theme";
 
 // Quickly Livraison Design System Palette
 const Colors = {
@@ -12,12 +12,12 @@ const Colors = {
   // Secondary / Accents — Fast Orange/Coral for Promos, Speed, Badges
   secondary: colors.secondary,
   secondaryLight: colors.secondaryLight,
-  secondaryDark: '#E04A26',
-  secondaryMuted: '#FFF0ED',
+  secondaryDark: "#E04A26",
+  secondaryMuted: "#FFF0ED",
 
   // Quickly Plus / VIP Dark Slate
-  plusPurple: '#1E293B',
-  plusPurpleLight: '#F1F5F9',
+  plusPurple: "#1E293B",
+  plusPurpleLight: "#F1F5F9",
 
   // Backgrounds
   background: colors.background,
@@ -25,7 +25,7 @@ const Colors = {
   backgroundCard: colors.surface,
   backgroundInput: colors.surfaceVariant,
   backgroundOverlay: colors.overlay,
-  backgroundMuted: '#EDF2F7',
+  backgroundMuted: "#EDF2F7",
 
   // Text — Modern Clean Typography
   textPrimary: colors.text,
@@ -33,6 +33,13 @@ const Colors = {
   textMuted: colors.textMuted,
   textInverse: colors.textInverse,
   textLink: colors.primary,
+
+  // CTA & Highlights
+  cta: colors.cta,
+  badge: colors.badge,
+  highlight: colors.highlight,
+  darkText: colors.text,
+  cardBorder: colors.border,
 
   // Status
   success: colors.success,
@@ -70,12 +77,11 @@ const Colors = {
   shadowColor: colors.text,
 
   // Misc
-  white: '#FFFFFF',
-  black: '#000000',
-  transparent: 'transparent',
+  white: "#FFFFFF",
+  black: "#000000",
+  transparent: "transparent",
   emerald: colors.success,
   emeraldLight: colors.successLight,
 } as const;
 
 export default Colors;
-

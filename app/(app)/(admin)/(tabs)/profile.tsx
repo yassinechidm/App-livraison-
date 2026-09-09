@@ -1,21 +1,22 @@
-import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
 import {
-    AdminClientInfo,
-    AdminDashboardStats,
-    adminService,
+  AdminClientInfo,
+  AdminDashboardStats,
+  adminService,
 } from "@/services/admin.service";
 import { authService } from "@/services/auth.service";
 import { User } from "@supabase/supabase-js";
-import { ShieldCheck } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { ChevronRight, LogOut, ShieldCheck, TrendingUp, Users } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  Alert,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function AdminProfileScreen() {
@@ -36,203 +37,362 @@ export default function AdminProfileScreen() {
   }, []);
 
   async function handleLogout() {
-    setIsLoggingOut(true);
-    try {
-      await authService.signOut();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Une erreur est survenue";
-      Alert.alert("Erreur", message);
-      setIsLoggingOut(false);
-    }
+    Alert.alert("Déconnexion", "Êtes-vous sûr de vouloir quitter l'espace Administrateur ?", [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Se déconnecter",
+        style: "destructive",
+        onPress: async () => {
+          setIsLoggingOut(true);
+          try {
+            await authService.signOut();
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : "Une erreur est survenue";
+            Alert.alert("Erreur", message);
+            setIsLoggingOut(false);
+          }
+        },
+      },
+    ]);
   }
 
+  const adminId = user?.id
+    ? (user.id.startsWith("admin-user-")
+        ? `ID: #ADMIN-${user.id.replace(/[^0-9]/g, "") || "01"}`
+        : user.id.length > 8
+        ? `ID: #ADMIN-${user.id.slice(0, 6).toUpperCase()}`
+        : `ID: #${user.id.toUpperCase()}`)
+    : "ID: #ADMIN-01";
+
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Admin Profile Header */}
-      <View style={styles.profileHeader}>
-        <View style={styles.avatar}>
-          <ShieldCheck size={32} color={Colors.primary} />
-        </View>
-        <Text style={styles.name}>Administrateur</Text>
-        <Text style={styles.email}>
-          {user?.email || "admin@quicklivraison.ma"}
-        </Text>
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleBadgeText}>Superviseur • Oujda</Text>
-        </View>
-      </View>
-
-      {/* Global Performance Summary */}
-      <Card style={styles.card}>
-        <Text style={styles.cardTitle}>Performances Globales</Text>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Chiffre d'affaires cumulé</Text>
-          <Text style={styles.statValueBold}>
-            {stats?.totalTurnoverMAD.toFixed(2) || "0.00"} DH
-          </Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Commandes traitées</Text>
-          <Text style={styles.statValue}>{stats?.todayOrdersCount || 0}</Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Zone de couverture</Text>
-          <Text style={styles.statValue}>Oujda & Région Oriental</Text>
-        </View>
-      </Card>
-
-      {/* Clients Management Overview */}
-      <Card style={styles.card}>
-        <Text style={styles.cardTitle}>
-          Clients Inscrits ({clients.length})
-        </Text>
-        {clients.map((c) => (
-          <View key={c.id} style={styles.clientItem}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.clientName}>{c.full_name}</Text>
-              <Text style={styles.clientDetails}>
-                {c.email} • {c.phone}
-              </Text>
+    <View style={styles.container}>
+      {/* ── Top Curved Organic Header ── */}
+      <View style={styles.organicHeader}>
+        <SafeAreaView style={styles.headerSafe}>
+          <View style={styles.userProfileHero}>
+            <View style={styles.avatarCircle}>
+              <ShieldCheck size={32} color="#5C5BDB" strokeWidth={2.2} />
             </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.clientSpent}>
-                {c.totalSpentMAD.toFixed(2)} DH
+
+            <View style={styles.profileInfoCol}>
+              <Text style={styles.userNameText}>Administrateur</Text>
+              <View style={styles.adminIdBadge}>
+                <Text style={styles.adminIdText}>{adminId}</Text>
+              </View>
+              <Text style={styles.adminRoleSubtitle}>
+                Superviseur Général • Oujda & Oriental
               </Text>
-              <Text style={styles.clientOrders}>{c.totalOrders} commandes</Text>
             </View>
           </View>
-        ))}
-      </Card>
+        </SafeAreaView>
+      </View>
 
-      {/* Logout */}
-      <Button
-        title="Se déconnecter de l'espace Admin"
-        onPress={handleLogout}
-        variant="secondary"
-        isLoading={isLoggingOut}
-        style={styles.logoutBtn}
-      />
-    </ScrollView>
+      {/* ── Scrollable Body ── */}
+      <ScrollView
+        style={styles.bodyScrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Global Performance Summary */}
+        <View style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <TrendingUp size={18} color="#5C5BDB" />
+            <Text style={styles.cardTitle}>Performances Globales</Text>
+          </View>
+
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Chiffre d'affaires cumulé</Text>
+            <Text style={styles.statValueBold}>
+              {stats?.totalTurnoverMAD ? stats.totalTurnoverMAD.toFixed(2) : "0.00"} DH
+            </Text>
+          </View>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Commandes traitées aujourd'hui</Text>
+            <Text style={styles.statValue}>{stats?.todayOrdersCount || 0}</Text>
+          </View>
+          <View style={[styles.statRow, { borderBottomWidth: 0 }]}>
+            <Text style={styles.statLabel}>Zone de couverture</Text>
+            <Text style={styles.statValue}>Oujda & Région Oriental</Text>
+          </View>
+        </View>
+
+        {/* Clients Management Overview */}
+        <View style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <Users size={18} color="#5C5BDB" />
+            <Text style={styles.cardTitle}>
+              Clients Inscrits ({clients.length})
+            </Text>
+          </View>
+
+          {clients.length === 0 ? (
+            <Text style={styles.emptyClientsText}>Aucun client enregistré pour l'instant.</Text>
+          ) : (
+            clients.map((c, index) => (
+              <View
+                key={c.id || index}
+                style={[
+                  styles.clientItem,
+                  index === clients.length - 1 && { borderBottomWidth: 0 },
+                ]}
+              >
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={styles.clientName}>{c.full_name || "Client"}</Text>
+                  <Text style={styles.clientDetails}>
+                    {c.email} {c.phone ? `• ${c.phone}` : ""}
+                  </Text>
+                </View>
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={styles.clientSpent}>
+                    {(c.totalSpentMAD || 0).toFixed(2)} DH
+                  </Text>
+                  <Text style={styles.clientOrders}>
+                    {c.totalOrders || 0} commandes
+                  </Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* Account Details */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Compte Superviseur</Text>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Email superviseur :</Text>
+            <Text style={styles.statValue}>{user?.email || "admin@quicklivraison.ma"}</Text>
+          </View>
+          <View style={[styles.statRow, { borderBottomWidth: 0 }]}>
+            <Text style={styles.statLabel}>Niveau d'accès :</Text>
+            <View style={styles.adminRolePill}>
+              <Text style={styles.adminRolePillText}>Super-Admin Total</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ── Log Out Row (Generous clearance above tabs) ── */}
+        <TouchableOpacity
+          style={styles.logoutRow}
+          onPress={handleLogout}
+          disabled={isLoggingOut}
+          activeOpacity={0.75}
+        >
+          <View style={styles.logoutLeft}>
+            <LogOut size={20} color="#FF4D6D" style={{ marginRight: 12 }} />
+            <Text style={styles.logoutText}>
+              {isLoggingOut ? "Déconnexion..." : "Se déconnecter de l'espace Admin"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
+  },
+  organicHeader: {
+    backgroundColor: "#5C5BDB",
+    paddingBottom: 24,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    shadowColor: "#3C3489",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  headerSafe: {
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "android" ? 36 : 10,
+  },
+  userProfileHero: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  avatarCircle: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  profileInfoCol: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  userNameText: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
+  },
+  adminIdBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255, 255, 255, 0.22)",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+  },
+  adminIdText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+  },
+  adminRoleSubtitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.85)",
+    marginTop: 4,
+  },
+
+  bodyScrollView: {
+    flex: 1,
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingTop: 20,
+    paddingBottom: 130, // Generous clearance so logout is never hidden by tab bar
   },
-  profileHeader: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#EBF2FF",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: Colors.primary + "30",
-  },
-  avatarEmoji: {
-    fontSize: 36,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: "900",
-    color: Colors.textPrimary,
-  },
-  email: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  roleBadge: {
-    marginTop: 6,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  roleBadgeText: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: Colors.white,
-  },
+
   card: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
+    shadowColor: "#3C3489",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
   },
   cardTitle: {
     fontSize: 15,
     fontWeight: "800",
-    color: Colors.textPrimary,
-    marginBottom: 12,
+    color: "#3C3489",
   },
   statRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F8FAFC",
-  },
-  statLabel: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  statValue: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.textPrimary,
-  },
-  statValueBold: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: Colors.primary,
-  },
-  clientItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#F7F7FF",
+  },
+  statLabel: {
+    fontSize: 13,
+    color: "#7F77DD",
+  },
+  statValue: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#3C3489",
+  },
+  statValueBold: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#5C5BDB",
+  },
+
+  clientItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F7F7FF",
   },
   clientName: {
     fontSize: 13,
-    fontWeight: "700",
-    color: Colors.textPrimary,
+    fontWeight: "800",
+    color: "#3C3489",
   },
   clientDetails: {
     fontSize: 11,
-    color: Colors.textMuted,
-    marginTop: 1,
+    color: "#7F77DD",
+    marginTop: 2,
   },
   clientSpent: {
     fontSize: 13,
-    fontWeight: "800",
-    color: Colors.primary,
+    fontWeight: "900",
+    color: "#5C5BDB",
   },
   clientOrders: {
     fontSize: 10,
-    color: Colors.textMuted,
+    color: "#7F77DD",
+    marginTop: 1,
   },
-  logoutBtn: {
-    marginTop: 10,
+  emptyClientsText: {
+    fontSize: 13,
+    color: "#7F77DD",
+    fontStyle: "italic",
+    paddingVertical: 8,
+  },
+
+  adminRolePill: {
+    backgroundColor: "#FFD16630",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#FFD16680",
+  },
+  adminRolePillText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#3C3489",
+  },
+
+  logoutRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#FF4D6D30",
+    shadowColor: "#FF4D6D",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  logoutLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  logoutText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#FF4D6D",
   },
 });

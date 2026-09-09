@@ -222,7 +222,7 @@ export default function CourierOrdersFeedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
   },
   header: {
     flexDirection: "row",
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
     gap: 12,
   },
   countHeader: {
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     marginTop: 20,
   },
   emptyTitle: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   cardHeader: {
     flexDirection: "row",
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   pricePill: {
-    backgroundColor: "#EBF2FF",
+    backgroundColor: "rgba(92, 91, 219, 0.12)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F7F7FF",
     marginVertical: 10,
   },
   addressLabel: {
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   itemsSummary: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F7F7FF",
     borderRadius: 10,
     padding: 10,
     marginVertical: 6,
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: "#CECBF6",
     gap: 8,
   },
   paymentInfo: {
