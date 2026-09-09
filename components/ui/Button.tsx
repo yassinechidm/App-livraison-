@@ -1,5 +1,4 @@
-import Colors from '@/constants/Colors';
-import React from 'react';
+import Colors from "@/constants/Colors";
 import {
     ActivityIndicator,
     StyleSheet,
@@ -7,12 +6,12 @@ import {
     TextStyle,
     TouchableOpacity,
     ViewStyle,
-} from 'react-native';
+} from "react-native";
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'success' | 'ghost';
+  variant?: "primary" | "secondary" | "success" | "ghost";
   isLoading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
@@ -22,7 +21,7 @@ interface ButtonProps {
 export default function Button({
   title,
   onPress,
-  variant = 'primary',
+  variant = "primary",
   isLoading = false,
   disabled = false,
   style,
@@ -44,17 +43,11 @@ export default function Button({
     >
       {isLoading ? (
         <ActivityIndicator
-          color={variant === 'ghost' ? Colors.primary : Colors.textInverse}
+          color={variant === "ghost" ? Colors.primary : Colors.textInverse}
           size="small"
         />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            variantTextStyles[variant],
-            textStyle,
-          ]}
-        >
+        <Text style={[styles.text, variantTextStyles[variant], textStyle]}>
           {title}
         </Text>
       )}
@@ -106,10 +99,13 @@ const variantTextStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   base: {
-    height: 50,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: 52,
+    width: "100%",
+    maxWidth: "100%",
+    overflow: "hidden",
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 24,
   },
   disabled: {
@@ -117,8 +113,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "800",
     letterSpacing: -0.2,
   },
 });
-

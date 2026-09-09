@@ -10,6 +10,9 @@ export interface AuthState {
 export interface SignUpCredentials {
   email: string;
   password: string;
+  fullName?: string;
+  phone?: string;
+  city?: string;
 }
 
 export interface SignInCredentials {

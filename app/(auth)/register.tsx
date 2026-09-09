@@ -4,7 +4,7 @@ import Logo from "@/components/ui/Logo";
 import Colors from "@/constants/Colors";
 import { authService } from "@/services/auth.service";
 import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     Alert,
     KeyboardAvoidingView,
@@ -12,7 +12,7 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    View
+    View,
 } from "react-native";
 
 export default function RegisterScreen() {
@@ -69,7 +69,13 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     try {
-      const data = await authService.signUp({ email: email.trim(), password });
+      const data = await authService.signUp({
+        email: email.trim(),
+        password,
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        city: city.trim(),
+      });
 
       if (data.user && !data.session) {
         Alert.alert(
@@ -93,7 +99,13 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={
+        Platform.OS === "web"
+          ? undefined
+          : Platform.OS === "ios"
+            ? "padding"
+            : "height"
+      }
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -107,7 +119,6 @@ export default function RegisterScreen() {
           <Text style={styles.subtitle}>
             Rejoignez la communauté Quick Livraison à Oujda 🇲🇦
           </Text>
-
         </View>
 
         {/* Card containing Registration Form */}
@@ -215,10 +226,13 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
+    overflow: "hidden",
     backgroundColor: Colors.background,
   },
   scrollContent: {
     flexGrow: 1,
+    width: "100%",
     paddingHorizontal: 20,
     paddingVertical: 30,
     paddingTop: 45,

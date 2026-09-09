@@ -1,13 +1,13 @@
-import CartFloatingButton from '@/components/ui/CartFloatingButton';
-import MenuItemRow from '@/components/ui/MenuItemRow';
-import Colors from '@/constants/Colors';
-import { cartService } from '@/services/cart.service';
-import { favoritesService } from '@/services/favorites.service';
-import { restaurantService } from '@/services/restaurant.service';
-import { CartState } from '@/types/cart.types';
-import { Restaurant } from '@/types/restaurant.types';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import CartFloatingButton from "@/components/ui/CartFloatingButton";
+import MenuItemRow from "@/components/ui/MenuItemRow";
+import Colors from "@/constants/Colors";
+import { cartService } from "@/services/cart.service";
+import { favoritesService } from "@/services/favorites.service";
+import { restaurantService } from "@/services/restaurant.service";
+import { CartState } from "@/types/cart.types";
+import { Restaurant } from "@/types/restaurant.types";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
     Dimensions,
     Image,
@@ -17,20 +17,25 @@ import {
     TextInput,
     TouchableOpacity,
     View,
-} from 'react-native';
+} from "react-native";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function RestaurantDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('Top des ventes');
-  const [deliveryMode, setDeliveryMode] = useState<'delivery' | 'pickup'>('delivery');
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>("Top des ventes");
+  const [deliveryMode, setDeliveryMode] = useState<"delivery" | "pickup">(
+    "delivery",
+  );
   const [cartState, setCartState] = useState<CartState>(cartService.getState());
-  const [isFavorite, setIsFavorite] = useState(id ? favoritesService.isFavorite(id) : false);
+  const [isFavorite, setIsFavorite] = useState(
+    id ? favoritesService.isFavorite(id) : false,
+  );
   const [fullCategoryView, setFullCategoryView] = useState<string | null>(null);
-  const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [isSearchingInCategory, setIsSearchingInCategory] = useState(false);
 
   useEffect(() => {
@@ -86,11 +91,17 @@ export default function RestaurantDetailScreen() {
   // -------------------------------------------------------------
   if (fullCategoryView) {
     const categoryItems = restaurant.menu_items.filter((item) => {
-      const matchCat = fullCategoryView === 'Top des ventes' ? true : item.category === fullCategoryView;
+      const matchCat =
+        fullCategoryView === "Top des ventes"
+          ? true
+          : item.category === fullCategoryView;
       if (!matchCat) return false;
       if (categorySearchQuery.trim()) {
         const q = categorySearchQuery.toLowerCase();
-        return item.name.toLowerCase().includes(q) || item.description.toLowerCase().includes(q);
+        return (
+          item.name.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q)
+        );
       }
       return true;
     });
@@ -103,7 +114,7 @@ export default function RestaurantDetailScreen() {
             onPress={() => {
               setFullCategoryView(null);
               setIsSearchingInCategory(false);
-              setCategorySearchQuery('');
+              setCategorySearchQuery("");
             }}
             style={styles.categoryBackBtn}
             activeOpacity={0.8}
@@ -166,7 +177,8 @@ export default function RestaurantDetailScreen() {
           <View style={styles.freeDeliveryBanner}>
             <Text style={styles.freeDeliveryIcon}>🏷️</Text>
             <Text style={styles.freeDeliveryText}>
-              Atteignez <Text style={styles.boldText}>100,00 MAD</Text> pour bénéficier de la livraison gratuite
+              Atteignez <Text style={styles.boldText}>100,00 MAD</Text> pour
+              bénéficier de la livraison gratuite
             </Text>
           </View>
 
@@ -194,7 +206,9 @@ export default function RestaurantDetailScreen() {
         i.category.toLowerCase().includes(q)
       );
     }
-    return selectedCategory === 'Top des ventes' ? true : i.category === selectedCategory;
+    return selectedCategory === "Top des ventes"
+      ? true
+      : i.category === selectedCategory;
   });
 
   return (
@@ -223,19 +237,21 @@ export default function RestaurantDetailScreen() {
 
             <View style={styles.headerActionsRight}>
               <TouchableOpacity
-                onPress={() => setFullCategoryView('Top des ventes')}
+                onPress={() => setFullCategoryView("Top des ventes")}
                 style={styles.headerCircleBtn}
                 activeOpacity={0.8}
               >
                 <Text style={styles.headerBtnIconSmall}>🔍</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => restaurant && favoritesService.toggleFavorite(restaurant.id)}
+                onPress={() =>
+                  restaurant && favoritesService.toggleFavorite(restaurant.id)
+                }
                 style={styles.headerCircleBtn}
                 activeOpacity={0.8}
               >
                 <Text style={styles.headerBtnIconSmall}>
-                  {isFavorite ? '❤️' : '🤍'}
+                  {isFavorite ? "❤️" : "🤍"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -256,92 +272,70 @@ export default function RestaurantDetailScreen() {
           <Text style={styles.restaurantName}>{restaurant.name}</Text>
           <Text style={styles.cuisineText}>{restaurant.cuisine_type}</Text>
 
-          {/* Delivery vs Pickup Selector */}
-          <View style={styles.modeSelector}>
-            <TouchableOpacity
-              style={[
-                styles.modeBtn,
-                deliveryMode === 'delivery' && styles.modeBtnActive,
-              ]}
-              onPress={() => setDeliveryMode('delivery')}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.modeIcon}>🛵</Text>
-              <Text
-                style={[
-                  styles.modeText,
-                  deliveryMode === 'delivery' && styles.modeTextActive,
-                ]}
-              >
-                Livraison
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.modeBtn,
-                deliveryMode === 'pickup' && styles.modeBtnActive,
-              ]}
-              onPress={() => setDeliveryMode('pickup')}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.modeIcon}>🚶</Text>
-              <Text
-                style={[
-                  styles.modeText,
-                  deliveryMode === 'pickup' && styles.modeTextActive,
-                ]}
-              >
-                Retrait
-              </Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Rating, Time & Fees Strip */}
           <View style={styles.metaStrip}>
             <View style={styles.metaItem}>
-              <Text style={[styles.metaIcon, { color: '#007E7A' }]}>★</Text>
-              <Text style={[styles.metaTextBold, { color: '#007E7A' }]}>
-                {(restaurant.rating_percent ? (restaurant.rating_percent / 20).toFixed(1) : '4.7')}
+              <Text style={[styles.metaIcon, { color: "#007E7A" }]}>★</Text>
+              <Text style={[styles.metaTextBold, { color: "#007E7A" }]}>
+                {restaurant.rating_percent
+                  ? (restaurant.rating_percent / 20).toFixed(1)
+                  : "4.7"}
               </Text>
-              <Text style={styles.metaTextSub}>({restaurant.rating_count})</Text>
+              <Text style={styles.metaTextSub}>
+                ({restaurant.rating_count})
+              </Text>
             </View>
 
             <View style={styles.metaItem}>
               <Text style={styles.metaIcon}>🕒</Text>
-              <Text style={styles.metaTextBold}>{restaurant.delivery_time}</Text>
+              <Text style={styles.metaTextBold}>
+                {restaurant.delivery_time}
+              </Text>
             </View>
 
             <View style={styles.metaItem}>
               <Text style={styles.metaIcon}>🛵</Text>
-              <Text style={styles.metaTextBold}>{Number(restaurant.delivery_fee).toFixed(0)} DH</Text>
+              <Text style={styles.metaTextBold}>
+                {Number(restaurant.delivery_fee).toFixed(0)} DH
+              </Text>
               {restaurant.free_delivery_threshold && (
                 <View style={styles.gratuitBadge}>
-                  <Text style={styles.gratuitText}>Dès {restaurant.free_delivery_threshold} DH</Text>
+                  <Text style={styles.gratuitText}>
+                    Dès {restaurant.free_delivery_threshold} DH
+                  </Text>
                 </View>
               )}
             </View>
           </View>
 
-
           {/* Status Badge & Opening Hours */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 10,
+            }}
+          >
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#ECFDF5',
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "#ECFDF5",
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 borderRadius: 8,
                 gap: 4,
                 borderWidth: 1,
-                borderColor: '#A7F3D0',
+                borderColor: "#A7F3D0",
               }}
             >
               <Text style={{ fontSize: 9 }}>🟢</Text>
-              <Text style={{ fontSize: 11, fontWeight: '800', color: '#047857' }}>
-                Ouvert maintenant • {restaurant.opening_hours || 'Ferme à 02:00'}
+              <Text
+                style={{ fontSize: 11, fontWeight: "800", color: "#047857" }}
+              >
+                Ouvert maintenant •{" "}
+                {restaurant.opening_hours || "Ferme à 02:00"}
               </Text>
             </View>
           </View>
@@ -349,9 +343,9 @@ export default function RestaurantDetailScreen() {
           {/* In-Menu Search Bar */}
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: '#F1F5F9',
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#F1F5F9",
               borderRadius: 14,
               paddingHorizontal: 12,
               height: 40,
@@ -360,15 +354,24 @@ export default function RestaurantDetailScreen() {
           >
             <Text style={{ fontSize: 14, marginRight: 6 }}>🔍</Text>
             <TextInput
-              style={{ flex: 1, fontSize: 13, color: Colors.textPrimary, fontWeight: '600' }}
+              style={{
+                flex: 1,
+                fontSize: 13,
+                color: Colors.textPrimary,
+                fontWeight: "600",
+              }}
               placeholder={`Rechercher dans ${restaurant.name}...`}
               placeholderTextColor={Colors.textMuted}
               value={categorySearchQuery}
               onChangeText={setCategorySearchQuery}
             />
             {categorySearchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setCategorySearchQuery('')}>
-                <Text style={{ fontSize: 14, color: Colors.textMuted, padding: 4 }}>✕</Text>
+              <TouchableOpacity onPress={() => setCategorySearchQuery("")}>
+                <Text
+                  style={{ fontSize: 14, color: Colors.textMuted, padding: 4 }}
+                >
+                  ✕
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -415,12 +418,12 @@ export default function RestaurantDetailScreen() {
         </View>
 
         {/* 4. Horizontal Top Selling Items (Screenshot 4) */}
-        {selectedCategory === 'Top des ventes' && (
+        {selectedCategory === "Top des ventes" && (
           <View style={styles.topSellersSection}>
             {/* Clickable Header with Arrow → */}
             <TouchableOpacity
               style={styles.sectionHeaderRow}
-              onPress={() => setFullCategoryView('Top des ventes')}
+              onPress={() => setFullCategoryView("Top des ventes")}
               activeOpacity={0.7}
             >
               <Text style={styles.sectionHeading}>Top des ventes</Text>
@@ -441,36 +444,42 @@ export default function RestaurantDetailScreen() {
                 return (
                   <TouchableOpacity
                     key={item.id}
-                    style={[styles.topSellerCard, !isAvailable && { opacity: 0.75 }]}
+                    style={[
+                      styles.topSellerCard,
+                      !isAvailable && { opacity: 0.75 },
+                    ]}
                     onPress={() => router.push(`/product/${item.id}` as any)}
                     activeOpacity={0.85}
                   >
                     <View style={styles.topSellerImgWrapper}>
                       <Image
                         source={{ uri: item.image_url }}
-                        style={[styles.topSellerImg, !isAvailable && { opacity: 0.6 }]}
+                        style={[
+                          styles.topSellerImg,
+                          !isAvailable && { opacity: 0.6 },
+                        ]}
                         resizeMode="cover"
                       />
 
                       {!isAvailable ? (
                         <View
                           style={{
-                            position: 'absolute',
+                            position: "absolute",
                             top: 0,
                             left: 0,
                             right: 0,
                             bottom: 0,
-                            backgroundColor: 'rgba(0,0,0,0.4)',
-                            justifyContent: 'center',
-                            alignItems: 'center',
+                            backgroundColor: "rgba(0,0,0,0.4)",
+                            justifyContent: "center",
+                            alignItems: "center",
                           }}
                         >
                           <Text
                             style={{
-                              color: '#FFFFFF',
-                              fontWeight: '900',
+                              color: "#FFFFFF",
+                              fontWeight: "900",
                               fontSize: 11,
-                              backgroundColor: '#EF4444',
+                              backgroundColor: "#EF4444",
                               paddingHorizontal: 6,
                               paddingVertical: 2,
                               borderRadius: 4,
@@ -489,7 +498,7 @@ export default function RestaurantDetailScreen() {
                           activeOpacity={0.8}
                         >
                           <Text style={styles.topSellerAddIcon}>
-                            {qty > 0 ? `${qty}` : '+'}
+                            {qty > 0 ? `${qty}` : "+"}
                           </Text>
                         </TouchableOpacity>
                       )}
@@ -507,7 +516,10 @@ export default function RestaurantDetailScreen() {
                     <Text
                       style={[
                         styles.topSellerPrice,
-                        !isAvailable && { color: Colors.textMuted, textDecorationLine: 'line-through' },
+                        !isAvailable && {
+                          color: Colors.textMuted,
+                          textDecorationLine: "line-through",
+                        },
                       ]}
                     >
                       {item.price.toFixed(2)} MAD
@@ -519,10 +531,12 @@ export default function RestaurantDetailScreen() {
               {/* "Tous les produits" card at the end of the scroll (as seen in Glovo Screenshot 4) */}
               <TouchableOpacity
                 style={styles.seeAllProductsCard}
-                onPress={() => setFullCategoryView('Top des ventes')}
+                onPress={() => setFullCategoryView("Top des ventes")}
                 activeOpacity={0.8}
               >
-                <Text style={styles.seeAllProductsText}>Tous les{'\n'}produits</Text>
+                <Text style={styles.seeAllProductsText}>
+                  Tous les{"\n"}produits
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -532,7 +546,8 @@ export default function RestaurantDetailScreen() {
         <View style={styles.freeDeliveryBanner}>
           <Text style={styles.freeDeliveryIcon}>🏷️</Text>
           <Text style={styles.freeDeliveryText}>
-            Atteignez <Text style={styles.boldText}>100,00 MAD</Text> pour bénéficier de la livraison gratuite
+            Atteignez <Text style={styles.boldText}>100,00 MAD</Text> pour
+            bénéficier de la livraison gratuite
           </Text>
         </View>
 
@@ -573,12 +588,12 @@ export default function RestaurantDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   scrollView: {
     flex: 1,
@@ -588,29 +603,29 @@ const styles = StyleSheet.create({
   },
   coverWrapper: {
     height: 180,
-    position: 'relative',
-    backgroundColor: '#E2E8F0',
+    position: "relative",
+    backgroundColor: "#E2E8F0",
   },
   coverImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   coverHeaderBar: {
-    position: 'absolute',
+    position: "absolute",
     top: 16,
     left: 16,
     right: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   headerCircleBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
     backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -619,7 +634,7 @@ const styles = StyleSheet.create({
   },
   headerBtnIcon: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginTop: -3,
   },
@@ -627,20 +642,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   headerActionsRight: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   logoBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -24,
     left: 20,
     width: 56,
     height: 56,
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 3,
     borderColor: Colors.white,
-    backgroundColor: '#E11D48',
+    backgroundColor: "#E11D48",
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -648,8 +663,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   logoImg: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   restaurantInfo: {
     backgroundColor: Colors.white,
@@ -657,11 +672,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: "#F1F5F9",
   },
   restaurantName: {
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.textPrimary,
     marginBottom: 4,
   },
@@ -671,8 +686,8 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   modeSelector: {
-    flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
+    flexDirection: "row",
+    backgroundColor: "#F1F5F9",
     borderRadius: 14,
     padding: 4,
     marginBottom: 16,
@@ -680,9 +695,9 @@ const styles = StyleSheet.create({
   },
   modeBtn: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 10,
     borderRadius: 10,
     gap: 6,
@@ -700,26 +715,26 @@ const styles = StyleSheet.create({
   },
   modeText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textMuted,
   },
   modeTextActive: {
     color: Colors.textPrimary,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   metaStrip: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: "#F1F5F9",
     marginBottom: 10,
   },
   metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   metaIcon: {
@@ -727,7 +742,7 @@ const styles = StyleSheet.create({
   },
   metaTextBold: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   metaTextSub: {
@@ -735,7 +750,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   gratuitBadge: {
-    backgroundColor: '#E11D48',
+    backgroundColor: "#E11D48",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -744,26 +759,26 @@ const styles = StyleSheet.create({
   gratuitText: {
     color: Colors.white,
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   topRatedBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#F8FAFC',
+    alignSelf: "flex-start",
+    backgroundColor: "#F8FAFC",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   topRatedText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textPrimary,
   },
   categoryTabsWrapper: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: "#E2E8F0",
   },
   categoryTabsScroll: {
     paddingHorizontal: 16,
@@ -772,14 +787,14 @@ const styles = StyleSheet.create({
   categoryTab: {
     paddingVertical: 14,
     borderBottomWidth: 2.5,
-    borderBottomColor: 'transparent',
+    borderBottomColor: "transparent",
   },
   categoryTabActive: {
     borderBottomColor: Colors.textPrimary,
   },
   categoryTabText: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textMuted,
   },
   categoryTabTextActive: {
@@ -792,9 +807,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     marginBottom: 12,
   },
@@ -802,18 +817,18 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
   },
   sectionHeading: {
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.textPrimary,
   },
   sectionSeeAll: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   topSellersScroll: {
@@ -827,25 +842,25 @@ const styles = StyleSheet.create({
     width: 140,
     height: 120,
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#F1F5F9',
-    position: 'relative',
+    overflow: "hidden",
+    backgroundColor: "#F1F5F9",
+    position: "relative",
     marginBottom: 8,
   },
   topSellerImg: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   topSellerAddBtn: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 8,
     right: 8,
     width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -854,50 +869,50 @@ const styles = StyleSheet.create({
   },
   topSellerAddIcon: {
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.primary,
   },
   topSellerTitle: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 2,
     lineHeight: 16,
   },
   topSellerPrice: {
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.primary,
   },
   seeAllProductsCard: {
     width: 110,
     height: 120,
     borderRadius: 16,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#E2E8F0",
+    borderStyle: "dashed",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 10,
   },
   seeAllProductsText: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.primary,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 18,
   },
   freeDeliveryBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.white,
     marginHorizontal: 16,
     marginVertical: 12,
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
     gap: 10,
   },
   freeDeliveryIcon: {
@@ -910,7 +925,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   boldText: {
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   verticalMenuSection: {
@@ -918,15 +933,15 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   menuSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     marginBottom: 8,
   },
   menuSectionTitle: {
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.textPrimary,
   },
 
@@ -934,9 +949,9 @@ const styles = StyleSheet.create({
   // Full Category View Styles (Screenshot 5)
   // -------------------------------------------------------------
   categoryViewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
@@ -946,13 +961,13 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
   },
   categoryBackIcon: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginTop: -2,
   },
@@ -960,18 +975,18 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
   },
   categorySearchIcon: {
     fontSize: 16,
   },
   categorySearchInputWrapper: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F1F5F9",
     borderRadius: 20,
     paddingHorizontal: 12,
     marginLeft: 10,
@@ -992,7 +1007,7 @@ const styles = StyleSheet.create({
   },
   categoryViewTitle: {
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.textPrimary,
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -1003,12 +1018,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   feeInfoRow: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 14,
   },
   feeInfoText: {
     fontSize: 12,
     color: Colors.textMuted,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

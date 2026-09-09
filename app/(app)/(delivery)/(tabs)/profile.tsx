@@ -1,27 +1,22 @@
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
-import {
-    AdminClientInfo,
-    AdminDashboardStats,
-    adminService,
-} from "@/services/admin.service";
 import { authService } from "@/services/auth.service";
 import { User } from "@supabase/supabase-js";
-import { ShieldCheck } from "lucide-react-native";
+import { Bike, ShieldCheck, Star } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Alert,
     ScrollView,
     StyleSheet,
+    Switch,
     Text,
-    View
+    View,
 } from "react-native";
 
-export default function AdminProfileScreen() {
+export default function CourierProfileScreen() {
   const [user, setUser] = useState<User | any | null>(null);
-  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [clients, setClients] = useState<AdminClientInfo[]>([]);
+  const [isOnline, setIsOnline] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -30,9 +25,6 @@ export default function AdminProfileScreen() {
         setUser(session.user);
       }
     });
-
-    adminService.getDashboardStats().then(setStats);
-    adminService.getClients().then(setClients);
   }, []);
 
   async function handleLogout() {
@@ -53,65 +45,77 @@ export default function AdminProfileScreen() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* Admin Profile Header */}
       <View style={styles.profileHeader}>
         <View style={styles.avatar}>
-          <ShieldCheck size={32} color={Colors.primary} />
+          <Bike size={32} color={Colors.primary} />
         </View>
-        <Text style={styles.name}>Administrateur</Text>
+        <Text style={styles.name}>
+          {user?.email?.split("@")[0] || "Livreur Oujda"}
+        </Text>
         <Text style={styles.email}>
-          {user?.email || "admin@quicklivraison.ma"}
+          {user?.email || "delivery@quicklivraison.ma"}
         </Text>
         <View style={styles.roleBadge}>
-          <Text style={styles.roleBadgeText}>Superviseur • Oujda</Text>
+          <ShieldCheck
+            size={12}
+            color={Colors.white}
+            style={{ marginRight: 4 }}
+          />
+          <Text style={styles.roleBadgeText}>
+            Livreur Partenaire • Oujda Express
+          </Text>
         </View>
       </View>
 
-      {/* Global Performance Summary */}
       <Card style={styles.card}>
-        <Text style={styles.cardTitle}>Performances Globales</Text>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Chiffre d'affaires cumulé</Text>
-          <Text style={styles.statValueBold}>
-            {stats?.totalTurnoverMAD.toFixed(2) || "0.00"} DH
-          </Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Commandes traitées</Text>
-          <Text style={styles.statValue}>{stats?.todayOrdersCount || 0}</Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Zone de couverture</Text>
-          <Text style={styles.statValue}>Oujda & Région Oriental</Text>
+        <View style={styles.switchRow}>
+          <View>
+            <Text style={styles.switchTitle}>Disponibilité aux courses</Text>
+            <Text style={styles.switchSub}>
+              {isOnline
+                ? "Recevoir les commandes prêtes"
+                : "Actuellement hors ligne"}
+            </Text>
+          </View>
+          <Switch
+            value={isOnline}
+            onValueChange={setIsOnline}
+            trackColor={{ false: "#CBD5E1", true: Colors.primary + "60" }}
+            thumbColor={isOnline ? Colors.primary : "#94A3B8"}
+          />
         </View>
       </Card>
 
-      {/* Clients Management Overview */}
       <Card style={styles.card}>
         <Text style={styles.cardTitle}>
-          Clients Inscrits ({clients.length})
+          Informations Véhicule & Performance
         </Text>
-        {clients.map((c) => (
-          <View key={c.id} style={styles.clientItem}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.clientName}>{c.full_name}</Text>
-              <Text style={styles.clientDetails}>
-                {c.email} • {c.phone}
-              </Text>
-            </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.clientSpent}>
-                {c.totalSpentMAD.toFixed(2)} DH
-              </Text>
-              <Text style={styles.clientOrders}>{c.totalOrders} commandes</Text>
-            </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Véhicule :</Text>
+          <Text style={styles.infoValue}>Scooter 125cc</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Zone affectée :</Text>
+          <Text style={styles.infoValue}>
+            Centre-Ville, Lazaret, Al Qods (Oujda)
+          </Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Note Livreur :</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Star
+              size={12}
+              color={Colors.primary}
+              fill={Colors.primary}
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.infoValue}>4.9/5 (98% avis positifs)</Text>
           </View>
-        ))}
+        </View>
       </Card>
 
-      {/* Logout */}
       <Button
-        title="Se déconnecter de l'espace Admin"
+        title="Se déconnecter de l'espace Livreur"
         onPress={handleLogout}
         variant="secondary"
         isLoading={isLoggingOut}
@@ -128,6 +132,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingTop: 50,
     paddingBottom: 40,
   },
   profileHeader: {
@@ -178,59 +183,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  switchTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: Colors.textPrimary,
+  },
+  switchSub: {
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
   cardTitle: {
     fontSize: 15,
     fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 12,
   },
-  statRow: {
+  infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: "#F8FAFC",
   },
-  statLabel: {
-    fontSize: 13,
+  infoLabel: {
+    fontSize: 12,
     color: Colors.textSecondary,
-  },
-  statValue: {
-    fontSize: 13,
     fontWeight: "600",
-    color: Colors.textPrimary,
   },
-  statValueBold: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: Colors.primary,
-  },
-  clientItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-  },
-  clientName: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.textPrimary,
-  },
-  clientDetails: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    marginTop: 1,
-  },
-  clientSpent: {
-    fontSize: 13,
+  infoValue: {
+    fontSize: 12,
     fontWeight: "800",
-    color: Colors.primary,
-  },
-  clientOrders: {
-    fontSize: 10,
-    color: Colors.textMuted,
+    color: Colors.textPrimary,
   },
   logoutBtn: {
     marginTop: 10,

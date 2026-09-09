@@ -1,15 +1,15 @@
-import { colors } from '../theme/colors';
+import { colors } from "../theme/colors";
 
 export type OrderStatus =
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'PREPARING'
-  | 'READY'
-  | 'OUT_FOR_DELIVERY'
-  | 'DELIVERED'
-  | 'CANCELLED';
+  | "PENDING"
+  | "CONFIRMED"
+  | "PREPARING"
+  | "READY"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED"
+  | "CANCELLED";
 
-export type PaymentMethodType = 'CASH' | 'TRANSFER' | 'CARD';
+export type PaymentMethodType = "CASH" | "TRANSFER" | "CARD";
 
 export interface Address {
   id: string;
@@ -47,7 +47,7 @@ export interface Order {
   status: OrderStatus;
   subtotal: number;
   delivery_fee: number;
-  delivery_mode?: 'DELIVERY' | 'PICKUP';
+  delivery_mode?: "DELIVERY" | "PICKUP";
   total: number;
   payment_method: PaymentMethodType;
   notes?: string;
@@ -57,6 +57,13 @@ export interface Order {
   review_text?: string;
   driver_name?: string;
   driver_phone?: string;
+  driver_id?: string;
+  delivery_lat?: number;
+  delivery_lng?: number;
+  courier_lat?: number;
+  courier_lng?: number;
+  restaurant_lat?: number;
+  restaurant_lng?: number;
   created_at: string;
   updated_at: string;
 }
@@ -72,57 +79,57 @@ export interface OrderStatusConfig {
 
 export const ORDER_STATUS_CONFIG: Record<OrderStatus, OrderStatusConfig> = {
   PENDING: {
-    key: 'PENDING',
-    label: 'Reçue',
-    description: 'Votre commande a été transmise',
+    key: "PENDING",
+    label: "Reçue",
+    description: "Votre commande a été transmise",
     color: colors.warning,
     bgColor: colors.warningLight,
     stepIndex: 0,
   },
   CONFIRMED: {
-    key: 'CONFIRMED',
-    label: 'Confirmée',
-    description: 'La commande a été acceptée',
+    key: "CONFIRMED",
+    label: "Confirmée",
+    description: "La commande a été acceptée",
     color: colors.primary,
     bgColor: colors.primaryLight,
     stepIndex: 1,
   },
   PREPARING: {
-    key: 'PREPARING',
-    label: 'En cuisine',
-    description: 'Préparation en cours',
+    key: "PREPARING",
+    label: "En cuisine",
+    description: "Préparation en cours",
     color: colors.primary,
     bgColor: colors.primaryLight,
     stepIndex: 2,
   },
   READY: {
-    key: 'READY',
-    label: 'Prête',
-    description: 'La commande attend le livreur',
+    key: "READY",
+    label: "Prête",
+    description: "La commande attend le livreur",
     color: colors.primary,
     bgColor: colors.primaryLight,
     stepIndex: 3,
   },
   OUT_FOR_DELIVERY: {
-    key: 'OUT_FOR_DELIVERY',
-    label: 'En livraison',
-    description: 'Le livreur est en route vers votre adresse',
+    key: "OUT_FOR_DELIVERY",
+    label: "En livraison",
+    description: "Le livreur est en route vers votre adresse",
     color: colors.primary,
     bgColor: colors.primaryLight,
     stepIndex: 4,
   },
   DELIVERED: {
-    key: 'DELIVERED',
-    label: 'Livrée',
-    description: 'Commande livrée avec succès',
+    key: "DELIVERED",
+    label: "Livrée",
+    description: "Commande livrée avec succès",
     color: colors.success,
     bgColor: colors.successLight,
     stepIndex: 5,
   },
   CANCELLED: {
-    key: 'CANCELLED',
-    label: 'Annulée',
-    description: 'Cette commande a été annulée',
+    key: "CANCELLED",
+    label: "Annulée",
+    description: "Cette commande a été annulée",
     color: colors.error,
     bgColor: colors.errorLight,
     stepIndex: -1,

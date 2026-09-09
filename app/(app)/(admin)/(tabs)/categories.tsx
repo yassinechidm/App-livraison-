@@ -1,25 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import Colors from "@/constants/Colors";
+import { productService } from "@/services/product.service";
+import { PromoCode, promoService } from "@/services/promo.service";
+import { Category, Product } from "@/types/product.types";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-  Modal,
-  Alert,
-  RefreshControl,
-} from 'react-native';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Colors from '@/constants/Colors';
-import { productService } from '@/services/product.service';
-import { promoService, PromoCode } from '@/services/promo.service';
-import { Category, Product } from '@/types/product.types';
+    Alert,
+    Modal,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function AdminCategoriesScreen() {
-  const [activeTab, setActiveTab] = useState<'promos' | 'categories'>('promos');
+  const [activeTab, setActiveTab] = useState<"promos" | "categories">("promos");
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
@@ -28,16 +28,18 @@ export default function AdminCategoriesScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   // New Category Form
-  const [catName, setCatName] = useState('');
-  const [catDescription, setCatDescription] = useState('');
-  const [catEmoji, setCatEmoji] = useState('📦');
+  const [catName, setCatName] = useState("");
+  const [catDescription, setCatDescription] = useState("");
+  const [catEmoji, setCatEmoji] = useState("📦");
 
   // New Promo Code Form
-  const [promoCode, setPromoCode] = useState('');
-  const [discountType, setDiscountType] = useState<'FIXED' | 'PERCENT' | 'FREE_DELIVERY'>('FIXED');
-  const [discountValue, setDiscountValue] = useState('10');
-  const [minOrder, setMinOrder] = useState('60');
-  const [promoDesc, setPromoDesc] = useState('');
+  const [promoCode, setPromoCode] = useState("");
+  const [discountType, setDiscountType] = useState<
+    "FIXED" | "PERCENT" | "FREE_DELIVERY"
+  >("FIXED");
+  const [discountValue, setDiscountValue] = useState("10");
+  const [minOrder, setMinOrder] = useState("60");
+  const [promoDesc, setPromoDesc] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -69,7 +71,7 @@ export default function AdminCategoriesScreen() {
       await productService.toggleCategoryActive(id);
       await loadData();
     } catch {
-      Alert.alert('Erreur', 'Impossible de modifier la catégorie.');
+      Alert.alert("Erreur", "Impossible de modifier la catégorie.");
     }
   }
 
@@ -80,39 +82,43 @@ export default function AdminCategoriesScreen() {
 
   async function handleDeletePromo(id: string, code: string) {
     Alert.alert(
-      'Supprimer le code',
+      "Supprimer le code",
       `Voulez-vous supprimer le code promo "${code}" ?`,
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: "Annuler", style: "cancel" },
         {
-          text: 'Supprimer',
-          style: 'destructive',
+          text: "Supprimer",
+          style: "destructive",
           onPress: async () => {
             await promoService.deletePromoCode(id);
             await loadData();
           },
         },
-      ]
+      ],
     );
   }
 
   async function handleCreateCategory() {
     if (!catName.trim()) {
-      Alert.alert('Erreur', 'Veuillez saisir un nom pour la catégorie.');
+      Alert.alert("Erreur", "Veuillez saisir un nom pour la catégorie.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await productService.createCategory(catName.trim(), catDescription.trim(), catEmoji.trim() || '📦');
+      await productService.createCategory(
+        catName.trim(),
+        catDescription.trim(),
+        catEmoji.trim() || "📦",
+      );
       setShowAddCatModal(false);
-      setCatName('');
-      setCatDescription('');
-      setCatEmoji('📦');
+      setCatName("");
+      setCatDescription("");
+      setCatEmoji("📦");
       await loadData();
-      Alert.alert('Succès', 'Catégorie créée avec succès.');
+      Alert.alert("Succès", "Catégorie créée avec succès.");
     } catch {
-      Alert.alert('Erreur', 'Impossible de créer la catégorie.');
+      Alert.alert("Erreur", "Impossible de créer la catégorie.");
     } finally {
       setIsSubmitting(false);
     }
@@ -120,7 +126,7 @@ export default function AdminCategoriesScreen() {
 
   async function handleCreatePromo() {
     if (!promoCode.trim() || !discountValue.trim()) {
-      Alert.alert('Erreur', 'Veuillez renseigner le code et la valeur.');
+      Alert.alert("Erreur", "Veuillez renseigner le code et la valeur.");
       return;
     }
 
@@ -136,14 +142,14 @@ export default function AdminCategoriesScreen() {
       });
 
       setShowAddPromoModal(false);
-      setPromoCode('');
-      setDiscountValue('10');
-      setMinOrder('60');
-      setPromoDesc('');
+      setPromoCode("");
+      setDiscountValue("10");
+      setMinOrder("60");
+      setPromoDesc("");
       await loadData();
-      Alert.alert('Succès', 'Code promo créé avec succès ! 🏷️');
+      Alert.alert("Succès", "Code promo créé avec succès ! 🏷️");
     } catch {
-      Alert.alert('Erreur', 'Impossible de créer le code promo.');
+      Alert.alert("Erreur", "Impossible de créer le code promo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -154,21 +160,34 @@ export default function AdminCategoriesScreen() {
       {/* Top Segmented Tab Switcher */}
       <View style={styles.topTabsContainer}>
         <TouchableOpacity
-          style={[styles.topTab, activeTab === 'promos' && styles.topTabActive]}
-          onPress={() => setActiveTab('promos')}
+          style={[styles.topTab, activeTab === "promos" && styles.topTabActive]}
+          onPress={() => setActiveTab("promos")}
           activeOpacity={0.8}
         >
-          <Text style={[styles.topTabText, activeTab === 'promos' && styles.topTabTextActive]}>
+          <Text
+            style={[
+              styles.topTabText,
+              activeTab === "promos" && styles.topTabTextActive,
+            ]}
+          >
             🏷️ Codes Promo ({promoCodes.length})
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.topTab, activeTab === 'categories' && styles.topTabActive]}
-          onPress={() => setActiveTab('categories')}
+          style={[
+            styles.topTab,
+            activeTab === "categories" && styles.topTabActive,
+          ]}
+          onPress={() => setActiveTab("categories")}
           activeOpacity={0.8}
         >
-          <Text style={[styles.topTabText, activeTab === 'categories' && styles.topTabTextActive]}>
+          <Text
+            style={[
+              styles.topTabText,
+              activeTab === "categories" && styles.topTabTextActive,
+            ]}
+          >
             📂 Catégories ({categories.length})
           </Text>
         </TouchableOpacity>
@@ -177,12 +196,12 @@ export default function AdminCategoriesScreen() {
       {/* Header Bar with Action Button */}
       <View style={styles.headerBar}>
         <Text style={styles.headerTitle}>
-          {activeTab === 'promos'
-            ? 'Codes Promo & Réductions Oujda'
+          {activeTab === "promos"
+            ? "Codes Promo & Réductions Oujda"
             : `Catégories du Menu (${categories.length})`}
         </Text>
 
-        {activeTab === 'promos' ? (
+        {activeTab === "promos" ? (
           <TouchableOpacity
             style={styles.addBtn}
             onPress={() => setShowAddPromoModal(true)}
@@ -215,7 +234,7 @@ export default function AdminCategoriesScreen() {
         {/* ========================================================= */}
         {/* 1. PROMO CODES MANAGER                                   */}
         {/* ========================================================= */}
-        {activeTab === 'promos' && (
+        {activeTab === "promos" && (
           <View style={{ gap: 10 }}>
             {promoCodes.map((promo) => (
               <Card key={promo.id} style={styles.promoCard}>
@@ -225,41 +244,58 @@ export default function AdminCategoriesScreen() {
                   </View>
 
                   <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
                       <Text style={styles.promoCodeText}>{promo.code}</Text>
                       <View
                         style={[
                           styles.promoBadge,
-                          { backgroundColor: promo.is_active ? '#ECFDF5' : '#F1F5F9' },
+                          {
+                            backgroundColor: promo.is_active
+                              ? "#ECFDF5"
+                              : "#F1F5F9",
+                          },
                         ]}
                       >
                         <Text
                           style={[
                             styles.promoBadgeText,
-                            { color: promo.is_active ? '#059669' : '#64748B' },
+                            { color: promo.is_active ? "#059669" : "#64748B" },
                           ]}
                         >
-                          {promo.is_active ? 'Actif' : 'Désactivé'}
+                          {promo.is_active ? "Actif" : "Désactivé"}
                         </Text>
                       </View>
                     </View>
 
                     <Text style={styles.promoDesc}>{promo.description}</Text>
                     <Text style={styles.promoMeta}>
-                      Min. {promo.min_order_amount} MAD • Utilisé {promo.usage_count} fois
+                      Min. {promo.min_order_amount} MAD • Utilisé{" "}
+                      {promo.usage_count} fois
                     </Text>
                   </View>
 
-                  <View style={{ alignItems: 'flex-end', gap: 8 }}>
+                  <View style={{ alignItems: "flex-end", gap: 8 }}>
                     <Switch
                       value={promo.is_active}
                       onValueChange={() => handleTogglePromo(promo.id)}
-                      trackColor={{ false: '#CBD5E1', true: Colors.secondary + '60' }}
-                      thumbColor={promo.is_active ? Colors.secondary : '#94A3B8'}
+                      trackColor={{
+                        false: "#CBD5E1",
+                        true: Colors.secondary + "60",
+                      }}
+                      thumbColor={
+                        promo.is_active ? Colors.secondary : "#94A3B8"
+                      }
                     />
                     <TouchableOpacity
                       onPress={() => handleDeletePromo(promo.id, promo.code)}
                       style={{ padding: 4 }}
+                      accessibilityLabel={`Supprimer le code promo ${promo.code}`}
                     >
                       <Text style={{ fontSize: 16 }}>🗑️</Text>
                     </TouchableOpacity>
@@ -273,10 +309,12 @@ export default function AdminCategoriesScreen() {
         {/* ========================================================= */}
         {/* 2. PRODUCT CATEGORIES MANAGER                             */}
         {/* ========================================================= */}
-        {activeTab === 'categories' && (
+        {activeTab === "categories" && (
           <View style={{ gap: 10 }}>
             {categories.map((cat) => {
-              const prodsInCat = products.filter((p) => p.category_id === cat.id);
+              const prodsInCat = products.filter(
+                (p) => p.category_id === cat.id,
+              );
 
               return (
                 <Card key={cat.id} style={styles.categoryCard}>
@@ -299,16 +337,25 @@ export default function AdminCategoriesScreen() {
                       <Text
                         style={[
                           styles.toggleStatus,
-                          { color: cat.is_active ? Colors.secondary : Colors.error },
+                          {
+                            color: cat.is_active
+                              ? Colors.secondary
+                              : Colors.error,
+                          },
                         ]}
                       >
-                        {cat.is_active ? 'Active' : 'Masquée'}
+                        {cat.is_active ? "Active" : "Masquée"}
                       </Text>
                       <Switch
                         value={cat.is_active}
                         onValueChange={() => handleToggleCategory(cat.id)}
-                        trackColor={{ false: '#CBD5E1', true: Colors.secondary + '60' }}
-                        thumbColor={cat.is_active ? Colors.secondary : '#94A3B8'}
+                        trackColor={{
+                          false: "#CBD5E1",
+                          true: Colors.secondary + "60",
+                        }}
+                        thumbColor={
+                          cat.is_active ? Colors.secondary : "#94A3B8"
+                        }
                       />
                     </View>
                   </View>
@@ -342,9 +389,9 @@ export default function AdminCategoriesScreen() {
               <TouchableOpacity
                 style={[
                   styles.typeTab,
-                  discountType === 'FIXED' && styles.typeTabActive,
+                  discountType === "FIXED" && styles.typeTabActive,
                 ]}
-                onPress={() => setDiscountType('FIXED')}
+                onPress={() => setDiscountType("FIXED")}
               >
                 <Text style={styles.typeTabText}>Remise Fixe (MAD)</Text>
               </TouchableOpacity>
@@ -352,9 +399,9 @@ export default function AdminCategoriesScreen() {
               <TouchableOpacity
                 style={[
                   styles.typeTab,
-                  discountType === 'PERCENT' && styles.typeTabActive,
+                  discountType === "PERCENT" && styles.typeTabActive,
                 ]}
-                onPress={() => setDiscountType('PERCENT')}
+                onPress={() => setDiscountType("PERCENT")}
               >
                 <Text style={styles.typeTabText}>Pourcentage (%)</Text>
               </TouchableOpacity>
@@ -362,9 +409,9 @@ export default function AdminCategoriesScreen() {
               <TouchableOpacity
                 style={[
                   styles.typeTab,
-                  discountType === 'FREE_DELIVERY' && styles.typeTabActive,
+                  discountType === "FREE_DELIVERY" && styles.typeTabActive,
                 ]}
-                onPress={() => setDiscountType('FREE_DELIVERY')}
+                onPress={() => setDiscountType("FREE_DELIVERY")}
               >
                 <Text style={styles.typeTabText}>Livraison Gratuite</Text>
               </TouchableOpacity>
@@ -452,47 +499,47 @@ export default function AdminCategoriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   topTabsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: Colors.white,
     paddingHorizontal: 16,
     paddingTop: 10,
     gap: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: "#E2E8F0",
   },
   topTab: {
     flex: 1,
     paddingVertical: 10,
-    alignItems: 'center',
+    alignItems: "center",
     borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderBottomColor: "transparent",
   },
   topTabActive: {
     borderBottomColor: Colors.primary,
   },
   topTabText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textMuted,
   },
   topTabTextActive: {
     color: Colors.primary,
-    fontWeight: '900',
+    fontWeight: "900",
   },
   headerBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   headerTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   addBtn: {
@@ -503,7 +550,7 @@ const styles = StyleSheet.create({
   },
   addBtnText: {
     color: Colors.white,
-    fontWeight: '800',
+    fontWeight: "800",
     fontSize: 11,
   },
   scrollContent: {
@@ -515,24 +562,24 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   promoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   promoIconBox: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFFBEB',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#FFFBEB",
+    justifyContent: "center",
+    alignItems: "center",
   },
   promoCodeText: {
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.primary,
     letterSpacing: 0.5,
   },
@@ -543,7 +590,7 @@ const styles = StyleSheet.create({
   },
   promoBadgeText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   promoDesc: {
     fontSize: 12,
@@ -556,7 +603,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   typeSelectorRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 6,
     marginBottom: 10,
   },
@@ -564,17 +611,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
   },
   typeTabActive: {
-    backgroundColor: '#EBF2FF',
+    backgroundColor: "#EBF2FF",
     borderWidth: 1,
     borderColor: Colors.primary,
   },
   typeTabText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textPrimary,
   },
   categoryCard: {
@@ -582,20 +629,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   catRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   catEmojiCircle: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#EBF2FF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#EBF2FF",
+    justifyContent: "center",
+    alignItems: "center",
   },
   catEmoji: {
     fontSize: 22,
@@ -605,7 +652,7 @@ const styles = StyleSheet.create({
   },
   catName: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 2,
   },
@@ -616,40 +663,40 @@ const styles = StyleSheet.create({
   },
   productCount: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.primary,
   },
   toggleGroup: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
   },
   toggleStatus: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   modalContent: {
     backgroundColor: Colors.white,
     borderRadius: 20,
     padding: 20,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 14,
   },
   modalTitle: {
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.textPrimary,
   },
   modalClose: {

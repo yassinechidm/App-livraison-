@@ -1,48 +1,70 @@
-import { Platform } from 'react-native';
-import { supabase } from '@/lib/supabase';
-import { authService } from './auth.service';
-import { Order, OrderStatus, CreateOrderInput, OrderItem } from '@/types/order.types';
-import { cartService } from './cart.service';
+import { supabase } from "@/lib/supabase";
+import {
+    CreateOrderInput,
+    Order,
+    OrderItem,
+    OrderStatus,
+} from "@/types/order.types";
+import { Platform } from "react-native";
+import { authService } from "./auth.service";
+import { cartService } from "./cart.service";
 
 function isValidUUID(str?: string): boolean {
   if (!str) return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    str,
+  );
 }
 
-const ORDERS_STORAGE_KEY = 'quick_livraison_shared_orders_v2';
+let currentScopedUserId: string | null = null;
+
+function getOrdersStorageKey(userId?: string | null): string {
+  if (userId && isValidUUID(userId)) {
+    return `quick_livraison_orders_${userId}`;
+  }
+  return "quick_livraison_orders_guest";
+}
 
 // In-memory shared orders store to guarantee zero data loss between views
 let SHARED_ORDERS: Order[] = [];
 
-function saveOrdersToStorage() {
-  if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+function saveOrdersToStorage(userId?: string | null) {
+  if (Platform.OS === "web" && typeof localStorage !== "undefined") {
     try {
-      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(SHARED_ORDERS));
+      const key = getOrdersStorageKey(userId || currentScopedUserId);
+      localStorage.setItem(key, JSON.stringify(SHARED_ORDERS));
     } catch {}
   }
 }
 
-function loadOrdersFromStorage() {
-  if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+function loadOrdersFromStorage(userId?: string | null) {
+  if (userId) {
+    currentScopedUserId = userId;
+  }
+  if (Platform.OS === "web" && typeof localStorage !== "undefined") {
     try {
-      const saved = localStorage.getItem(ORDERS_STORAGE_KEY);
+      const key = getOrdersStorageKey(userId || currentScopedUserId);
+      const saved = localStorage.getItem(key);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           SHARED_ORDERS = parsed;
+          return;
         }
       }
     } catch {}
   }
+  SHARED_ORDERS = [];
 }
 
 // Initial load on startup
 loadOrdersFromStorage();
 
 // Cross-tab real-time sync in browser
-if (Platform.OS === 'web' && typeof window !== 'undefined') {
-  window.addEventListener('storage', (e) => {
-    if (e.key === ORDERS_STORAGE_KEY && e.newValue) {
+if (Platform.OS === "web" && typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    const activeKey = getOrdersStorageKey(currentScopedUserId);
+    if (e.key === activeKey && e.newValue) {
       try {
         const parsed = JSON.parse(e.newValue);
         if (Array.isArray(parsed)) {
@@ -57,17 +79,17 @@ if (Platform.OS === 'web' && typeof window !== 'undefined') {
 // Supabase Realtime listener to sync orders across all phones & PC in real-time
 try {
   supabase
-    .channel('realtime_orders_channel')
+    .channel("realtime_orders_channel")
     .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'orders' },
+      "postgres_changes",
+      { event: "*", schema: "public", table: "orders" },
       () => {
         orderService.getAllOrdersAdmin();
-      }
+      },
     )
     .subscribe();
 } catch (e) {
-  console.warn('[orderService] Supabase realtime subscription warning:', e);
+  console.warn("[orderService] Supabase realtime subscription warning:", e);
 }
 type OrderListener = () => void;
 const listeners = new Set<OrderListener>();
@@ -82,6 +104,18 @@ function notify() {
 }
 
 export const orderService = {
+  clearMemoryStore() {
+    SHARED_ORDERS = [];
+    currentScopedUserId = null;
+    if (Platform.OS === "web" && typeof localStorage !== "undefined") {
+      try {
+        localStorage.removeItem("quick_livraison_shared_orders_v2");
+        localStorage.removeItem("quick_livraison_orders_guest");
+      } catch {}
+    }
+    notify();
+  },
+
   subscribe(listener: OrderListener): () => void {
     listeners.add(listener);
     return () => {
@@ -91,20 +125,24 @@ export const orderService = {
 
   async createOrder(
     input: CreateOrderInput,
-    user: { id: string; email?: string; name?: string; phone?: string }
+    user: { id: string; email?: string; name?: string; phone?: string },
   ): Promise<Order> {
-    const subtotal = input.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
-    const isPickup = input.delivery_mode === 'PICKUP';
+    const subtotal = input.items.reduce(
+      (sum, item) => sum + item.unit_price * item.quantity,
+      0,
+    );
+    const isPickup = input.delivery_mode === "PICKUP";
 
     // Check loyalty: 5+ past orders = free delivery
     loadOrdersFromStorage();
     const pastOrderCount = SHARED_ORDERS.filter(
-      (o) => o.status !== 'CANCELLED'
+      (o) => o.status !== "CANCELLED",
     ).length;
     const isLoyaltyFree = pastOrderCount >= 5;
     const isThresholdFree = subtotal >= 300 && !isPickup;
 
-    const delivery_fee = isPickup || isLoyaltyFree || isThresholdFree ? 0 : 15.0;
+    const delivery_fee =
+      isPickup || isLoyaltyFree || isThresholdFree ? 0 : 15.0;
     const total = subtotal + delivery_fee;
     const orderNumber = `CMD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 
@@ -114,8 +152,8 @@ export const orderService = {
     const safeUserId = isValidUUID(realAuthUser?.id)
       ? realAuthUser.id
       : isValidUUID(user.id)
-      ? user.id
-      : null;
+        ? user.id
+        : null;
 
     const orderItems: OrderItem[] = input.items.map((item, idx) => ({
       id: `item-${Date.now()}-${idx}`,
@@ -131,15 +169,15 @@ export const orderService = {
     const newOrder: Order = {
       id: `ord-${Date.now()}`,
       order_number: orderNumber,
-      user_id: safeUserId || 'demo-user',
-      customer_name: user.name || user.email?.split('@')[0] || 'Client Oujda',
-      customer_phone: user.phone || '+212 6 XX XX XX XX',
-      customer_email: user.email || 'client@quicklivraison.ma',
+      user_id: safeUserId || "demo-user",
+      customer_name: user.name || user.email?.split("@")[0] || "Client Oujda",
+      customer_phone: user.phone || "+212 6 XX XX XX XX",
+      customer_email: user.email || "client@quicklivraison.ma",
       delivery_address_text: input.delivery_address_text,
-      status: 'PENDING',
+      status: "PENDING",
       subtotal,
       delivery_fee,
-      delivery_mode: input.delivery_mode || 'DELIVERY',
+      delivery_mode: input.delivery_mode || "DELIVERY",
       total,
       payment_method: input.payment_method,
       notes: input.notes,
@@ -162,14 +200,14 @@ export const orderService = {
         order_number: orderNumber,
         delivery_address_text: input.delivery_address_text,
         address_id: isValidUUID(input.address_id) ? input.address_id : null,
-        status: 'PENDING',
+        status: "PENDING",
         subtotal,
         delivery_fee,
         total,
         payment_method: input.payment_method,
         notes: input.notes || null,
         estimated_delivery_minutes: 25,
-        delivery_mode: input.delivery_mode || 'DELIVERY',
+        delivery_mode: input.delivery_mode || "DELIVERY",
         customer_name: newOrder.customer_name,
         customer_phone: user.phone || null,
         customer_email: user.email || null,
@@ -180,13 +218,16 @@ export const orderService = {
       }
 
       const { data: orderData, error: orderError } = await (supabase as any)
-        .from('orders')
+        .from("orders")
         .insert(insertPayload)
         .select()
         .single();
 
       if (orderError) {
-        console.error('[orderService] Supabase insert orders error:', orderError);
+        console.error(
+          "[orderService] Supabase insert orders error:",
+          orderError,
+        );
       }
 
       if (!orderError && orderData) {
@@ -194,52 +235,70 @@ export const orderService = {
 
         const orderItemsPayload = input.items.map((item) => ({
           order_id: orderData.id,
-          product_id: isValidUUID(item.product_id) ? item.product_id : '11111111-1111-1111-1111-111111111111',
+          product_id: isValidUUID(item.product_id)
+            ? item.product_id
+            : "11111111-1111-1111-1111-111111111111",
           product_name: item.product_name,
           quantity: item.quantity,
           unit_price: item.unit_price,
           total_price: item.unit_price * item.quantity,
-          selected_customizations_text: item.selected_customizations_text || null,
+          selected_customizations_text:
+            item.selected_customizations_text || null,
           special_instructions: item.special_instructions || null,
         }));
 
-        const { error: itemsError } = await (supabase as any).from('order_items').insert(orderItemsPayload);
+        const { error: itemsError } = await (supabase as any)
+          .from("order_items")
+          .insert(orderItemsPayload);
         if (itemsError) {
-          console.error('[orderService] Supabase insert order_items error:', itemsError);
+          console.error(
+            "[orderService] Supabase insert order_items error:",
+            itemsError,
+          );
         }
         saveOrdersToStorage();
       }
     } catch (err) {
-      console.warn('[orderService] Supabase insert warning (kept in-memory):', err);
+      console.warn(
+        "[orderService] Supabase insert warning (kept in-memory):",
+        err,
+      );
     }
 
     return newOrder;
   },
 
   async getClientOrders(userId?: string): Promise<Order[]> {
-    loadOrdersFromStorage();
     try {
       const session = await authService.getSession();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const uid = userId || user?.id || session?.user?.id;
+      loadOrdersFromStorage(uid);
 
       let query = (supabase as any)
-        .from('orders')
-        .select('*, order_items(*)')
-        .order('created_at', { ascending: false });
+        .from("orders")
+        .select("*, order_items(*)")
+        .order("created_at", { ascending: false });
 
       if (uid && isValidUUID(uid)) {
-        query = query.eq('user_id', uid);
+        query = query.eq("user_id", uid);
       }
 
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        const dbOrders = data.map((o: any) => _mapDbOrder(o, o.order_items || []));
+        const dbOrders = data.map((o: any) =>
+          _mapDbOrder(o, o.order_items || []),
+        );
         // Merge with in-memory orders (avoiding duplicates)
         _mergeOrders(dbOrders);
       }
     } catch (err) {
-      console.warn('[orderService] getClientOrders Supabase fetch warning:', err);
+      console.warn(
+        "[orderService] getClientOrders Supabase fetch warning:",
+        err,
+      );
     }
 
     return [...SHARED_ORDERS];
@@ -247,44 +306,53 @@ export const orderService = {
 
   getPastOrderCount(): number {
     loadOrdersFromStorage();
-    return SHARED_ORDERS.filter((o) => o.status !== 'CANCELLED').length;
+    return SHARED_ORDERS.filter((o) => o.status !== "CANCELLED").length;
   },
 
-  async getAllOrdersAdmin(statusFilter?: OrderStatus | 'ALL'): Promise<Order[]> {
+  async getAllOrdersAdmin(
+    statusFilter?: OrderStatus | "ALL",
+  ): Promise<Order[]> {
     loadOrdersFromStorage();
     try {
       let query = (supabase as any)
-        .from('orders')
-        .select('*, order_items(*)')
-        .order('created_at', { ascending: false });
+        .from("orders")
+        .select("*, order_items(*)")
+        .order("created_at", { ascending: false });
 
-      if (statusFilter && statusFilter !== 'ALL') {
-        query = query.eq('status', statusFilter);
+      if (statusFilter && statusFilter !== "ALL") {
+        query = query.eq("status", statusFilter);
       }
 
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        const dbOrders = data.map((o: any) => _mapDbOrder(o, o.order_items || []));
+        const dbOrders = data.map((o: any) =>
+          _mapDbOrder(o, o.order_items || []),
+        );
         _mergeOrders(dbOrders);
       }
     } catch (err) {
-      console.warn('[orderService] getAllOrdersAdmin Supabase fetch warning:', err);
+      console.warn(
+        "[orderService] getAllOrdersAdmin Supabase fetch warning:",
+        err,
+      );
     }
 
-    if (!statusFilter || statusFilter === 'ALL') {
+    if (!statusFilter || statusFilter === "ALL") {
       return [...SHARED_ORDERS];
     }
     return SHARED_ORDERS.filter((o) => o.status === statusFilter);
   },
 
   async getOrderById(id: string): Promise<Order | undefined> {
-    const memoryOrder = SHARED_ORDERS.find((o) => o.id === id || o.order_number === id);
+    const memoryOrder = SHARED_ORDERS.find(
+      (o) => o.id === id || o.order_number === id,
+    );
     if (memoryOrder) return memoryOrder;
 
     try {
       const { data, error } = await (supabase as any)
-        .from('orders')
-        .select('*, order_items(*)')
+        .from("orders")
+        .select("*, order_items(*)")
         .or(`id.eq.${id},order_number.eq.${id}`)
         .single();
 
@@ -296,12 +364,17 @@ export const orderService = {
     return undefined;
   },
 
-  async updateOrderStatus(orderId: string, newStatus: OrderStatus): Promise<Order> {
-    const order = SHARED_ORDERS.find((o) => o.id === orderId || o.order_number === orderId);
+  async updateOrderStatus(
+    orderId: string,
+    newStatus: OrderStatus,
+  ): Promise<Order> {
+    const order = SHARED_ORDERS.find(
+      (o) => o.id === orderId || o.order_number === orderId,
+    );
     if (order) {
       order.status = newStatus;
       order.updated_at = new Date().toISOString();
-      if (newStatus === 'DELIVERED') {
+      if (newStatus === "DELIVERED") {
         order.estimated_delivery_minutes = 0;
       }
       notify();
@@ -309,24 +382,25 @@ export const orderService = {
 
     try {
       const updates: any = { status: newStatus };
-      if (newStatus === 'DELIVERED') updates.estimated_delivery_minutes = 0;
+      if (newStatus === "DELIVERED") updates.estimated_delivery_minutes = 0;
 
-      await (supabase as any)
-        .from('orders')
-        .update(updates)
-        .eq('id', orderId);
+      await (supabase as any).from("orders").update(updates).eq("id", orderId);
     } catch {}
 
-    if (!order) throw new Error('Commande non trouvée');
+    if (!order) throw new Error("Commande non trouvée");
     return order;
   },
 
   async cancelOrder(orderId: string, reason?: string): Promise<Order> {
-    const order = SHARED_ORDERS.find((o) => o.id === orderId || o.order_number === orderId);
+    const order = SHARED_ORDERS.find(
+      (o) => o.id === orderId || o.order_number === orderId,
+    );
     if (order) {
-      order.status = 'CANCELLED';
+      order.status = "CANCELLED";
       if (reason) {
-        order.notes = order.notes ? `${order.notes} | [Annulée: ${reason}]` : `[Annulée: ${reason}]`;
+        order.notes = order.notes
+          ? `${order.notes} | [Annulée: ${reason}]`
+          : `[Annulée: ${reason}]`;
       }
       order.updated_at = new Date().toISOString();
       notify();
@@ -334,9 +408,9 @@ export const orderService = {
 
     try {
       await (supabase as any)
-        .from('orders')
-        .update({ status: 'CANCELLED' })
-        .eq('id', orderId);
+        .from("orders")
+        .update({ status: "CANCELLED" })
+        .eq("id", orderId);
     } catch {}
 
     if (!order) throw new Error("Impossible d'annuler la commande");
@@ -344,7 +418,9 @@ export const orderService = {
   },
 
   async updateOrderNotes(orderId: string, notes: string): Promise<Order> {
-    const order = SHARED_ORDERS.find((o) => o.id === orderId || o.order_number === orderId);
+    const order = SHARED_ORDERS.find(
+      (o) => o.id === orderId || o.order_number === orderId,
+    );
     if (order) {
       order.notes = notes;
       order.updated_at = new Date().toISOString();
@@ -353,57 +429,69 @@ export const orderService = {
 
     try {
       await (supabase as any)
-        .from('orders')
+        .from("orders")
         .update({ notes })
-        .eq('id', orderId);
+        .eq("id", orderId);
     } catch {}
 
-    if (!order) throw new Error('Commande non trouvée');
+    if (!order) throw new Error("Commande non trouvée");
     return order;
   },
 
   async deleteOrder(orderId: string): Promise<boolean> {
-    SHARED_ORDERS = SHARED_ORDERS.filter((o) => o.id !== orderId && o.order_number !== orderId);
+    SHARED_ORDERS = SHARED_ORDERS.filter(
+      (o) => o.id !== orderId && o.order_number !== orderId,
+    );
     notify();
 
     try {
-      await (supabase as any)
-        .from('orders')
-        .delete()
-        .eq('id', orderId);
+      await (supabase as any).from("orders").delete().eq("id", orderId);
     } catch {}
 
     return true;
   },
 
-  async assignCourier(orderId: string, courierId: string, courierName: string, courierPhone: string): Promise<Order> {
-    const order = SHARED_ORDERS.find((o) => o.id === orderId || o.order_number === orderId);
+  async assignCourier(
+    orderId: string,
+    courierId: string,
+    courierName: string,
+    courierPhone: string,
+  ): Promise<Order> {
+    const order = SHARED_ORDERS.find(
+      (o) => o.id === orderId || o.order_number === orderId,
+    );
     if (order) {
       order.driver_name = courierName;
       order.driver_phone = courierPhone;
-      order.status = 'OUT_FOR_DELIVERY';
+      order.status = "OUT_FOR_DELIVERY";
       order.updated_at = new Date().toISOString();
       notify();
     }
 
     try {
       await (supabase as any)
-        .from('orders')
+        .from("orders")
         .update({
           courier_id: courierId,
           driver_name: courierName,
           driver_phone: courierPhone,
-          status: 'OUT_FOR_DELIVERY',
+          status: "OUT_FOR_DELIVERY",
         })
-        .eq('id', orderId);
+        .eq("id", orderId);
     } catch {}
 
     if (!order) throw new Error("Impossible d'assigner le coursier");
     return order;
   },
 
-  async rateOrder(orderId: string, rating: number, reviewText?: string): Promise<Order> {
-    const order = SHARED_ORDERS.find((o) => o.id === orderId || o.order_number === orderId);
+  async rateOrder(
+    orderId: string,
+    rating: number,
+    reviewText?: string,
+  ): Promise<Order> {
+    const order = SHARED_ORDERS.find(
+      (o) => o.id === orderId || o.order_number === orderId,
+    );
     if (order) {
       order.rating = rating;
       order.review_text = reviewText;
@@ -413,12 +501,12 @@ export const orderService = {
 
     try {
       await (supabase as any)
-        .from('orders')
+        .from("orders")
         .update({ rating, review_text: reviewText || null })
-        .eq('id', orderId);
+        .eq("id", orderId);
     } catch {}
 
-    if (!order) throw new Error('Commande non trouvée');
+    if (!order) throw new Error("Commande non trouvée");
     return order;
   },
 
@@ -426,12 +514,31 @@ export const orderService = {
     if (!order.items || order.items.length === 0) return;
     order.items.forEach((item) => {
       cartService.addItem(
-        { id: item.product_id, name: item.product_name, description: 'Recommandé', price: item.unit_price, is_available: true },
+        {
+          id: item.product_id,
+          name: item.product_name,
+          description: "Recommandé",
+          price: item.unit_price,
+          is_available: true,
+        },
         item.quantity,
         undefined,
-        item.special_instructions
+        item.special_instructions,
       );
     });
+  },
+
+  updateOrderCourierPosition(
+    orderId: string,
+    courier_lat: number,
+    courier_lng: number,
+  ) {
+    const order = SHARED_ORDERS.find((o) => o.id === orderId);
+    if (order) {
+      order.courier_lat = courier_lat;
+      order.courier_lng = courier_lng;
+      notify();
+    }
   },
 };
 
@@ -444,7 +551,10 @@ function _mergeOrders(dbOrders: Order[]) {
     }
   }
   // Sort descending by created_at
-  SHARED_ORDERS.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  SHARED_ORDERS.sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 }
 
 function _mapDbOrder(row: any, items: any[]): Order {
@@ -460,7 +570,7 @@ function _mapDbOrder(row: any, items: any[]): Order {
     status: row.status as OrderStatus,
     subtotal: Number(row.subtotal),
     delivery_fee: Number(row.delivery_fee),
-    delivery_mode: (row.delivery_mode as 'DELIVERY' | 'PICKUP') || 'DELIVERY',
+    delivery_mode: (row.delivery_mode as "DELIVERY" | "PICKUP") || "DELIVERY",
     total: Number(row.total),
     payment_method: row.payment_method,
     notes: row.notes || undefined,
@@ -469,6 +579,13 @@ function _mapDbOrder(row: any, items: any[]): Order {
     review_text: row.review_text || undefined,
     driver_name: row.driver_name || undefined,
     driver_phone: row.driver_phone || undefined,
+    driver_id: row.driver_id || undefined,
+    delivery_lat: Number(row.delivery_lat) || 34.6867,
+    delivery_lng: Number(row.delivery_lng) || -1.9114,
+    courier_lat: Number(row.courier_lat) || 34.688,
+    courier_lng: Number(row.courier_lng) || -1.913,
+    restaurant_lat: Number(row.restaurant_lat) || 34.689,
+    restaurant_lng: Number(row.restaurant_lng) || -1.915,
     items: items.map((oi: any) => ({
       id: oi.id,
       order_id: oi.order_id,
@@ -477,13 +594,11 @@ function _mapDbOrder(row: any, items: any[]): Order {
       quantity: Number(oi.quantity),
       unit_price: Number(oi.unit_price),
       total_price: Number(oi.total_price),
-      selected_customizations_text: oi.selected_customizations_text || undefined,
+      selected_customizations_text:
+        oi.selected_customizations_text || undefined,
       special_instructions: oi.special_instructions || undefined,
     })),
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
 }
-
-
-

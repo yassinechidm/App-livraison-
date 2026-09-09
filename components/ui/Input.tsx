@@ -1,5 +1,5 @@
 import Colors from "@/constants/Colors";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -64,21 +64,24 @@ export default function Input({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    width: "100%",
   },
   label: {
     color: Colors.textSecondary,
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 6,
     letterSpacing: 0.2,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.backgroundInput,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
+    backgroundColor: "#F7FAFC",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    width: "100%",
+    overflow: "hidden",
   },
   inputFocused: {
     borderColor: Colors.borderFocus,
@@ -93,6 +96,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    minWidth: 0,
     height: 52,
     paddingHorizontal: 16,
     color: Colors.textPrimary,

@@ -1,17 +1,16 @@
-import React from 'react';
-import { StyleSheet } from 'react-native';
-import { Surface, Text, TouchableRipple } from 'react-native-paper';
+import { borderRadius, colors, spacing } from "@/src/theme";
 import {
-  Coffee,
-  Flame,
-  Pizza,
-  Salad,
-  ShoppingBag,
-  Sparkles,
-  UtensilsCrossed,
-} from 'lucide-react-native';
-import { borderRadius, colors, spacing } from '@/src/theme';
-import { CategoryCardProps } from './types';
+    Coffee,
+    Flame,
+    Pizza,
+    Salad,
+    ShoppingBag,
+    UtensilsCrossed,
+} from "lucide-react-native";
+import React from "react";
+import { StyleSheet } from "react-native";
+import { Surface, Text, TouchableRipple } from "react-native-paper";
+import { CategoryCardProps } from "./types";
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({
   category,
@@ -24,19 +23,17 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
     const size = 22;
 
     switch (category.iconName) {
-      case 'Flame':
-      case 'popular':
+      case "Flame":
+      case "popular":
         return <Flame size={size} color={iconColor} />;
-      case 'Pizza':
+      case "Pizza":
         return <Pizza size={size} color={iconColor} />;
-      case 'Salad':
+      case "Salad":
         return <Salad size={size} color={iconColor} />;
-      case 'Coffee':
+      case "Coffee":
         return <Coffee size={size} color={iconColor} />;
-      case 'ShoppingBag':
+      case "ShoppingBag":
         return <ShoppingBag size={size} color={iconColor} />;
-      case 'Sparkles':
-        return <Sparkles size={size} color={iconColor} />;
       default:
         return <UtensilsCrossed size={size} color={iconColor} />;
     }
@@ -45,11 +42,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   return (
     <Surface
       elevation={0}
-      style={[
-        styles.surface,
-        isSelected && styles.selectedSurface,
-        style,
-      ]}
+      style={[styles.surface, isSelected && styles.selectedSurface, style]}
     >
       <TouchableRipple
         onPress={() => onPress(category)}
@@ -77,7 +70,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    overflow: 'hidden',
+    overflow: "hidden",
     minWidth: 84,
     height: 72,
     marginRight: spacing.sm,
@@ -88,19 +81,19 @@ const styles = StyleSheet.create({
   },
   ripple: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: spacing.xs,
   },
   label: {
     marginTop: spacing.xs,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text,
   },
   selectedLabel: {
     color: colors.primaryDark,
-    fontWeight: '800',
+    fontWeight: "800",
   },
 });
 

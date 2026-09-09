@@ -1,35 +1,35 @@
-import React, { useState } from 'react';
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Colors from "@/constants/Colors";
+import { authService } from "@/services/auth.service";
+import { Link } from "expo-router";
+import { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-} from 'react-native';
-import { Link } from 'expo-router';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Colors from '@/constants/Colors';
-import { authService } from '@/services/auth.service';
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 
 export default function ForgotPasswordScreen() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   function validate(): boolean {
     if (!email.trim()) {
-      setError('L\'email est requis');
+      setError("L'email est requis");
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Email invalide');
+      setError("Email invalide");
       return false;
     }
-    setError('');
+    setError("");
     return true;
   }
 
@@ -41,8 +41,9 @@ export default function ForgotPasswordScreen() {
       await authService.resetPassword(email.trim());
       setIsSent(true);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
-      Alert.alert('Erreur', message);
+      const message =
+        err instanceof Error ? err.message : "Une erreur est survenue";
+      Alert.alert("Erreur", message);
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +52,13 @@ export default function ForgotPasswordScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={
+        Platform.OS === "web"
+          ? undefined
+          : Platform.OS === "ios"
+            ? "padding"
+            : "height"
+      }
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -61,15 +68,15 @@ export default function ForgotPasswordScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={[styles.iconCircle, isSent && styles.iconCircleSuccess]}>
-            <Text style={styles.emoji}>{isSent ? '✅' : '🔐'}</Text>
+            <Text style={styles.emoji}>{isSent ? "✅" : "🔐"}</Text>
           </View>
           <Text style={styles.title}>
-            {isSent ? 'Email envoyé !' : 'Mot de passe oublié'}
+            {isSent ? "Email envoyé !" : "Mot de passe oublié"}
           </Text>
           <Text style={styles.subtitle}>
             {isSent
-              ? 'Vérifiez votre boîte de réception et suivez les instructions pour réinitialiser votre mot de passe.'
-              : 'Entrez votre email et nous vous enverrons un lien de réinitialisation.'}
+              ? "Vérifiez votre boîte de réception et suivez les instructions pour réinitialiser votre mot de passe."
+              : "Entrez votre email et nous vous enverrons un lien de réinitialisation."}
           </Text>
         </View>
 
@@ -98,7 +105,7 @@ export default function ForgotPasswordScreen() {
             <View style={styles.successCard}>
               <Text style={styles.successEmoji}>📬</Text>
               <Text style={styles.successText}>
-                Un email a été envoyé à{'\n'}
+                Un email a été envoyé à{"\n"}
                 <Text style={styles.successEmail}>{email}</Text>
               </Text>
             </View>
@@ -125,16 +132,18 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
+    overflow: "hidden",
     backgroundColor: Colors.background,
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingHorizontal: 24,
     paddingVertical: 40,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 36,
   },
   iconCircle: {
@@ -142,8 +151,8 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     backgroundColor: Colors.backgroundOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
   },
   iconCircleSuccess: {
@@ -154,7 +163,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 8,
     letterSpacing: -0.5,
@@ -162,7 +171,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
     paddingHorizontal: 16,
   },
@@ -176,10 +185,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.statusDeliveredBg,
     borderRadius: 16,
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: Colors.secondary + '20',
+    borderColor: Colors.secondary + "20",
   },
   successEmoji: {
     fontSize: 40,
@@ -188,19 +197,19 @@ const styles = StyleSheet.create({
   successText: {
     fontSize: 14,
     color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
   },
   successEmail: {
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textPrimary,
   },
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   footerLink: {
     color: Colors.primary,
-    fontWeight: '700',
+    fontWeight: "700",
     fontSize: 14,
   },
 });

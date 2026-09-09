@@ -1,5 +1,5 @@
-import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { useRouter } from 'expo-router';
+import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { useRouter } from "expo-router";
 import {
     ArrowRight,
     Bell,
@@ -8,49 +8,52 @@ import {
     Clock,
     Crosshair,
     MapPin,
-    PackageCheck,
     Search,
     SlidersHorizontal,
-    Tag
-} from 'lucide-react-native';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+    Tag,
+} from "lucide-react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+    Dimensions,
     RefreshControl,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
-    View
-} from 'react-native';
-import { Chip, Surface, Text } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
+    View,
+} from "react-native";
+import { Chip, Surface, Text } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { OUJDA_NEIGHBORHOODS } from '@/constants/mockData';
-import { cartService } from '@/services/cart.service';
-import { locationService } from '@/services/location.service';
-import { orderService } from '@/services/order.service';
-import { restaurantService } from '@/services/restaurant.service';
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+import { OUJDA_NEIGHBORHOODS } from "@/constants/mockData";
+import { cartService } from "@/services/cart.service";
+import { locationService } from "@/services/location.service";
+import { orderService } from "@/services/order.service";
+import { restaurantService } from "@/services/restaurant.service";
 import {
     AppBottomSheet,
     AppButton,
     CategoryCard,
     EmptyState,
     LoadingState,
+    LocationPickerModal,
     RestaurantCard,
-} from '@/src/components';
-import { borderRadius, colors, spacing } from '@/src/theme';
-import { Order } from '@/src/types/order.types';
-import { CategoryItem, Restaurant } from '@/src/types/restaurant.types';
+} from "@/src/components";
+import { borderRadius, colors, spacing } from "@/src/theme";
+import { Order } from "@/src/types/order.types";
+import { CategoryItem, Restaurant } from "@/src/types/restaurant.types";
 
 const CATEGORIES: CategoryItem[] = [
-  { id: 'all', name: 'Tous', iconName: 'Sparkles' },
-  { id: 'popular', name: 'Populaires', iconName: 'Flame' },
-  { id: 'burgers', name: 'Burgers', iconName: 'UtensilsCrossed' },
-  { id: 'pizzas', name: 'Pizzas', iconName: 'Pizza' },
-  { id: 'shawarma', name: 'Tacos', iconName: 'UtensilsCrossed' },
-  { id: 'moroccan', name: 'Marocain', iconName: 'UtensilsCrossed' },
-  { id: 'cafe', name: 'Café & Doux', iconName: 'Coffee' },
-  { id: 'healthy', name: 'Salades', iconName: 'Salad' },
-  { id: 'grocery', name: 'Courses', iconName: 'ShoppingBag' },
+  { id: "all", name: "Tous", iconName: "UtensilsCrossed" },
+  { id: "popular", name: "Populaires", iconName: "Flame" },
+  { id: "burgers", name: "Burgers", iconName: "UtensilsCrossed" },
+  { id: "pizzas", name: "Pizzas", iconName: "Pizza" },
+  { id: "shawarma", name: "Tacos", iconName: "UtensilsCrossed" },
+  { id: "moroccan", name: "Marocain", iconName: "UtensilsCrossed" },
+  { id: "cafe", name: "Café & Doux", iconName: "Coffee" },
+  { id: "healthy", name: "Salades", iconName: "Salad" },
+  { id: "grocery", name: "Courses", iconName: "ShoppingBag" },
 ];
 
 export const HomeScreen: React.FC = () => {
@@ -60,11 +63,16 @@ export const HomeScreen: React.FC = () => {
   // States
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
-  const [selectedCity, setSelectedCity] = useState('Oujda — Hay Al Qods');
-  const [deliveryMode, setDeliveryMode] = useState<'delivery' | 'pickup'>('delivery');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'free_delivery' | 'top_rated' | 'fast'>('all');
+  const [selectedCity, setSelectedCity] = useState("Oujda — Hay Al Qods");
+  const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
+  const [deliveryMode, setDeliveryMode] = useState<"delivery" | "pickup">(
+    "delivery",
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<
+    "all" | "free_delivery" | "top_rated" | "fast"
+  >("all");
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -87,7 +95,7 @@ export const HomeScreen: React.FC = () => {
         restaurantService.getRestaurants(),
       ]);
       const ongoingOrder = orders.find(
-        (o) => o.status !== 'DELIVERED' && o.status !== 'CANCELLED'
+        (o) => o.status !== "DELIVERED" && o.status !== "CANCELLED",
       );
       setActiveOrder(ongoingOrder || null);
       setRestaurants(restos);
@@ -111,7 +119,7 @@ export const HomeScreen: React.FC = () => {
       setSelectedCity(`Oujda — ${location.neighborhood}`);
       addressSheetRef.current?.dismiss();
     } catch {
-      setSelectedCity('Oujda — Centre-Ville');
+      setSelectedCity("Oujda — Centre-Ville");
     } finally {
       setIsLocating(false);
     }
@@ -124,14 +132,17 @@ export const HomeScreen: React.FC = () => {
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchesName = restaurant.name.toLowerCase().includes(query);
-        const matchesCuisine = restaurant.cuisine_type.toLowerCase().includes(query);
+        const matchesCuisine = restaurant.cuisine_type
+          .toLowerCase()
+          .includes(query);
         if (!matchesName && !matchesCuisine) return false;
       }
 
       // Category filter
-      if (selectedCategory !== 'all') {
-        if (selectedCategory === 'popular') {
-          if (!restaurant.is_top_rated && restaurant.rating_percent < 90) return false;
+      if (selectedCategory !== "all") {
+        if (selectedCategory === "popular") {
+          if (!restaurant.is_top_rated && restaurant.rating_percent < 90)
+            return false;
         } else {
           const cuisineLower = restaurant.cuisine_type.toLowerCase();
           if (!cuisineLower.includes(selectedCategory)) return false;
@@ -139,16 +150,25 @@ export const HomeScreen: React.FC = () => {
       }
 
       // Secondary pill filter
-      if (activeFilter === 'free_delivery' && restaurant.delivery_fee !== 0) return false;
-      if (activeFilter === 'top_rated' && restaurant.rating_percent < 95) return false;
-      if (activeFilter === 'fast' && !restaurant.delivery_time.includes('15') && !restaurant.delivery_time.includes('20')) return false;
+      if (activeFilter === "free_delivery" && restaurant.delivery_fee !== 0)
+        return false;
+      if (activeFilter === "top_rated" && restaurant.rating_percent < 95)
+        return false;
+      if (
+        activeFilter === "fast" &&
+        !restaurant.delivery_time.includes("15") &&
+        !restaurant.delivery_time.includes("20")
+      )
+        return false;
 
       return true;
     });
   }, [restaurants, searchQuery, selectedCategory, activeFilter]);
 
   const popularRestaurants = useMemo(() => {
-    return restaurants.filter((r) => r.is_top_rated || r.rating_percent >= 90).slice(0, 5);
+    return restaurants
+      .filter((r) => r.is_top_rated || r.rating_percent >= 90)
+      .slice(0, 5);
   }, [restaurants]);
 
   const promoRestaurants = useMemo(() => {
@@ -164,12 +184,12 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* ── Top Header (Dribbble Style) ── */}
       <View style={styles.topHeader}>
         <TouchableOpacity
           style={styles.locationSelector}
-          onPress={() => addressSheetRef.current?.present()}
+          onPress={() => setIsLocationModalVisible(true)}
           activeOpacity={0.7}
         >
           <View style={styles.locationIconPill}>
@@ -180,7 +200,11 @@ export const HomeScreen: React.FC = () => {
               LIVRER À
             </Text>
             <View style={styles.locationRow}>
-              <Text variant="titleSmall" style={styles.locationTitle} numberOfLines={1}>
+              <Text
+                variant="titleSmall"
+                style={styles.locationTitle}
+                numberOfLines={1}
+              >
                 {selectedCity}
               </Text>
               <ChevronDown size={14} color={colors.text} />
@@ -191,7 +215,7 @@ export const HomeScreen: React.FC = () => {
         <View style={styles.headerRightActions}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => router.push('/(app)/(client)/(tabs)/orders' as any)}
+            onPress={() => router.push("/(app)/(client)/(tabs)/orders" as any)}
             activeOpacity={0.7}
           >
             <Bell size={20} color={colors.text} />
@@ -212,67 +236,22 @@ export const HomeScreen: React.FC = () => {
           />
         }
       >
-        {/* ── Delivery / Pickup Mode Toggle ── */}
-        <View style={styles.modeToggleContainer}>
-          <TouchableOpacity
-            style={[
-              styles.modeTab,
-              deliveryMode === 'delivery' && styles.modeTabActive,
-            ]}
-            onPress={() => setDeliveryMode('delivery')}
-            activeOpacity={0.8}
-          >
-            <Bike
-              size={16}
-              color={deliveryMode === 'delivery' ? colors.textInverse : colors.textSecondary}
-            />
-            <Text
-              style={[
-                styles.modeTabText,
-                deliveryMode === 'delivery' && styles.modeTabTextActive,
-              ]}
-            >
-              Livraison
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.modeTab,
-              deliveryMode === 'pickup' && styles.modeTabActive,
-            ]}
-            onPress={() => setDeliveryMode('pickup')}
-            activeOpacity={0.8}
-          >
-            <PackageCheck
-              size={16}
-              color={deliveryMode === 'pickup' ? colors.textInverse : colors.textSecondary}
-            />
-            <Text
-              style={[
-                styles.modeTabText,
-                deliveryMode === 'pickup' && styles.modeTabTextActive,
-              ]}
-            >
-              À emporter
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* ── Search & Filter Bar ── */}
         <View style={styles.searchRow}>
           <View style={styles.searchInputWrapper}>
             <Search size={18} color={colors.textSecondary} />
             <Text
               style={styles.searchPlaceholder}
-              onPress={() => router.push('/(app)/(client)/(tabs)/catalog' as any)}
+              onPress={() =>
+                router.push("/(app)/(client)/(tabs)/catalog" as any)
+              }
             >
               Plats, restos, burgers, sushis...
             </Text>
           </View>
           <TouchableOpacity
             style={styles.filterButton}
-            onPress={() => router.push('/(app)/(client)/(tabs)/catalog' as any)}
+            onPress={() => router.push("/(app)/(client)/(tabs)/catalog" as any)}
             activeOpacity={0.8}
           >
             <SlidersHorizontal size={18} color={colors.textInverse} />
@@ -290,11 +269,15 @@ export const HomeScreen: React.FC = () => {
               <Text style={styles.activeOrderTitle}>
                 Arrivée estimée : {activeOrder.estimated_delivery_minutes} min
               </Text>
-              <Text style={styles.activeOrderRef}>#{activeOrder.order_number}</Text>
+              <Text style={styles.activeOrderRef}>
+                #{activeOrder.order_number}
+              </Text>
             </View>
             <TouchableOpacity
               style={styles.trackActionBtn}
-              onPress={() => router.push(`/(app)/(client)/order/${activeOrder.id}` as any)}
+              onPress={() =>
+                router.push(`/(app)/(client)/order/${activeOrder.id}` as any)
+              }
             >
               <ArrowRight size={18} color={colors.primary} />
             </TouchableOpacity>
@@ -315,13 +298,15 @@ export const HomeScreen: React.FC = () => {
               <Text style={styles.bannerBadgeText}>OFFRE SPÉCIALE</Text>
             </View>
             <Text style={styles.bannerHeading}>Livraison 100% offerte</Text>
-            <Text style={styles.bannerSub}>Sur votre première commande avec le code QUICKLY</Text>
+            <Text style={styles.bannerSub}>
+              Sur votre première commande avec le code QUICKLY
+            </Text>
             <AppButton
               title="En profiter"
               size="sm"
               variant="secondary"
               style={styles.bannerCta}
-              onPress={() => router.push('/(app)/(client)/restaurants' as any)}
+              onPress={() => router.push("/(app)/(client)/restaurants" as any)}
             />
           </Surface>
 
@@ -331,14 +316,18 @@ export const HomeScreen: React.FC = () => {
               <Tag size={10} color={colors.textInverse} />
               <Text style={styles.bannerBadgeText}>PROMOS FLASH</Text>
             </View>
-            <Text style={[styles.bannerHeading, styles.bannerHeadingDark]}>Jusqu'à -30%</Text>
-            <Text style={[styles.bannerSub, styles.bannerSubDark]}>Sur les meilleurs burgers et tacos d'Oujda</Text>
+            <Text style={[styles.bannerHeading, styles.bannerHeadingDark]}>
+              Jusqu'à -30%
+            </Text>
+            <Text style={[styles.bannerSub, styles.bannerSubDark]}>
+              Sur les meilleurs burgers et tacos d'Oujda
+            </Text>
             <AppButton
               title="Voir les offres"
               size="sm"
               variant="primary"
               style={styles.bannerCta}
-              onPress={() => setActiveFilter('free_delivery')}
+              onPress={() => setActiveFilter("free_delivery")}
             />
           </Surface>
         </ScrollView>
@@ -361,10 +350,10 @@ export const HomeScreen: React.FC = () => {
               category={cat}
               isSelected={selectedCategory === cat.id}
               onPress={(c) => {
-                if (c.id === 'grocery') {
-                  router.push('/(app)/(client)/(tabs)/catalog' as any);
+                if (c.id === "grocery") {
+                  router.push("/(app)/(client)/(tabs)/catalog" as any);
                 } else {
-                  setSelectedCategory(selectedCategory === c.id ? 'all' : c.id);
+                  setSelectedCategory(selectedCategory === c.id ? "all" : c.id);
                 }
               }}
             />
@@ -372,7 +361,7 @@ export const HomeScreen: React.FC = () => {
         </ScrollView>
 
         {/* ── Popular Horizontal Rail ── */}
-        {popularRestaurants.length > 0 && selectedCategory === 'all' && (
+        {popularRestaurants.length > 0 && selectedCategory === "all" && (
           <>
             <View style={styles.sectionHeader}>
               <View>
@@ -383,7 +372,11 @@ export const HomeScreen: React.FC = () => {
                   Les adresses favorites de la communauté
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/(app)/(client)/restaurants' as any)}>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push("/(app)/(client)/restaurants" as any)
+                }
+              >
                 <Text style={styles.seeAllLink}>Voir tout</Text>
               </TouchableOpacity>
             </View>
@@ -407,7 +400,7 @@ export const HomeScreen: React.FC = () => {
         )}
 
         {/* ── Promo Rail ── */}
-        {promoRestaurants.length > 0 && selectedCategory === 'all' && (
+        {promoRestaurants.length > 0 && selectedCategory === "all" && (
           <>
             <View style={styles.sectionHeader}>
               <View>
@@ -418,7 +411,9 @@ export const HomeScreen: React.FC = () => {
                   Livraison gratuite ou réductions du jour
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setActiveFilter('free_delivery')}>
+              <TouchableOpacity
+                onPress={() => setActiveFilter("free_delivery")}
+              >
                 <Text style={styles.seeAllLink}>Filtrer</Text>
               </TouchableOpacity>
             </View>
@@ -459,36 +454,80 @@ export const HomeScreen: React.FC = () => {
           contentContainerStyle={styles.filterPillsScroll}
         >
           <Chip
-            selected={activeFilter === 'all'}
-            onPress={() => setActiveFilter('all')}
+            selected={activeFilter === "all"}
+            onPress={() => setActiveFilter("all")}
             style={styles.filterChip}
-            textStyle={activeFilter === 'all' ? styles.filterChipTextActive : styles.filterChipText}
+            textStyle={
+              activeFilter === "all"
+                ? styles.filterChipTextActive
+                : styles.filterChipText
+            }
           >
             Tous
           </Chip>
           <Chip
-            selected={activeFilter === 'free_delivery'}
-            onPress={() => setActiveFilter(activeFilter === 'free_delivery' ? 'all' : 'free_delivery')}
+            selected={activeFilter === "free_delivery"}
+            onPress={() =>
+              setActiveFilter(
+                activeFilter === "free_delivery" ? "all" : "free_delivery",
+              )
+            }
             style={styles.filterChip}
-            textStyle={activeFilter === 'free_delivery' ? styles.filterChipTextActive : styles.filterChipText}
-            icon={() => <Bike size={14} color={activeFilter === 'free_delivery' ? colors.primaryDark : colors.textSecondary} />}
+            textStyle={
+              activeFilter === "free_delivery"
+                ? styles.filterChipTextActive
+                : styles.filterChipText
+            }
+            icon={() => (
+              <Bike
+                size={14}
+                color={
+                  activeFilter === "free_delivery"
+                    ? colors.primaryDark
+                    : colors.textSecondary
+                }
+              />
+            )}
           >
             Livraison offerte
           </Chip>
           <Chip
-            selected={activeFilter === 'top_rated'}
-            onPress={() => setActiveFilter(activeFilter === 'top_rated' ? 'all' : 'top_rated')}
+            selected={activeFilter === "top_rated"}
+            onPress={() =>
+              setActiveFilter(
+                activeFilter === "top_rated" ? "all" : "top_rated",
+              )
+            }
             style={styles.filterChip}
-            textStyle={activeFilter === 'top_rated' ? styles.filterChipTextActive : styles.filterChipText}
+            textStyle={
+              activeFilter === "top_rated"
+                ? styles.filterChipTextActive
+                : styles.filterChipText
+            }
           >
             ★ 4.5+
           </Chip>
           <Chip
-            selected={activeFilter === 'fast'}
-            onPress={() => setActiveFilter(activeFilter === 'fast' ? 'all' : 'fast')}
+            selected={activeFilter === "fast"}
+            onPress={() =>
+              setActiveFilter(activeFilter === "fast" ? "all" : "fast")
+            }
             style={styles.filterChip}
-            textStyle={activeFilter === 'fast' ? styles.filterChipTextActive : styles.filterChipText}
-            icon={() => <Clock size={14} color={activeFilter === 'fast' ? colors.primaryDark : colors.textSecondary} />}
+            textStyle={
+              activeFilter === "fast"
+                ? styles.filterChipTextActive
+                : styles.filterChipText
+            }
+            icon={() => (
+              <Clock
+                size={14}
+                color={
+                  activeFilter === "fast"
+                    ? colors.primaryDark
+                    : colors.textSecondary
+                }
+              />
+            )}
           >
             Moins de 30 min
           </Chip>
@@ -502,9 +541,9 @@ export const HomeScreen: React.FC = () => {
               description="Essayez de modifier vos filtres ou de changer de catégorie."
               actionLabel="Réinitialiser les filtres"
               onAction={() => {
-                setSelectedCategory('all');
-                setActiveFilter('all');
-                setSearchQuery('');
+                setSelectedCategory("all");
+                setActiveFilter("all");
+                setSearchQuery("");
               }}
             />
           ) : (
@@ -524,7 +563,7 @@ export const HomeScreen: React.FC = () => {
         <View style={styles.floatingCartContainer}>
           <TouchableOpacity
             style={styles.floatingCartBar}
-            onPress={() => router.push('/(app)/(client)/(tabs)/cart' as any)}
+            onPress={() => router.push("/(app)/(client)/(tabs)/cart" as any)}
             activeOpacity={0.9}
           >
             <View style={styles.cartCountPill}>
@@ -533,7 +572,9 @@ export const HomeScreen: React.FC = () => {
             <View style={styles.cartBarCenter}>
               <Text style={styles.cartBarTitle}>Voir le panier</Text>
             </View>
-            <Text style={styles.cartBarTotal}>{cartState.total.toFixed(2)} DH</Text>
+            <Text style={styles.cartBarTotal}>
+              {cartState.total.toFixed(2)} DH
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -541,10 +582,12 @@ export const HomeScreen: React.FC = () => {
       {/* ── Address Picker Bottom Sheet ── */}
       <AppBottomSheet
         sheetRef={addressSheetRef}
-        snapPoints={['55%', '85%']}
+        snapPoints={["55%", "85%"]}
         title="Adresse de livraison"
       >
-        <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContent}>
+        <BottomSheetScrollView
+          contentContainerStyle={styles.bottomSheetContent}
+        >
           <TouchableOpacity
             style={styles.gpsButton}
             onPress={locateWithGps}
@@ -556,7 +599,9 @@ export const HomeScreen: React.FC = () => {
             </View>
             <View style={styles.gpsTextWrapper}>
               <Text variant="titleSmall" style={styles.gpsTitle}>
-                {isLocating ? 'Localisation en cours...' : 'Ma position actuelle (GPS)'}
+                {isLocating
+                  ? "Localisation en cours..."
+                  : "Ma position actuelle (GPS)"}
               </Text>
               <Text variant="bodySmall" style={styles.gpsSub}>
                 Détecter automatiquement mon quartier
@@ -569,7 +614,7 @@ export const HomeScreen: React.FC = () => {
           </Text>
 
           {OUJDA_NEIGHBORHOODS.map((item) => {
-            const neighborhoodName = `Oujda — ${item.split(' (')[0]}`;
+            const neighborhoodName = `Oujda — ${item.split(" (")[0]}`;
             const isSelected = selectedCity === neighborhoodName;
 
             return (
@@ -601,6 +646,14 @@ export const HomeScreen: React.FC = () => {
           })}
         </BottomSheetScrollView>
       </AppBottomSheet>
+
+      {/* ── Interactive Location Picker Map Modal ── */}
+      <LocationPickerModal
+        visible={isLocationModalVisible}
+        onClose={() => setIsLocationModalVisible(false)}
+        selectedAddress={selectedCity}
+        onSelectAddress={setSelectedCity}
+      />
     </SafeAreaView>
   );
 };
@@ -608,19 +661,20 @@ export const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    width: "100%",
     backgroundColor: colors.background,
   },
   topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
   },
   locationSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   locationIconPill: {
@@ -628,8 +682,8 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: borderRadius.full,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing.sm,
   },
   locationTexts: {
@@ -637,22 +691,22 @@ const styles = StyleSheet.create({
   },
   locationEyebrow: {
     color: colors.textSecondary,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.8,
   },
   locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   locationTitle: {
-    fontWeight: '900',
+    fontWeight: "900",
     color: colors.text,
     maxWidth: 220,
   },
   headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   iconButton: {
@@ -660,12 +714,12 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: borderRadius.full,
     backgroundColor: colors.surfaceVariant,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
   notificationDot: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     width: 8,
@@ -677,7 +731,7 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
   },
   modeToggleContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: colors.surfaceVariant,
     borderRadius: borderRadius.full,
     marginHorizontal: spacing.md,
@@ -688,9 +742,9 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     borderRadius: borderRadius.full,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.xs,
   },
   modeTabActive: {
@@ -698,16 +752,16 @@ const styles = StyleSheet.create({
   },
   modeTabText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.textSecondary,
   },
   modeTabTextActive: {
     color: colors.textInverse,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
     marginTop: spacing.md,
@@ -719,8 +773,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
   },
@@ -734,27 +788,27 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: borderRadius.lg,
     backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   activeOrderCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.primaryLight,
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.primary + '30',
+    borderColor: colors.primary + "30",
   },
   activeOrderIconCircle: {
     width: 42,
     height: 42,
     borderRadius: borderRadius.full,
     backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing.sm,
   },
   activeOrderInfo: {
@@ -762,13 +816,13 @@ const styles = StyleSheet.create({
   },
   activeOrderEyebrow: {
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: "900",
     color: colors.primaryDark,
     letterSpacing: 0.6,
   },
   activeOrderTitle: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.text,
     marginTop: 2,
   },
@@ -781,8 +835,8 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: borderRadius.full,
     backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   bannersScroll: {
     paddingHorizontal: spacing.md,
@@ -798,13 +852,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   bannerWarm: {
-    backgroundColor: '#FFF1EE',
+    backgroundColor: "#FFF1EE",
     borderWidth: 1,
-    borderColor: '#FFD6CC',
+    borderColor: "#FFD6CC",
   },
   bannerBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.25)",
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: borderRadius.full,
@@ -812,19 +866,19 @@ const styles = StyleSheet.create({
   },
   bannerBadgeWarm: {
     backgroundColor: colors.secondary,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   bannerBadgeText: {
     color: colors.textInverse,
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: 0.5,
   },
   bannerHeading: {
     fontSize: 19,
-    fontWeight: '900',
+    fontWeight: "900",
     color: colors.textInverse,
     letterSpacing: -0.4,
   },
@@ -833,7 +887,7 @@ const styles = StyleSheet.create({
   },
   bannerSub: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.85)',
+    color: "rgba(255,255,255,0.85)",
     marginTop: spacing.xs,
     marginBottom: spacing.md,
     lineHeight: 16,
@@ -842,18 +896,18 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   bannerCta: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
     paddingHorizontal: spacing.md,
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
   sectionTitle: {
-    fontWeight: '900',
+    fontWeight: "900",
     color: colors.text,
     letterSpacing: -0.4,
   },
@@ -863,7 +917,7 @@ const styles = StyleSheet.create({
   },
   seeAllLink: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.primary,
   },
   categoriesScroll: {
@@ -889,27 +943,27 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     color: colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 12,
   },
   filterChipTextActive: {
     color: colors.primaryDark,
-    fontWeight: '800',
+    fontWeight: "800",
     fontSize: 12,
   },
   mainFeedContainer: {
     paddingHorizontal: spacing.md,
   },
   floatingCartContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     left: spacing.md,
     right: spacing.md,
   },
   floatingCartBar: {
     backgroundColor: colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: 14,
     borderRadius: borderRadius.lg,
@@ -920,14 +974,14 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   cartCountPill: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: "rgba(255,255,255,0.25)",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: borderRadius.full,
   },
   cartCountText: {
     color: colors.textInverse,
-    fontWeight: '900',
+    fontWeight: "900",
     fontSize: 13,
   },
   cartBarCenter: {
@@ -937,19 +991,19 @@ const styles = StyleSheet.create({
   cartBarTitle: {
     color: colors.textInverse,
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   cartBarTotal: {
     color: colors.textInverse,
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: "900",
   },
   bottomSheetContent: {
     padding: spacing.md,
   },
   gpsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.primaryLight,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
@@ -960,15 +1014,15 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: borderRadius.full,
     backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing.md,
   },
   gpsTextWrapper: {
     flex: 1,
   },
   gpsTitle: {
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.primaryDark,
   },
   gpsSub: {
@@ -976,31 +1030,30 @@ const styles = StyleSheet.create({
   },
   sheetSectionTitle: {
     color: colors.textSecondary,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.8,
     marginBottom: spacing.sm,
   },
   neighborhoodItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     gap: spacing.md,
   },
   neighborhoodItemSelected: {
-    backgroundColor: colors.primaryLight + '20',
+    backgroundColor: colors.primaryLight + "20",
   },
   neighborhoodText: {
     fontSize: 14,
     color: colors.text,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   neighborhoodTextSelected: {
     color: colors.primary,
-    fontWeight: '800',
+    fontWeight: "800",
   },
 });
 
 export default HomeScreen;
-

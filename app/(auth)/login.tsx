@@ -1,20 +1,24 @@
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Colors from "@/constants/Colors";
 import { authService } from "@/services/auth.service";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
@@ -82,9 +86,11 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await authService.signIn({ email: email.trim(), password });
-      const role = authService.getUserRole();
-      if (role?.toLowerCase() === "admin") {
+      const role = authService.getUserRole()?.toLowerCase();
+      if (role === "admin") {
         router.replace("/(app)/(admin)/(tabs)" as any);
+      } else if (role === "delivery") {
+        router.replace("/(app)/(delivery)/(tabs)" as any);
       } else {
         router.replace("/(app)/(client)/(tabs)" as any);
       }
@@ -100,7 +106,13 @@ export default function LoginScreen() {
     try {
       const demoEmail = `${role}@quicklivraison.ma`;
       await authService.signIn({ email: demoEmail, password: "123456" });
-      router.replace("/(app)/(client)/(tabs)" as any);
+      if (role === "admin") {
+        router.replace("/(app)/(admin)/(tabs)" as any);
+      } else if (role === "delivery") {
+        router.replace("/(app)/(delivery)/(tabs)" as any);
+      } else {
+        router.replace("/(app)/(client)/(tabs)" as any);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -109,14 +121,21 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={
+        Platform.OS === "web"
+          ? undefined
+          : Platform.OS === "ios"
+            ? "padding"
+            : "height"
+      }
     >
       <ScrollView
+        style={{ flex: 1, width: "100%", maxWidth: "100%" }}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Header Background (bleu ciel / sky blue) */}
+        {/* Top Header Background (sky blue header with brand logo) */}
         <View style={styles.topHeader}>
           {/* Skip Button */}
           <TouchableOpacity
@@ -126,7 +145,7 @@ export default function LoginScreen() {
             <Text style={styles.skipButtonText}>Skip</Text>
           </TouchableOpacity>
 
-          {/* Logo Brand Title (White text) */}
+          {/* Logo Brand Title */}
           <View style={styles.brandContainer}>
             <Text style={styles.brandTitle}>QuickL</Text>
             <View style={styles.locationPin}>
@@ -185,7 +204,7 @@ export default function LoginScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Social Logins - Loaded with uploaded icons */}
+          {/* Social Logins */}
           <TouchableOpacity
             style={styles.socialPill}
             onPress={() => handleSocialLogin("google")}
@@ -198,19 +217,7 @@ export default function LoginScreen() {
             <Text style={styles.socialText}>Google</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.socialPill}
-            onPress={() => handleSocialLogin("apple")}
-          >
-            <Image
-              source={require("../../assets/images/apple_custom.png")}
-              style={styles.socialImageIcon}
-              resizeMode="contain"
-            />
-            <Text style={styles.socialText}>Apple</Text>
-          </TouchableOpacity>
-
-          {/* Other methods (Email Form / Accordion in Blue) */}
+          {/* Other methods Toggle */}
           <TouchableOpacity
             style={styles.otherMethodsBtn}
             onPress={() => setShowEmailForm(!showEmailForm)}
@@ -273,14 +280,18 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0066FF", // Match continue button blue on extreme scrolls
+    width: "100%",
+    overflow: "hidden",
+    backgroundColor: Colors.primary,
   },
   scrollContent: {
     flexGrow: 1,
-    backgroundColor: "#38BDF8", // Stunning bleu ciel (sky blue) top background
+    width: "100%",
+    backgroundColor: "#38BDF8",
   },
   topHeader: {
-    height: 200,
+    height: 140,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
@@ -288,11 +299,11 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     position: "absolute",
-    top: 50,
+    top: 24,
     right: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 20,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingVertical: 6,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -309,67 +320,71 @@ const styles = StyleSheet.create({
   brandContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 14,
   },
   brandTitle: {
-    fontSize: 48,
+    fontSize: 40,
     fontWeight: "900",
-    color: "#FFFFFF", // Pure white brand name
+    color: "#FFFFFF",
     letterSpacing: -1.5,
   },
   locationPin: {
     marginLeft: 6,
   },
   locationPinText: {
-    fontSize: 32,
+    fontSize: 28,
   },
   sheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 40,
+    paddingTop: 24,
+    paddingBottom: 28,
     flex: 1,
+    width: "100%",
+    overflow: "hidden",
   },
   welcomeText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "900",
     color: "#1A202C",
     textAlign: "center",
-    marginBottom: 6,
+    marginBottom: 4,
   },
   subtitleText: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#718096",
     textAlign: "center",
-    marginBottom: 28,
+    marginBottom: 18,
   },
   phoneInputRow: {
     flexDirection: "row",
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 16,
+    width: "100%",
   },
   prefixCard: {
     borderWidth: 1,
     borderColor: "#E2E8F0",
     borderRadius: 16,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     backgroundColor: "#FAFAFA",
     justifyContent: "center",
-    minWidth: 100,
+    width: 95,
+    flexShrink: 0,
   },
   prefixLabel: {
     fontSize: 11,
     color: "#A0AEC0",
     fontWeight: "600",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   prefixContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
   },
   flagText: {
     fontSize: 16,
@@ -387,6 +402,7 @@ const styles = StyleSheet.create({
   },
   phoneInputBox: {
     flex: 1,
+    minWidth: 0,
     borderWidth: 1,
     borderColor: "#E2E8F0",
     borderRadius: 16,
@@ -399,7 +415,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#A0AEC0",
     fontWeight: "600",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   phoneTextInput: {
     fontSize: 15,
@@ -407,25 +423,27 @@ const styles = StyleSheet.create({
     color: "#2D3748",
     padding: 0,
     height: 22,
+    width: "100%",
   },
   continueButton: {
-    backgroundColor: "#0066FF", // Matching blue continue background
+    backgroundColor: "#0066FF",
     borderRadius: 28,
-    height: 54,
+    height: 50,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#0066FF",
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 10,
+    shadowRadius: 8,
     elevation: 3,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   continueButtonText: {
-    color: "#FFFFFF", // Pure white continue text
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "800",
   },
@@ -433,7 +451,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    width: "100%",
+    marginBottom: 14,
   },
   dividerLine: {
     flex: 1,
@@ -453,8 +472,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
     borderRadius: 28,
-    height: 52,
-    marginBottom: 12,
+    height: 48,
+    width: "100%",
+    marginBottom: 10,
     backgroundColor: "#FFFFFF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -474,13 +494,13 @@ const styles = StyleSheet.create({
   },
   otherMethodsBtn: {
     alignItems: "center",
-    paddingVertical: 14,
-    marginTop: 8,
-    marginBottom: 8,
+    paddingVertical: 10,
+    marginTop: 4,
+    marginBottom: 6,
   },
   otherMethodsText: {
     fontSize: 13,
-    color: "#0066FF", // Matching blue other methods toggle text
+    color: "#0066FF",
     fontWeight: "800",
   },
   emailContainer: {
@@ -489,15 +509,15 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     borderRadius: 20,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 16,
     backgroundColor: "#FAFAFA",
   },
   footerText: {
     fontSize: 11,
     color: "#718096",
     textAlign: "center",
-    lineHeight: 16,
-    marginTop: 20,
+    lineHeight: 15,
+    marginTop: 14,
     paddingHorizontal: 12,
   },
   footerLink: {

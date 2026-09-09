@@ -1,12 +1,6 @@
 import Colors from "@/constants/Colors";
 import { Tabs } from "expo-router";
-import {
-    BarChart3,
-    FolderTree,
-    ShoppingBag,
-    UserCheck,
-    UtensilsCrossed,
-} from "lucide-react-native";
+import { Navigation, PackageSearch, UserCircle } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 
 function TabIcon({ Icon, focused }: { Icon: any; focused: boolean }) {
@@ -14,14 +8,14 @@ function TabIcon({ Icon, focused }: { Icon: any; focused: boolean }) {
     <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
       <Icon
         size={20}
-        strokeWidth={focused ? 2.5 : 1.8}
+        strokeWidth={focused ? 2.7 : 2}
         color={focused ? Colors.primary : Colors.tabIconDefault}
       />
     </View>
   );
 }
 
-export default function AdminTabLayout() {
+export default function DeliveryTabsLayout() {
   return (
     <Tabs
       screenOptions={{
@@ -33,9 +27,8 @@ export default function AdminTabLayout() {
         headerTintColor: Colors.textPrimary,
         headerTitleStyle: {
           fontWeight: "800",
-          fontSize: 17,
+          fontSize: 18,
           color: Colors.textPrimary,
-          letterSpacing: -0.3,
         },
         headerShadowVisible: false,
       }}
@@ -43,50 +36,30 @@ export default function AdminTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Dashboard",
-          headerTitle: "Tableau de Bord",
+          title: "Disponibles",
+          headerTitle: "Commandes Disponibles",
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={BarChart3} focused={focused} />
+            <TabIcon Icon={PackageSearch} focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="active"
         options={{
-          title: "Commandes",
-          headerTitle: "Gestion des Commandes",
+          title: "En Cours",
+          headerTitle: "Livraisons en Cours",
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={ShoppingBag} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="products"
-        options={{
-          title: "Produits",
-          headerTitle: "Catalogue & Carte",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={UtensilsCrossed} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="categories"
-        options={{
-          title: "Catégories",
-          headerTitle: "Catégories de Produits",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={FolderTree} focused={focused} />
+            <TabIcon Icon={Navigation} focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Admin",
-          headerTitle: "Administration",
+          title: "Profil",
+          headerTitle: "Profil Livreur",
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={UserCheck} focused={focused} />
+            <TabIcon Icon={UserCircle} focused={focused} />
           ),
         }}
       />

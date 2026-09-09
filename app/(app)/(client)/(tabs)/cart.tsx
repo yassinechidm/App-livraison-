@@ -1,11 +1,11 @@
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import QuantitySelector from '@/components/ui/QuantitySelector';
-import Colors from '@/constants/Colors';
-import { cartService } from '@/services/cart.service';
-import { AnyPurchasableItem, CartState } from '@/types/cart.types';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import QuantitySelector from "@/components/ui/QuantitySelector";
+import Colors from "@/constants/Colors";
+import { cartService } from "@/services/cart.service";
+import { AnyPurchasableItem, CartState } from "@/types/cart.types";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
     Image,
     ScrollView,
@@ -13,39 +13,43 @@ import {
     Text,
     TouchableOpacity,
     View,
-} from 'react-native';
+} from "react-native";
 
 const CROSS_SELL_SUGGESTIONS: AnyPurchasableItem[] = [
   {
-    id: 'cross-coca',
-    name: 'Coca-Cola Canette 33cl',
-    description: 'Boisson fraîche pétillante',
+    id: "cross-coca",
+    name: "Coca-Cola Canette 33cl",
+    description: "Boisson fraîche pétillante",
     price: 10,
-    image_url: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=200&auto=format&fit=crop&q=80',
+    image_url:
+      "https://images.unsplash.com/photo-1554866585-cd94860890b7?w=200&auto=format&fit=crop&q=80",
     is_available: true,
   },
   {
-    id: 'cross-tiramisu',
-    name: 'Tiramisu Spéculoos',
-    description: 'Dessert gourmand maison',
+    id: "cross-tiramisu",
+    name: "Tiramisu Spéculoos",
+    description: "Dessert gourmand maison",
     price: 25,
-    image_url: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=200&auto=format&fit=crop&q=80',
+    image_url:
+      "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=200&auto=format&fit=crop&q=80",
     is_available: true,
   },
   {
-    id: 'cross-frites',
-    name: 'Barquette Frites Maison',
-    description: 'Frites dorées croustillantes',
+    id: "cross-frites",
+    name: "Barquette Frites Maison",
+    description: "Frites dorées croustillantes",
     price: 12,
-    image_url: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=200&auto=format&fit=crop&q=80',
+    image_url:
+      "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=200&auto=format&fit=crop&q=80",
     is_available: true,
   },
   {
-    id: 'cross-eau',
-    name: 'Eau Minérale Ain Ifrane 50cl',
-    description: 'Eau minérale naturelle pure',
+    id: "cross-eau",
+    name: "Eau Minérale Ain Ifrane 50cl",
+    description: "Eau minérale naturelle pure",
     price: 6,
-    image_url: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=200&auto=format&fit=crop&q=80',
+    image_url:
+      "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=200&auto=format&fit=crop&q=80",
     is_available: true,
   },
 ];
@@ -67,11 +71,12 @@ export default function CartScreen() {
         <Text style={styles.emptyEmoji}>🛒</Text>
         <Text style={styles.emptyTitle}>Votre panier est vide</Text>
         <Text style={styles.emptySubtitle}>
-          Ajoutez de délicieux plats, des sandwichs ou des courses pour commencer votre commande à Oujda !
+          Ajoutez de délicieux plats, des sandwichs ou des courses pour
+          commencer votre commande à Oujda !
         </Text>
         <Button
           title="Découvrir les Snacks & Restos"
-          onPress={() => router.push('/(app)/(client)/restaurants' as any)}
+          onPress={() => router.push("/(app)/(client)/restaurants" as any)}
           style={styles.emptyButton}
         />
       </View>
@@ -82,7 +87,8 @@ export default function CartScreen() {
   const threshold = cartState.freeDeliveryThreshold || 100;
   const progress = Math.min(1, cartState.subtotal / threshold);
   const remainingForFree = Math.max(0, threshold - cartState.subtotal);
-  const isFreeDelivery = cartState.subtotal >= threshold && cartState.deliveryMode === 'DELIVERY';
+  const isFreeDelivery =
+    cartState.subtotal >= threshold && cartState.deliveryMode === "DELIVERY";
 
   return (
     <View style={styles.container}>
@@ -90,88 +96,41 @@ export default function CartScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Delivery vs Pickup Switcher */}
-        <View style={styles.modeSwitcherContainer}>
-          <TouchableOpacity
-            style={[
-              styles.modeTab,
-              cartState.deliveryMode === 'DELIVERY' && styles.modeTabActive,
-            ]}
-            onPress={() => cartService.setDeliveryMode('DELIVERY')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.modeTabEmoji}>🛵</Text>
-            <View>
-              <Text
-                style={[
-                  styles.modeTabTitle,
-                  cartState.deliveryMode === 'DELIVERY' && styles.modeTabTitleActive,
-                ]}
-              >
-                Livraison à domicile
-              </Text>
-              <Text style={styles.modeTabSub}>
-                {isFreeDelivery ? 'Gratuit' : '15,00 MAD'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.modeTab,
-              cartState.deliveryMode === 'PICKUP' && styles.modeTabActive,
-            ]}
-            onPress={() => cartService.setDeliveryMode('PICKUP')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.modeTabEmoji}>🥡</Text>
-            <View>
-              <Text
-                style={[
-                  styles.modeTabTitle,
-                  cartState.deliveryMode === 'PICKUP' && styles.modeTabTitleActive,
-                ]}
-              >
-                À emporter (Click & Collect)
-              </Text>
-              <Text style={styles.modeTabSub}>0,00 MAD • Prêt en 15 min</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
         {/* Free Delivery Animated Progress Gauge */}
-        {cartState.deliveryMode === 'DELIVERY' && (
-          <Card style={styles.gaugeCard}>
-            <View style={styles.gaugeHeader}>
-              <Text style={styles.gaugeTitle}>
-                {isFreeDelivery ? '🎉 Livraison Gratuite activée !' : '🛵 Livraison Gratuite'}
-              </Text>
-              <Text style={styles.gaugeSub}>
-                {isFreeDelivery
-                  ? 'Frais de livraison offerts'
-                  : `Plus que ${remainingForFree.toFixed(2)} MAD`}
-              </Text>
-            </View>
-
-            <View style={styles.progressBarBg}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  {
-                    width: `${Math.round(progress * 100)}%`,
-                    backgroundColor: isFreeDelivery ? Colors.secondary : Colors.primary,
-                  },
-                ]}
-              />
-            </View>
-
-            <Text style={styles.gaugeFooterText}>
+        <Card style={styles.gaugeCard}>
+          <View style={styles.gaugeHeader}>
+            <Text style={styles.gaugeTitle}>
               {isFreeDelivery
-                ? 'Profitez de la livraison offerte sur votre commande à Oujda !'
-                : `Atteignez ${threshold.toFixed(2)} MAD pour bénéficier de la livraison 100% offerte.`}
+                ? "🎉 Livraison Gratuite activée !"
+                : "🛵 Livraison Gratuite"}
             </Text>
-          </Card>
-        )}
+            <Text style={styles.gaugeSub}>
+              {isFreeDelivery
+                ? "Frais de livraison offerts"
+                : `Plus que ${remainingForFree.toFixed(2)} MAD`}
+            </Text>
+          </View>
+
+          <View style={styles.progressBarBg}>
+            <View
+              style={[
+                styles.progressBarFill,
+                {
+                  width: `${Math.round(progress * 100)}%`,
+                  backgroundColor: isFreeDelivery
+                    ? Colors.secondary
+                    : Colors.primary,
+                },
+              ]}
+            />
+          </View>
+
+          <Text style={styles.gaugeFooterText}>
+            {isFreeDelivery
+              ? "Profitez de la livraison offerte sur votre commande à Oujda !"
+              : `Atteignez ${threshold.toFixed(2)} MAD pour bénéficier de la livraison 100% offerte.`}
+          </Text>
+        </Card>
 
         {/* Header summary */}
         <View style={styles.headerBox}>
@@ -204,15 +163,17 @@ export default function CartScreen() {
                   <Text style={styles.itemName}>{item.product.name}</Text>
 
                   {/* Display Selected Customizations */}
-                  {item.selected_customizations && item.selected_customizations.length > 0 && (
-                    <View style={styles.customList}>
-                      {item.selected_customizations.map((c, ci) => (
-                        <Text key={ci} style={styles.customText}>
-                          • {c.optionName} {c.price > 0 ? `(+${c.price} DH)` : ''}
-                        </Text>
-                      ))}
-                    </View>
-                  )}
+                  {item.selected_customizations &&
+                    item.selected_customizations.length > 0 && (
+                      <View style={styles.customList}>
+                        {item.selected_customizations.map((c, ci) => (
+                          <Text key={ci} style={styles.customText}>
+                            • {c.optionName}{" "}
+                            {c.price > 0 ? `(+${c.price} DH)` : ""}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
 
                   {/* Display Special Note */}
                   {item.special_instructions && (
@@ -292,26 +253,29 @@ export default function CartScreen() {
           <Text style={styles.summaryTitle}>Détail du paiement</Text>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Sous-total ({cartState.itemCount} articles)</Text>
-            <Text style={styles.summaryValue}>{cartState.subtotal.toFixed(2)} MAD</Text>
+            <Text style={styles.summaryLabel}>
+              Sous-total ({cartState.itemCount} articles)
+            </Text>
+            <Text style={styles.summaryValue}>
+              {cartState.subtotal.toFixed(2)} MAD
+            </Text>
           </View>
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>
-              {cartState.deliveryMode === 'DELIVERY'
-                ? 'Frais de livraison (Oujda Express)'
-                : 'Mode de réception (À emporter)'}
+              Frais de livraison (Oujda Express)
             </Text>
             <Text
               style={[
                 styles.summaryValue,
-                isFreeDelivery && { color: Colors.secondary, fontWeight: '800' },
+                isFreeDelivery && {
+                  color: Colors.secondary,
+                  fontWeight: "800",
+                },
               ]}
             >
-              {cartState.deliveryMode === 'PICKUP'
-                ? 'Gratuit'
-                : isFreeDelivery
-                ? 'Gratuit (Promo 100 DH)'
+              {isFreeDelivery
+                ? "Gratuit (Promo 100 DH)"
                 : `${cartState.deliveryFee.toFixed(2)} MAD`}
             </Text>
           </View>
@@ -320,7 +284,9 @@ export default function CartScreen() {
 
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total TTC</Text>
-            <Text style={styles.totalValue}>{cartState.total.toFixed(2)} MAD</Text>
+            <Text style={styles.totalValue}>
+              {cartState.total.toFixed(2)} MAD
+            </Text>
           </View>
         </Card>
 
@@ -328,17 +294,17 @@ export default function CartScreen() {
         <View style={styles.guaranteeBox}>
           <Text style={styles.guaranteeEmoji}>⚡</Text>
           <Text style={styles.guaranteeText}>
-            Commande préparée à la minute à Oujda. Paiement sécurisé en espèces à la livraison ou en ligne.
+            Commande préparée à la minute à Oujda. Paiement sécurisé en espèces
+            à la livraison ou en ligne.
           </Text>
         </View>
 
         {/* Checkout CTA Deliveroo */}
         <Button
           title={`Passer commande • ${cartState.total.toFixed(2)} DH →`}
-          onPress={() => router.push('/(app)/(client)/checkout' as any)}
+          onPress={() => router.push("/(app)/(client)/checkout" as any)}
           style={styles.checkoutBtn}
         />
-
       </ScrollView>
     </View>
   );
@@ -354,14 +320,14 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   modeSwitcherContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
     marginBottom: 12,
   },
   modeTab: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     backgroundColor: Colors.backgroundWhite,
     padding: 10,
@@ -379,7 +345,7 @@ const styles = StyleSheet.create({
   },
   modeTabTitle: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   modeTabTitleActive: {
@@ -396,33 +362,33 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   gaugeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   gaugeTitle: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   gaugeSub: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.primary,
   },
   progressBarBg: {
     height: 8,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: "#E2E8F0",
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 6,
   },
   progressBarFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 4,
   },
   gaugeFooterText: {
@@ -430,20 +396,20 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   headerBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
   },
   headerTitle: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   clearCartText: {
     fontSize: 12,
     color: Colors.error,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   itemCard: {
     backgroundColor: Colors.white,
@@ -451,25 +417,25 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   itemThumb: {
     width: 60,
     height: 60,
     borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: "#F1F5F9",
   },
   itemDetails: {
     flex: 1,
   },
   itemName: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 2,
   },
@@ -483,18 +449,18 @@ const styles = StyleSheet.create({
   },
   specialNoteText: {
     fontSize: 10,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     color: Colors.primary,
     marginTop: 2,
   },
   itemTotalPrice: {
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.primary,
     marginTop: 4,
   },
   itemActions: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     gap: 6,
   },
   deleteBtn: {
@@ -503,14 +469,14 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 11,
     color: Colors.textMuted,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   crossSellSection: {
     marginVertical: 12,
   },
   crossSellHeading: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 8,
   },
@@ -524,39 +490,39 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   crossSellImg: {
-    width: '100%',
+    width: "100%",
     height: 70,
     borderRadius: 10,
     marginBottom: 6,
   },
   crossSellName: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 6,
   },
   crossSellBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   crossSellPrice: {
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.primary,
   },
   crossSellAddBtn: {
-    backgroundColor: '#EBF2FF',
+    backgroundColor: "#EBF2FF",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   crossSellAddText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.primary,
   },
   summaryCard: {
@@ -565,18 +531,18 @@ const styles = StyleSheet.create({
     padding: 16,
     marginVertical: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   summaryTitle: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 12,
   },
   summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 5,
   },
   summaryLabel: {
@@ -585,28 +551,28 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textPrimary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: "#F1F5F9",
     marginVertical: 8,
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   totalValue: {
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.primary,
   },
   guaranteeBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EBF2FF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EBF2FF",
     borderRadius: 14,
     padding: 12,
     gap: 8,
@@ -618,7 +584,7 @@ const styles = StyleSheet.create({
   guaranteeText: {
     fontSize: 11,
     color: Colors.primary,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
     lineHeight: 16,
   },
@@ -627,9 +593,9 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 24,
   },
   emptyEmoji: {
@@ -638,14 +604,14 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 13,
     color: Colors.textMuted,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
     marginBottom: 24,
     paddingHorizontal: 16,

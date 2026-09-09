@@ -1,8 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import { SignInCredentials, SignUpCredentials } from "@/types/auth.types";
 import { ADMIN_EMAILS, UserRole } from "@/types/user.types";
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -25,15 +25,35 @@ function notifyListeners(session: any) {
 }
 
 export const authService = {
-  async signUp({ email, password }: SignUpCredentials) {
+  async signUp({ email, password, fullName, phone, city }: SignUpCredentials) {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone: phone,
+            city: city,
+            role: "client",
+          },
+        },
       });
 
       if (error) {
         throw new Error(error.message);
+      }
+
+      if (data.user) {
+        try {
+          await (supabase.from("profiles" as any) as any).upsert({
+            id: data.user.id,
+            email: email.trim(),
+            full_name: fullName || email.split("@")[0],
+            phone: phone || null,
+            role: "client",
+          });
+        } catch {}
       }
 
       if (data.session) {
@@ -131,6 +151,10 @@ export const authService = {
       // ignore
     }
     cachedRole = null;
+    try {
+      const { orderService } = require("./order.service");
+      orderService.clearMemoryStore();
+    } catch {}
     notifyListeners(null);
   },
 
@@ -146,9 +170,9 @@ export const authService = {
   async fetchAndCacheRole(userId: string): Promise<UserRole> {
     try {
       const { data, error } = await (supabase
-        .from('profiles' as any)
-        .select('role')
-        .eq('id', userId)
+        .from("profiles" as any)
+        .select("role")
+        .eq("id", userId)
         .single() as any);
       if (!error && data?.role) {
         const resolved = data.role.toLowerCase() as UserRole;
@@ -158,7 +182,7 @@ export const authService = {
     } catch {
       // ignore
     }
-    return 'client';
+    return "client";
   },
 
   async getSession() {
@@ -256,7 +280,7 @@ export const authService = {
 
   async signInWithSocial(provider: "google" | "apple") {
     try {
-      const redirectUrl = Linking.createURL('auth/callback');
+      const redirectUrl = Linking.createURL("auth/callback");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -268,14 +292,18 @@ export const authService = {
       if (error) throw new Error(error.message);
 
       if (data?.url) {
-        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
-        if (result.type === 'success' && result.url) {
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectUrl,
+        );
+        if (result.type === "success" && result.url) {
           const { queryParams } = Linking.parse(result.url);
           if (queryParams?.access_token && queryParams?.refresh_token) {
-            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-              access_token: queryParams.access_token as string,
-              refresh_token: queryParams.refresh_token as string,
-            });
+            const { data: sessionData, error: sessionError } =
+              await supabase.auth.setSession({
+                access_token: queryParams.access_token as string,
+                refresh_token: queryParams.refresh_token as string,
+              });
             if (sessionError) throw sessionError;
             if (sessionData.session) {
               notifyListeners(sessionData.session);
