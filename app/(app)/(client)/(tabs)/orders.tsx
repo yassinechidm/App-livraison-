@@ -4,6 +4,7 @@ import Colors from "@/constants/Colors";
 import { liveLocationService } from "@/services/liveLocation.service";
 import { orderService } from "@/services/order.service";
 import { LiveTrackingMap } from "@/src/components/LiveTrackingMap";
+import { PrescriptionImageViewerModal } from "@/src/components/PrescriptionImageViewerModal";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { Order, ORDER_STATUS_CONFIG } from "@/types/order.types";
 import { useRouter } from "expo-router";
@@ -11,8 +12,10 @@ import {
     Bike,
     ChevronDown,
     ChevronUp,
+    FileText,
     Package,
     Phone,
+    Pill,
     RotateCcw,
     ShoppingBag,
     ShoppingCart,
@@ -23,6 +26,7 @@ import { useEffect, useState } from "react";
 import {
     Alert,
     Dimensions,
+    Image,
     Linking,
     Modal,
     RefreshControl,
@@ -39,7 +43,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function ClientOrdersScreen() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [ratingCourierOrder, setRatingCourierOrder] = useState<Order | null>(
     null,
   );
@@ -55,6 +59,12 @@ export default function ClientOrdersScreen() {
     "in_progress",
   );
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [previewPrescription, setPreviewPrescription] = useState<{
+    url: string;
+    orderNumber?: string;
+    customerName?: string;
+    customerPhone?: string;
+  } | null>(null);
 
   // Rating Modal State
   const [ratingOrder, setRatingOrder] = useState<Order | null>(null);
@@ -109,7 +119,7 @@ export default function ClientOrdersScreen() {
   async function handleReorder(order: Order) {
     await orderService.reorder(order);
     Alert.alert(
-      "Panier mis à jour 🛒",
+      "Panier mis à jour",
       "Tous les articles de cette commande ont été ajoutés à votre panier !",
       [
         {
@@ -144,7 +154,7 @@ export default function ClientOrdersScreen() {
         courierSelectedTags.length > 0 ? courierSelectedTags : undefined,
       );
       Alert.alert(
-        t("courierRating.thankYou", "Merci pour votre avis ! ⭐"),
+        t("courierRating.thankYou", "Merci pour votre avis !"),
         t(
           "courierRating.thankYouMsg",
           "Votre évaluation aide notre livreur partenaire à maintenir un service de qualité à Oujda.",
@@ -178,7 +188,7 @@ export default function ClientOrdersScreen() {
         reviewComment.trim() || undefined,
       );
       Alert.alert(
-        "Merci pour votre avis ! ⭐",
+        "Merci pour votre avis !",
         "Votre note a été enregistrée avec succès.",
       );
       setRatingOrder(null);
@@ -237,7 +247,7 @@ export default function ClientOrdersScreen() {
       </View>
 
       {/* ── Segmented Top Tabs: In progress | History (Screenshot #2 & #4) ── */}
-      <View style={styles.tabsRow}>
+      <View style={[styles.tabsRow, isRTL && { flexDirection: "row-reverse" }]}>
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => setActiveTab("in_progress")}
@@ -249,7 +259,7 @@ export default function ClientOrdersScreen() {
               activeTab === "in_progress" && styles.tabButtonTextActive,
             ]}
           >
-            In progress
+            {t("orders.inProgress", "In progress")}
           </Text>
           {activeTab === "in_progress" && <View style={styles.tabIndicator} />}
         </TouchableOpacity>
@@ -265,7 +275,7 @@ export default function ClientOrdersScreen() {
               activeTab === "history" && styles.tabButtonTextActive,
             ]}
           >
-            History
+            {t("orders.history", "History")}
           </Text>
           {activeTab === "history" && <View style={styles.tabIndicator} />}
         </TouchableOpacity>
@@ -292,21 +302,38 @@ export default function ClientOrdersScreen() {
                   <View style={styles.glovoCardIconCircle}>
                     <ShoppingBag size={28} color="#9CA3AF" />
                   </View>
-                  <Text style={styles.glovoCardTitle}>Track your orders</Text>
+                  <Text style={styles.glovoCardTitle}>
+                    {t("orders.trackYourOrders", "Track your orders")}
+                  </Text>
                   <Text style={styles.glovoCardSubtitle}>
-                    Your ongoing orders will be listed here
+                    {t(
+                      "orders.ongoingOrdersListed",
+                      "Your ongoing orders will be listed here",
+                    )}
                   </Text>
                 </View>
 
                 {/* Continue your order section (Screenshot #2) */}
-                <Text style={styles.sectionHeading}>Continue your order</Text>
+                <Text
+                  style={[
+                    styles.sectionHeading,
+                    isRTL && { textAlign: "right" },
+                  ]}
+                >
+                  {t("orders.continueOrder", "Continue your order")}
+                </Text>
                 <View style={styles.glovoCard}>
                   <View style={styles.glovoCardIconCircle}>
                     <ShoppingCart size={28} color="#9CA3AF" />
                   </View>
-                  <Text style={styles.glovoCardTitle}>No carts yet</Text>
+                  <Text style={styles.glovoCardTitle}>
+                    {t("orders.noCartsYet", "No carts yet")}
+                  </Text>
                   <Text style={styles.glovoCardSubtitle}>
-                    Add items from stores to create new carts
+                    {t(
+                      "orders.addItemsStores",
+                      "Add items from stores to create new carts",
+                    )}
                   </Text>
                 </View>
               </>
@@ -391,8 +418,8 @@ export default function ClientOrdersScreen() {
                     >
                       <Text style={styles.expandText}>
                         {isExpanded
-                          ? "Masquer les détails"
-                          : `Voir les articles (${order.items?.length || 0})`}
+                          ? t("orders.hideDetails", "Masquer les détails")
+                          : `${t("orders.viewArticles", "Voir les articles")} (${order.items?.length || 0})`}
                       </Text>
                       {isExpanded ? (
                         <ChevronUp size={16} color={Colors.textMuted} />
@@ -405,9 +432,21 @@ export default function ClientOrdersScreen() {
                     {isExpanded && order.items && order.items.length > 0 && (
                       <View style={styles.itemsList}>
                         {order.items.map((item, idx) => (
-                          <View key={idx} style={styles.itemRow}>
+                          <View
+                            key={idx}
+                            style={[
+                              styles.itemRow,
+                              isRTL && { flexDirection: "row-reverse" },
+                            ]}
+                          >
                             <Text style={styles.itemQty}>{item.quantity}x</Text>
-                            <Text style={styles.itemName} numberOfLines={1}>
+                            <Text
+                              style={[
+                                styles.itemName,
+                                isRTL && { textAlign: "right" },
+                              ]}
+                              numberOfLines={1}
+                            >
                               {item.product_name}
                             </Text>
                             <Text style={styles.itemPrice}>
@@ -415,19 +454,85 @@ export default function ClientOrdersScreen() {
                             </Text>
                           </View>
                         ))}
+
+                        {/* Client Prescription Preview */}
+                        {order.prescription_image_url ? (
+                          <View style={styles.prescriptionCardWrap}>
+                            <View style={styles.prescriptionBadgeRow}>
+                              <Pill size={14} color="#059669" />
+                              <Text style={styles.prescriptionBadgeText}>
+                                {t(
+                                  "pharmacy.prescriptionDoc",
+                                  "Ordonnance Médicale transmise",
+                                )}
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              style={styles.prescriptionThumbCard}
+                              onPress={() =>
+                                setPreviewPrescription({
+                                  url: order.prescription_image_url!,
+                                  orderNumber: order.order_number,
+                                })
+                              }
+                              activeOpacity={0.88}
+                            >
+                              <Image
+                                source={{ uri: order.prescription_image_url }}
+                                style={styles.prescriptionThumb}
+                                resizeMode="cover"
+                              />
+                              <View style={styles.zoomOverlay}>
+                                <FileText
+                                  size={12}
+                                  color="#FFFFFF"
+                                  style={{ marginRight: 4 }}
+                                />
+                                <Text style={styles.zoomOverlayText}>
+                                  {t(
+                                    "pharmacy.viewPrescription",
+                                    "Voir l'ordonnance",
+                                  )}
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                        ) : null}
                       </View>
                     )}
 
                     {/* Footer / Actions */}
-                    <View style={styles.cardFooter}>
+                    <View
+                      style={[
+                        styles.cardFooter,
+                        isRTL && { flexDirection: "row-reverse" },
+                      ]}
+                    >
                       <View>
-                        <Text style={styles.totalLabel}>Total payé</Text>
-                        <Text style={styles.totalAmount}>
+                        <Text
+                          style={[
+                            styles.totalLabel,
+                            isRTL && { textAlign: "right" },
+                          ]}
+                        >
+                          {t("orders.totalPaid", "Total payé")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.totalAmount,
+                            isRTL && { textAlign: "right" },
+                          ]}
+                        >
                           {order.total.toFixed(2)} DH
                         </Text>
                       </View>
 
-                      <View style={styles.actionButtonsRow}>
+                      <View
+                        style={[
+                          styles.actionButtonsRow,
+                          isRTL && { flexDirection: "row-reverse" },
+                        ]}
+                      >
                         {order.driver_phone && (
                           <TouchableOpacity
                             style={styles.callCourierBtn}
@@ -436,7 +541,9 @@ export default function ClientOrdersScreen() {
                             }
                           >
                             <Phone size={15} color="#FFFFFF" />
-                            <Text style={styles.callCourierText}>Appeler</Text>
+                            <Text style={styles.callCourierText}>
+                              {t("orders.call", "Appeler")}
+                            </Text>
                           </TouchableOpacity>
                         )}
 
@@ -446,7 +553,9 @@ export default function ClientOrdersScreen() {
                             onPress={() => handleCancelOrder(order)}
                           >
                             <X size={15} color={Colors.error} />
-                            <Text style={styles.cancelBtnText}>Annuler</Text>
+                            <Text style={styles.cancelBtnText}>
+                              {t("orders.cancel", "Annuler")}
+                            </Text>
                           </TouchableOpacity>
                         )}
                       </View>
@@ -467,10 +576,14 @@ export default function ClientOrdersScreen() {
                 <View style={styles.emptyPackageCircle}>
                   <Package size={52} color="#9CA3AF" strokeWidth={1.5} />
                 </View>
-                <Text style={styles.emptyHistoryTitle}>No orders yet</Text>
+                <Text style={styles.emptyHistoryTitle}>
+                  {t("orders.noOrdersYet", "No orders yet")}
+                </Text>
                 <Text style={styles.emptyHistorySubtitle}>
-                  You'll be able to review past orders and reorder directly from
-                  here
+                  {t(
+                    "orders.noOrdersYetSub",
+                    "You'll be able to review past orders and reorder directly from here",
+                  )}
                 </Text>
 
                 <TouchableOpacity
@@ -479,22 +592,38 @@ export default function ClientOrdersScreen() {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.startOrderBtnText}>
-                    Start your first order
+                    {t("orders.startFirstOrder", "Start your first order")}
                   </Text>
                 </TouchableOpacity>
               </View>
             ) : (
               historyOrders.map((order) => (
                 <Card key={order.id} style={styles.orderCard}>
-                  <View style={styles.cardHeader}>
+                  <View
+                    style={[
+                      styles.cardHeader,
+                      isRTL && { flexDirection: "row-reverse" },
+                    ]}
+                  >
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.orderNumber}>
-                        Commande #{order.order_number}
+                      <Text
+                        style={[
+                          styles.orderNumber,
+                          isRTL && { textAlign: "right" },
+                        ]}
+                      >
+                        {t("orders.orderNumber", "Commande #")}
+                        {order.order_number}
                       </Text>
-                      <Text style={styles.orderDate}>
-                        Livrée le{" "}
+                      <Text
+                        style={[
+                          styles.orderDate,
+                          isRTL && { textAlign: "right" },
+                        ]}
+                      >
+                        {t("orders.deliveredOn", "Livrée le")}{" "}
                         {new Date(order.created_at).toLocaleDateString(
-                          "fr-FR",
+                          undefined,
                           {
                             day: "numeric",
                             month: "short",
@@ -510,28 +639,45 @@ export default function ClientOrdersScreen() {
                       ]}
                     >
                       <Text style={[styles.statusText, { color: "#065F46" }]}>
-                        Livrée ✓
+                        {t("orders.delivered", "Livrée")}
                       </Text>
                     </View>
                   </View>
 
-                  <View style={styles.historySummaryRow}>
-                    <Text style={styles.historyItemsCount}>
-                      {order.items?.length || 0} article(s) • Total :{" "}
+                  <View
+                    style={[
+                      styles.historySummaryRow,
+                      isRTL && { flexDirection: "row-reverse" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.historyItemsCount,
+                        isRTL && { textAlign: "right" },
+                      ]}
+                    >
+                      {order.items?.length || 0}{" "}
+                      {t("orders.articlesCount", "article(s)")} •{" "}
+                      {t("orders.total", "Total")} :{" "}
                       <Text style={{ fontWeight: "800", color: "#3C3489" }}>
                         {order.total.toFixed(2)} DH
                       </Text>
                     </Text>
                   </View>
 
-                  <View style={styles.historyActionsRow}>
+                  <View
+                    style={[
+                      styles.historyActionsRow,
+                      isRTL && { flexDirection: "row-reverse" },
+                    ]}
+                  >
                     <TouchableOpacity
                       style={styles.reorderPillBtn}
                       onPress={() => handleReorder(order)}
                     >
                       <RotateCcw size={15} color="#3C3489" />
                       <Text style={styles.reorderPillText}>
-                        Commander à nouveau
+                        {t("orders.reorder", "Commander à nouveau")}
                       </Text>
                     </TouchableOpacity>
 
@@ -561,7 +707,7 @@ export default function ClientOrdersScreen() {
                         ]}
                       >
                         {order.courier_rating
-                          ? `${order.driver_name ? order.driver_name.split(" ")[0] : "Livreur"}: ${order.courier_rating}/5 ⭐`
+                          ? `${order.driver_name ? order.driver_name.split(" ")[0] : "Livreur"}: ${order.courier_rating}/5`
                           : `${t("orders.rateCourier", "Noter le livreur")}`}
                       </Text>
                     </TouchableOpacity>
@@ -582,9 +728,12 @@ export default function ClientOrdersScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.ratingModalContent}>
-            <Text style={styles.ratingModalTitle}>Noter la commande</Text>
+            <Text style={styles.ratingModalTitle}>
+              {t("orders.rateOrder", "Noter la commande")}
+            </Text>
             <Text style={styles.ratingModalSub}>
-              Commande #{ratingOrder?.order_number}
+              {t("orders.orderNumber", "Commande #")}
+              {ratingOrder?.order_number}
             </Text>
 
             <View style={styles.starsRow}>
@@ -605,7 +754,10 @@ export default function ClientOrdersScreen() {
 
             <TextInput
               style={styles.ratingInput}
-              placeholder="Ajouter un commentaire (optionnel)..."
+              placeholder={t(
+                "orders.addCommentOptional",
+                "Ajouter un commentaire (optionnel)...",
+              )}
               placeholderTextColor="#9CA3AF"
               value={reviewComment}
               onChangeText={setReviewComment}
@@ -613,12 +765,19 @@ export default function ClientOrdersScreen() {
               numberOfLines={3}
             />
 
-            <View style={styles.modalActionsRow}>
+            <View
+              style={[
+                styles.modalActionsRow,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalCancelBtn}
                 onPress={() => setRatingOrder(null)}
               >
-                <Text style={styles.modalCancelText}>Annuler</Text>
+                <Text style={styles.modalCancelText}>
+                  {t("common.cancel", "Annuler")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalSubmitBtn}
@@ -626,7 +785,9 @@ export default function ClientOrdersScreen() {
                 disabled={isSubmittingRating}
               >
                 <Text style={styles.modalSubmitText}>
-                  {isSubmittingRating ? "Envoi..." : "Envoyer"}
+                  {isSubmittingRating
+                    ? t("common.sending", "Envoi...")
+                    : t("common.send", "Envoyer")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -660,7 +821,7 @@ export default function ClientOrdersScreen() {
                 <Bike size={30} color="#5C5BDB" strokeWidth={2.2} />
               </View>
               <Text style={styles.ratingModalTitle}>
-                {t("courierRating.title", "Noter votre livreur 🛵")}
+                {t("courierRating.title", "Noter votre livreur")}
               </Text>
               <Text style={styles.ratingModalSub}>
                 {t(
@@ -716,11 +877,11 @@ export default function ClientOrdersScreen() {
               }}
             >
               {[
-                t("courierRating.tagFast", "⚡ Livraison ultra-rapide"),
-                t("courierRating.tagPolite", "😊 Très poli & courtois"),
-                t("courierRating.tagCareful", "🛵 Soin du colis"),
-                t("courierRating.tagFoundEasy", "📍 Adresse trouvée vite"),
-                t("courierRating.tagCommunicative", "📞 Bonne communication"),
+                t("courierRating.tagFast", "Livraison ultra-rapide"),
+                t("courierRating.tagPolite", "Très poli & courtois"),
+                t("courierRating.tagCareful", "Soin du colis"),
+                t("courierRating.tagFoundEasy", "Adresse trouvée vite"),
+                t("courierRating.tagCommunicative", "Bonne communication"),
               ].map((tag) => {
                 const isSelected = courierSelectedTags.includes(tag);
                 return (
@@ -779,7 +940,7 @@ export default function ClientOrdersScreen() {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalSubmitBtn, { backgroundColor: "#5C5BDB" }]}
+                style={styles.modalSubmitBtn}
                 onPress={handleSubmitCourierRating}
                 disabled={isSubmittingCourierRating}
               >
@@ -793,6 +954,14 @@ export default function ClientOrdersScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Prescription Fullscreen Modal */}
+      <PrescriptionImageViewerModal
+        visible={!!previewPrescription}
+        imageUrl={previewPrescription?.url}
+        orderNumber={previewPrescription?.orderNumber}
+        onClose={() => setPreviewPrescription(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -1119,21 +1288,23 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(60, 52, 137, 0.45)",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
   ratingModalContent: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: "#CECBF6",
     padding: 24,
     width: "100%",
     alignItems: "center",
   },
   ratingModalTitle: {
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 20,
+    fontWeight: "900",
     color: "#3C3489",
   },
   ratingModalSub: {
@@ -1141,6 +1312,7 @@ const styles = StyleSheet.create({
     color: "#7F77DD",
     marginTop: 2,
     marginBottom: 16,
+    fontWeight: "600",
   },
   starsRow: {
     flexDirection: "row",
@@ -1148,8 +1320,8 @@ const styles = StyleSheet.create({
   },
   ratingInput: {
     width: "100%",
-    backgroundColor: "#F9FAFB",
-    borderRadius: 12,
+    backgroundColor: "#F7F7FF",
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#CECBF6",
     padding: 12,
@@ -1166,25 +1338,82 @@ const styles = StyleSheet.create({
   },
   modalCancelBtn: {
     flex: 1,
-    paddingVertical: 12,
-    backgroundColor: "#F3F4F6",
-    borderRadius: 12,
+    height: 48,
+    backgroundColor: "#F7F7FF",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
+    borderRadius: 24,
     alignItems: "center",
+    justifyContent: "center",
   },
   modalCancelText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
-    color: "#7F77DD",
+    color: "#3C3489",
   },
   modalSubmitBtn: {
     flex: 1,
-    paddingVertical: 12,
+    height: 48,
     backgroundColor: Colors.cta,
-    borderRadius: 12,
+    borderRadius: 24,
     alignItems: "center",
+    justifyContent: "center",
+    shadowColor: Colors.cta,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
   modalSubmitText: {
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
+  prescriptionCardWrap: {
+    marginTop: 10,
+    marginBottom: 8,
+    backgroundColor: "#F0FDF4",
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+    borderRadius: 14,
+    padding: 10,
+  },
+  prescriptionBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  prescriptionBadgeText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#059669",
+  },
+  prescriptionThumbCard: {
+    width: "100%",
+    height: 120,
+    borderRadius: 10,
+    overflow: "hidden",
+    position: "relative",
+    backgroundColor: "#1F2937",
+  },
+  prescriptionThumb: {
+    width: "100%",
+    height: "100%",
+  },
+  zoomOverlay: {
+    position: "absolute",
+    bottom: 6,
+    right: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(17, 24, 39, 0.85)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  zoomOverlayText: {
+    fontSize: 11,
     fontWeight: "800",
     color: "#FFFFFF",
   },

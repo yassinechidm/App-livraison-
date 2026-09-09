@@ -2,7 +2,13 @@ import Colors from "@/constants/Colors";
 import { GOOGLE_MAPS_API_KEY, hasGoogleMapsKey } from "@/constants/Maps";
 import { liveLocationService } from "@/services/liveLocation.service";
 import Constants from "expo-constants";
-import { Bike, MapPin, Navigation, UtensilsCrossed } from "lucide-react-native";
+import {
+    Bike,
+    Home,
+    MapPin,
+    Navigation,
+    UtensilsCrossed,
+} from "lucide-react-native";
 import React, { useMemo } from "react";
 import {
     Image,
@@ -135,7 +141,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
                   { backgroundColor: Colors.secondary },
                 ]}
               >
-                <Text style={styles.markerEmoji}>🍳</Text>
+                <UtensilsCrossed size={16} color={Colors.white} />
               </View>
             </Marker>
           )}
@@ -152,7 +158,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
             <View
               style={[styles.markerPin, { backgroundColor: Colors.success }]}
             >
-              <Text style={styles.markerEmoji}>🏠</Text>
+              <Home size={16} color={Colors.white} />
             </View>
           </Marker>
 
@@ -166,7 +172,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
             description="Livreur en direct"
           >
             <View style={[styles.markerPin, styles.courierMarkerPin]}>
-              <Text style={styles.markerEmoji}>🛵</Text>
+              <Bike size={16} color={Colors.white} />
             </View>
           </Marker>
 
@@ -203,7 +209,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
               <View style={styles.titleRow}>
                 <Text style={styles.etaTitle}>
                   {orderStatus === "DELIVERED"
-                    ? "Commande livrée 🎉"
+                    ? "Commande livrée"
                     : `Arrivée dans ~${etaMinutes} min`}
                 </Text>
                 <View style={styles.liveTag}>
@@ -260,7 +266,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
             <Bike size={18} color={Colors.white} />
           </View>
           <View style={styles.courierPillBadge}>
-            <Text style={styles.courierPillText}>{courierName} 🛵</Text>
+            <Text style={styles.courierPillText}>{courierName}</Text>
           </View>
         </View>
 
@@ -282,7 +288,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
             <View style={styles.titleRow}>
               <Text style={styles.etaTitle}>
                 {orderStatus === "DELIVERED"
-                  ? "Commande livrée 🎉"
+                  ? "Commande livrée"
                   : `Position GPS (~${etaMinutes} min)`}
               </Text>
               <View style={styles.liveTag}>

@@ -7,6 +7,7 @@ import { restaurantService } from "@/services/restaurant.service";
 import { CartState } from "@/types/cart.types";
 import { Restaurant } from "@/types/restaurant.types";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Bike, Clock, Heart, Search, Star, Tag, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Dimensions,
@@ -241,7 +242,7 @@ export default function RestaurantDetailScreen() {
                 style={styles.headerCircleBtn}
                 activeOpacity={0.8}
               >
-                <Text style={styles.headerBtnIconSmall}>🔍</Text>
+                <Search size={18} color="#3C3489" strokeWidth={2} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() =>
@@ -250,9 +251,12 @@ export default function RestaurantDetailScreen() {
                 style={styles.headerCircleBtn}
                 activeOpacity={0.8}
               >
-                <Text style={styles.headerBtnIconSmall}>
-                  {isFavorite ? "❤️" : "🤍"}
-                </Text>
+                <Heart
+                  size={18}
+                  color={isFavorite ? "#FF4D6D" : "#3C3489"}
+                  fill={isFavorite ? "#FF4D6D" : "transparent"}
+                  strokeWidth={2}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -275,7 +279,7 @@ export default function RestaurantDetailScreen() {
           {/* Rating, Time & Fees Strip */}
           <View style={styles.metaStrip}>
             <View style={styles.metaItem}>
-              <Text style={[styles.metaIcon, { color: "#007E7A" }]}>★</Text>
+              <Star size={14} color="#007E7A" fill="#007E7A" />
               <Text style={[styles.metaTextBold, { color: "#007E7A" }]}>
                 {restaurant.rating_percent
                   ? (restaurant.rating_percent / 20).toFixed(1)
@@ -287,14 +291,14 @@ export default function RestaurantDetailScreen() {
             </View>
 
             <View style={styles.metaItem}>
-              <Text style={styles.metaIcon}>🕒</Text>
+              <Clock size={14} color="#7F77DD" />
               <Text style={styles.metaTextBold}>
                 {restaurant.delivery_time}
               </Text>
             </View>
 
             <View style={styles.metaItem}>
-              <Text style={styles.metaIcon}>🛵</Text>
+              <Bike size={15} color="#5C5BDB" />
               <Text style={styles.metaTextBold}>
                 {Number(restaurant.delivery_fee).toFixed(0)} DH
               </Text>
@@ -325,12 +329,19 @@ export default function RestaurantDetailScreen() {
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 borderRadius: 8,
-                gap: 4,
+                gap: 6,
                 borderWidth: 1,
                 borderColor: "#A7F3D0",
               }}
             >
-              <Text style={{ fontSize: 9 }}>🟢</Text>
+              <View
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: 3.5,
+                  backgroundColor: "#047857",
+                }}
+              />
               <Text
                 style={{ fontSize: 11, fontWeight: "800", color: "#047857" }}
               >
@@ -352,7 +363,7 @@ export default function RestaurantDetailScreen() {
               marginTop: 12,
             }}
           >
-            <Text style={{ fontSize: 14, marginRight: 6 }}>🔍</Text>
+            <Search size={16} color="#7F77DD" style={{ marginRight: 6 }} />
             <TextInput
               style={{
                 flex: 1,
@@ -367,11 +378,7 @@ export default function RestaurantDetailScreen() {
             />
             {categorySearchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setCategorySearchQuery("")}>
-                <Text
-                  style={{ fontSize: 14, color: Colors.textMuted, padding: 4 }}
-                >
-                  ✕
-                </Text>
+                <X size={14} color={Colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
@@ -379,7 +386,7 @@ export default function RestaurantDetailScreen() {
           {/* Best Rated Badge */}
           {restaurant.is_top_rated && (
             <View style={styles.topRatedBadge}>
-              <Text style={styles.topRatedText}>👑 Les mieux notés ›</Text>
+              <Text style={styles.topRatedText}>Les mieux notés ›</Text>
             </View>
           )}
         </View>
@@ -544,7 +551,7 @@ export default function RestaurantDetailScreen() {
 
         {/* 5. Free Delivery Progress Promo Banner */}
         <View style={styles.freeDeliveryBanner}>
-          <Text style={styles.freeDeliveryIcon}>🏷️</Text>
+          <Tag size={16} color="#059669" />
           <Text style={styles.freeDeliveryText}>
             Atteignez <Text style={styles.boldText}>100,00 MAD</Text> pour
             bénéficier de la livraison gratuite

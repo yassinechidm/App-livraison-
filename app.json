@@ -9,11 +9,13 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.quickly.livraison",
       "config": {
         "googleMapsApiKey": "AIzaSyDWlDCjLf_BL85fhXhdLHOqOvgVKSjVbbw"
       }
     },
     "android": {
+      "package": "com.quickly.livraison",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDWlDCjLf_BL85fhXhdLHOqOvgVKSjVbbw"
@@ -25,7 +27,11 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -58,6 +64,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9be52026-bd11-4159-b27e-2e0d2b8d9001"
+      }
     }
   }
 }

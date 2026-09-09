@@ -1,6 +1,6 @@
 import Colors from "@/constants/Colors";
 import { OUJDA_NEIGHBORHOODS } from "@/constants/mockData";
-import { locationService } from "@/services/location.service";
+import { locationService, locationStore } from "@/services/location.service";
 import { useLanguage } from "@/src/context/LanguageContext";
 import {
     ArrowLeft,
@@ -9,7 +9,7 @@ import {
     MapPin,
     Navigation,
     Search,
-    X
+    X,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -24,7 +24,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 
 let WebViewComponent: any = null;
@@ -65,8 +65,9 @@ const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 export interface LocationPickerModalProps {
   visible: boolean;
   onClose: () => void;
-  selectedAddress: string;
-  onSelectAddress: (address: string) => void;
+  selectedAddress?: string;
+  onSelectAddress?: (address: string) => void;
+  initialViewMode?: "map" | "list";
 }
 
 interface SavedAddressItem {
@@ -81,20 +82,20 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   onClose,
   selectedAddress,
   onSelectAddress,
+  initialViewMode,
 }) => {
-  const { t } = useLanguage();
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const { t, isRTL } = useLanguage();
+  const [viewMode, setViewMode] = useState<"list" | "map">(
+    initialViewMode || "list",
+  );
   const [isLocating, setIsLocating] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [currentAddress, setCurrentAddress] = useState(
-    selectedAddress || "Rue Ziri Ibn Atia, 35",
+    selectedAddress || locationStore.getAddress() || "Rue Ziri Ibn Atia, 35",
   );
-  const [coords, setCoords] = useState({
-    latitude: 34.6867,
-    longitude: -1.9114,
-  });
+  const [coords, setCoords] = useState(locationStore.getCoords());
 
   const [savedAddresses, setSavedAddresses] = useState<SavedAddressItem[]>([
     {
@@ -116,11 +117,15 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
   useEffect(() => {
     if (visible) {
-      setCurrentAddress(selectedAddress || "Rue Ziri Ibn Atia, 35");
-      setViewMode("list");
+      const active =
+        selectedAddress ||
+        locationStore.getAddress() ||
+        "Rue Ziri Ibn Atia, 35";
+      setCurrentAddress(active);
+      setViewMode(initialViewMode || "list");
       setIsSearchActive(false);
     }
-  }, [visible, selectedAddress]);
+  }, [visible, selectedAddress, initialViewMode]);
 
   const handleCoordinatesChanged = (latitude: number, longitude: number) => {
     setCoords({ latitude, longitude });
@@ -228,7 +233,11 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         );
         const resolved = exact || loc.address || "Position GPS";
         setCurrentAddress(resolved);
-        onSelectAddress(resolved);
+        locationStore.setAddress(resolved, {
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+        });
+        onSelectAddress?.(resolved);
         onClose();
       }
     } catch {
@@ -240,12 +249,19 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
   const handleSelectSavedAddress = (item: SavedAddressItem) => {
     setCurrentAddress(item.title);
-    onSelectAddress(item.title);
+    setCoords({ latitude: item.coords.lat, longitude: item.coords.lng });
+    locationStore.setAddress(item.title, {
+      latitude: item.coords.lat,
+      longitude: item.coords.lng,
+    });
+    onSelectAddress?.(item.title);
     onClose();
   };
 
   const handleConfirmLocation = () => {
-    onSelectAddress(currentAddress);
+    const finalAddress = currentAddress || "Oujda — Centre-Ville";
+    locationStore.setAddress(finalAddress, coords);
+    onSelectAddress?.(finalAddress);
     onClose();
   };
 
@@ -255,6 +271,11 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     return OUJDA_NEIGHBORHOODS.filter((n) => n.toLowerCase().includes(q));
   }, [searchQuery]);
 
+  const initialCoords = useRef({
+    latitude: coords.latitude || 34.6867,
+    longitude: coords.longitude || -1.9114,
+  });
+
   // Real Google Maps interactive HTML template with house marker
   const mapHtml = useMemo(
     () => `
@@ -263,7 +284,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <style>
     * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     html, body, #map {
@@ -273,7 +294,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       height: 100%;
       background: #E5E3DF;
       overflow: hidden;
-      touch-action: none;
+      touch-action: pan-x pan-y;
     }
     .center-pin-container {
       position: absolute;
@@ -345,7 +366,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       transform: translateY(-8px);
     }
   </style>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body>
   <div id="map"></div>
@@ -361,7 +382,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   </div>
   <script>
     var map = L.map('map', {
-      center: [${coords.latitude}, ${coords.longitude}],
+      center: [${initialCoords.current.latitude}, ${initialCoords.current.longitude}],
       zoom: 16,
       zoomControl: false,
       attributionControl: false
@@ -402,13 +423,14 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     };
 
     window.updateTooltip = function(text) {
-      document.getElementById('tooltip').innerText = text;
+      var el = document.getElementById('tooltip');
+      if (el) el.innerText = text;
     };
   </script>
 </body>
 </html>
 `,
-    [coords.latitude, coords.longitude],
+    [], // Stable HTML: WebView never reloads on drag!
   );
 
   return (
@@ -445,6 +467,8 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               domStorageEnabled
               scalesPageToFit={false}
               scrollEnabled={false}
+              mixedContentMode="always"
+              originWhitelist={["*"]}
             />
           ) : null}
 
@@ -517,12 +541,19 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         {/* ── Search Dropdown Modal/Overlay ── */}
         {isSearchActive && (
           <View style={styles.searchOverlay}>
-            <View style={styles.searchOverlayHeader}>
+            <View
+              style={[
+                styles.searchOverlayHeader,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
               <Text style={styles.searchOverlayTitle}>
-                Quartiers et rues d'Oujda
+                {t("location.oujdaDistricts", "Quartiers et rues d'Oujda")}
               </Text>
               <TouchableOpacity onPress={() => setIsSearchActive(false)}>
-                <Text style={styles.searchOverlayCancel}>Fermer</Text>
+                <Text style={styles.searchOverlayCancel}>
+                  {t("common.close", "Fermer")}
+                </Text>
               </TouchableOpacity>
             </View>
             <ScrollView
@@ -532,15 +563,25 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               {filteredNeighborhoods.map((item) => (
                 <TouchableOpacity
                   key={item}
-                  style={styles.searchOverlayItem}
+                  style={[
+                    styles.searchOverlayItem,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
                   onPress={() => handleSelectNeighborhood(item)}
                 >
                   <MapPin
                     size={18}
                     color="#7F77DD"
-                    style={{ marginRight: 12 }}
+                    style={isRTL ? { marginLeft: 12 } : { marginRight: 12 }}
                   />
-                  <Text style={styles.searchOverlayItemText}>{item}</Text>
+                  <Text
+                    style={[
+                      styles.searchOverlayItemText,
+                      isRTL && { textAlign: "right" },
+                    ]}
+                  >
+                    {item}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -554,13 +595,16 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               <View style={styles.sheetHandle} />
             </View>
 
-            <Text style={styles.sheetTitle}>
+            <Text style={[styles.sheetTitle, isRTL && { textAlign: "right" }]}>
               {t("location.where", "Where should we deliver?")}
             </Text>
 
             {/* Option 1: Use Current Location */}
             <TouchableOpacity
-              style={styles.addressRow}
+              style={[
+                styles.addressRow,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
               onPress={handleUseCurrentLocation}
               activeOpacity={0.7}
             >
@@ -571,10 +615,21 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                   style={{ transform: [{ rotate: "45deg" }] }}
                 />
               </View>
-              <View style={styles.addressTextCol}>
-                <Text style={styles.addressTitle}>Use current location</Text>
+              <View
+                style={[
+                  styles.addressTextCol,
+                  isRTL && { alignItems: "flex-end" },
+                ]}
+              >
+                <Text
+                  style={[styles.addressTitle, isRTL && { textAlign: "right" }]}
+                >
+                  {t("location.useCurrentLocation", "Use current location")}
+                </Text>
                 <View style={styles.recommendedBadge}>
-                  <Text style={styles.recommendedBadgeText}>Recommended</Text>
+                  <Text style={styles.recommendedBadgeText}>
+                    {t("location.recommended", "Recommended")}
+                  </Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -583,16 +638,38 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             {savedAddresses.map((addr) => (
               <TouchableOpacity
                 key={addr.id}
-                style={styles.addressRow}
+                style={[
+                  styles.addressRow,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
                 onPress={() => handleSelectSavedAddress(addr)}
                 activeOpacity={0.7}
               >
                 <View style={styles.addressIconCircle}>
                   <Home size={18} color="#3C3489" />
                 </View>
-                <View style={styles.addressTextCol}>
-                  <Text style={styles.addressTitle}>{addr.title}</Text>
-                  <Text style={styles.addressSubtitle}>{addr.subtitle}</Text>
+                <View
+                  style={[
+                    styles.addressTextCol,
+                    isRTL && { alignItems: "flex-end" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.addressTitle,
+                      isRTL && { textAlign: "right" },
+                    ]}
+                  >
+                    {addr.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.addressSubtitle,
+                      isRTL && { textAlign: "right" },
+                    ]}
+                  >
+                    {addr.subtitle}
+                  </Text>
                 </View>
                 <TouchableOpacity
                   style={styles.editCircle}
@@ -625,11 +702,34 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
         {/* ── MODE 2: Pin Confirmation Card (Screenshot #15) ── */}
         {viewMode === "map" && !isSearchActive && (
-          <View style={styles.mapPinBottomContainer}>
-            <View style={styles.pinInstructionBox}>
-              <Text style={styles.pinInstructionText}>
-                Move the pin until you find your address
-              </Text>
+          <View style={styles.mapPinBottomContainer} pointerEvents="box-none">
+            <View
+              style={[
+                styles.pinInstructionBox,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
+              <View style={[isRTL && { alignItems: "flex-end" }, { flex: 1 }]}>
+                <Text
+                  style={[
+                    styles.pinAddressLabel,
+                    isRTL && { textAlign: "right" },
+                  ]}
+                >
+                  {t("location.deliveryAddress", "Adresse de livraison :")}
+                </Text>
+                <Text
+                  style={[
+                    styles.pinInstructionText,
+                    isRTL && { textAlign: "right" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {isGeocoding
+                    ? t("location.searchingStreet", "Recherche de la rue...")
+                    : currentAddress}
+                </Text>
+              </View>
               {isGeocoding && (
                 <ActivityIndicator
                   size="small"
@@ -642,10 +742,10 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             <TouchableOpacity
               style={styles.confirmAddressButton}
               onPress={handleConfirmLocation}
-              activeOpacity={0.9}
+              activeOpacity={0.85}
             >
               <Text style={styles.confirmAddressButtonText}>
-                {t("location.confirm", "Confirm address")}
+                {t("location.confirm", "Deliver here")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -856,15 +956,17 @@ const styles = StyleSheet.create({
   },
   addAddressButton: {
     marginTop: 18,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F7F7FF",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
     borderRadius: 28,
-    paddingVertical: 16,
+    height: 50,
     alignItems: "center",
     justifyContent: "center",
   },
   addAddressButtonText: {
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#3C3489",
   },
 
@@ -878,40 +980,49 @@ const styles = StyleSheet.create({
   },
   pinInstructionBox: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: "#CECBF6",
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginBottom: 12,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
+  pinAddressLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#7F77DD",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
   pinInstructionText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "800",
     color: "#3C3489",
-    textAlign: "center",
   },
   confirmAddressButton: {
-    backgroundColor: Colors.cta, // Matches the Glovo confirmation green / primary
+    backgroundColor: Colors.cta,
     borderRadius: 28,
-    paddingVertical: 16,
+    height: 50,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000000",
+    shadowColor: Colors.cta,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   confirmAddressButtonText: {
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#FFFFFF",
   },
 });

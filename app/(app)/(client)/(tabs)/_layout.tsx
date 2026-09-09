@@ -1,93 +1,82 @@
-import { useLanguage } from "@/src/context/LanguageContext";
 import Colors from "@/constants/Colors";
 import { cartService } from "@/services/cart.service";
+import { locationStore } from "@/services/location.service";
 import { LocationPickerModal } from "@/src/components/LocationPickerModal";
+import { useLanguage } from "@/src/context/LanguageContext";
 import { Tabs, useRouter } from "expo-router";
 import {
-  CircleUserRound,
-  Home,
-  Search,
-  ShoppingCart,
-  User,
+    CircleUserRound,
+    Home,
+    Map,
+    Search,
+    ShoppingCart,
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Dimensions,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// Map with Pin Icon matching Image 1 exactly
-function MapPinIcon({ color = "#3C3489" }: { color?: string }) {
-  return (
-    <Svg
-      width={22}
-      height={22}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <Path d="M12 2a5 5 0 0 0-5 5c0 3.75 5 8 5 8s5-4.25 5-8a5 5 0 0 0-5-5z" />
-      <Circle cx="12" cy="7" r="1.5" />
-      <Path d="M4 18l4-2 8 2 4-2" />
-    </Svg>
-  );
-}
-
-// Custom Floating Tab Bar matching Image 1
+// Custom Floating Tab Bar with Home, Search, Map, Cart, Profile
 function FloatingTabBar({
   state,
   navigation,
   cartCount,
   onOpenMap,
-  isMapActive,
 }: {
   state: any;
   navigation: any;
   cartCount: number;
-  onOpenMap: () => void;
-  isMapActive: boolean;
+  onOpenMap?: () => void;
 }) {
+  const { t } = useLanguage();
+  const insets = useSafeAreaInsets();
   const currentRouteName = state.routes[state.index]?.name;
+  const bottomOffset = Math.max(
+    insets.bottom + 10,
+    Platform.OS === "ios" ? 34 : 26,
+  );
 
   return (
-    <View style={styles.floatingBarContainer} pointerEvents="box-none">
+    <View
+      style={[styles.floatingBarContainer, { bottom: bottomOffset }]}
+      pointerEvents="box-none"
+    >
       {/* 1. Home Circle Button */}
       <TouchableOpacity
         style={[
           styles.circlePill,
-          currentRouteName === "index" && !isMapActive && styles.circlePillActive,
+          currentRouteName === "index" && styles.circlePillActive,
         ]}
         onPress={() => navigation.navigate("index")}
         activeOpacity={0.85}
       >
         <Home
-          size={22}
+          size={21}
           color="#3C3489"
-          strokeWidth={currentRouteName === "index" && !isMapActive ? 2.5 : 2}
-          fill={currentRouteName === "index" && !isMapActive ? "#3C3489" : "none"}
+          strokeWidth={currentRouteName === "index" ? 2.5 : 2}
+          fill={currentRouteName === "index" ? "#3C3489" : "none"}
         />
       </TouchableOpacity>
 
-      {/* 2. Map Circle Button (The added element for map) */}
+      {/* 2. Map Circle Button */}
       <TouchableOpacity
-        style={[styles.circlePill, isMapActive && styles.circlePillActive]}
+        style={styles.circlePill}
         onPress={onOpenMap}
         activeOpacity={0.85}
       >
-        <MapPinIcon color={isMapActive ? Colors.cta : "#3C3489"} />
+        <Map size={21} color="#3C3489" strokeWidth={2} />
       </TouchableOpacity>
 
-      {/* 3. Center Search Capsule Pill */}
+      {/* 3. Center Search Capsule Pill (Exact Middle) */}
       <TouchableOpacity
         style={[
           styles.searchCapsulePill,
@@ -97,7 +86,7 @@ function FloatingTabBar({
         activeOpacity={0.85}
       >
         <Search
-          size={19}
+          size={18}
           color={currentRouteName === "catalog" ? Colors.primary : "#3C3489"}
           strokeWidth={2.4}
         />
@@ -107,28 +96,23 @@ function FloatingTabBar({
             currentRouteName === "catalog" && styles.searchTextActive,
           ]}
         >
-          Search
+          {t("nav.search", "Search")}
         </Text>
       </TouchableOpacity>
 
-      {/* 4. Cart / Orders Circle Button */}
+      {/* 4. Cart Circle Button */}
       <TouchableOpacity
         style={[
           styles.circlePill,
-          (currentRouteName === "orders" || currentRouteName === "cart") &&
-            styles.circlePillActive,
+          currentRouteName === "cart" && styles.circlePillActive,
         ]}
-        onPress={() => navigation.navigate("orders")}
+        onPress={() => navigation.navigate("cart")}
         activeOpacity={0.85}
       >
         <ShoppingCart
-          size={21}
+          size={20}
           color="#3C3489"
-          strokeWidth={
-            currentRouteName === "orders" || currentRouteName === "cart"
-              ? 2.5
-              : 2
-          }
+          strokeWidth={currentRouteName === "cart" ? 2.5 : 2}
         />
         {cartCount > 0 && (
           <View style={styles.cartBadge}>
@@ -149,7 +133,7 @@ function FloatingTabBar({
         activeOpacity={0.85}
       >
         <CircleUserRound
-          size={22}
+          size={21}
           color="#3C3489"
           strokeWidth={currentRouteName === "profile" ? 2.5 : 2}
         />
@@ -159,14 +143,26 @@ function FloatingTabBar({
 }
 
 export default function ClientTabLayout() {
+  const { t } = useLanguage();
   const [cartCount, setCartCount] = useState(0);
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(
-    "Rue Ziri Ibn Atia, 35"
+    "Rue Ziri Ibn Atia, 35",
   );
 
+  const router = useRouter();
+
   useEffect(() => {
-    return cartService.subscribe((state) => setCartCount(state.itemCount));
+    const unsubCart = cartService.subscribe((state) =>
+      setCartCount(state.itemCount),
+    );
+    const unsubLoc = locationStore.subscribe((addr) =>
+      setSelectedAddress(addr),
+    );
+    return () => {
+      unsubCart();
+      unsubLoc();
+    };
   }, []);
 
   return (
@@ -177,26 +173,50 @@ export default function ClientTabLayout() {
             {...props}
             cartCount={cartCount}
             onOpenMap={() => setIsMapModalVisible(true)}
-            isMapActive={isMapModalVisible}
           />
         )}
         screenOptions={{
           headerShown: false,
         }}
       >
-        <Tabs.Screen name="index" options={{ title: "Home" }} />
-        <Tabs.Screen name="catalog" options={{ title: "Discover" }} />
-        <Tabs.Screen name="cart" options={{ href: null, title: "Cart" }} />
-        <Tabs.Screen name="orders" options={{ title: "Orders" }} />
-        <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+        <Tabs.Screen name="index" options={{ title: t("nav.home", "Home") }} />
+        <Tabs.Screen
+          name="catalog"
+          options={{ title: t("nav.catalog", "Discover") }}
+        />
+        <Tabs.Screen name="cart" options={{ title: t("nav.cart", "Cart") }} />
+        <Tabs.Screen
+          name="orders"
+          options={{ href: null, title: t("nav.orders", "Orders") }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{ title: t("nav.profile", "Profile") }}
+        />
       </Tabs>
 
-      {/* Direct Global Map Access via the Map Icon */}
+      {/* Direct Global Map Access */}
       <LocationPickerModal
         visible={isMapModalVisible}
         onClose={() => setIsMapModalVisible(false)}
         selectedAddress={selectedAddress}
-        onSelectAddress={(addr) => setSelectedAddress(addr)}
+        initialViewMode="map"
+        onSelectAddress={(addr) => {
+          setSelectedAddress(addr);
+          locationStore.setAddress(addr);
+          Alert.alert(
+            t("location.deliveryAddress", "Adresse de livraison :"),
+            `${addr}`,
+            [
+              {
+                text: t("cart.browseCatalog", "Découvrir le catalogue"),
+                onPress: () =>
+                  router.push("/(app)/(client)/(tabs)/catalog" as any),
+              },
+              { text: t("common.ok", "OK") },
+            ],
+          );
+        }}
       />
     </>
   );
@@ -205,21 +225,20 @@ export default function ClientTabLayout() {
 const styles = StyleSheet.create({
   floatingBarContainer: {
     position: "absolute",
-    bottom: Platform.OS === "ios" ? 26 : 14,
     left: 0,
     right: 0,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 12,
+    gap: 8,
+    paddingHorizontal: 8,
   },
 
   // Circle Pill (Home, Map, Cart, Profile)
   circlePill: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
@@ -239,12 +258,12 @@ const styles = StyleSheet.create({
 
   // Search Center Capsule Pill
   searchCapsulePill: {
-    height: 50,
-    borderRadius: 25,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: "#FFFFFF",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 22,
+    paddingHorizontal: 16,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,

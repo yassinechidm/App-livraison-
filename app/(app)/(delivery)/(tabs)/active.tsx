@@ -5,18 +5,22 @@ import { authService } from "@/services/auth.service";
 import { liveLocationService } from "@/services/liveLocation.service";
 import { orderService } from "@/services/order.service";
 import { LiveTrackingMap } from "@/src/components/LiveTrackingMap";
+import { PrescriptionImageViewerModal } from "@/src/components/PrescriptionImageViewerModal";
 import { Order, ORDER_STATUS_CONFIG } from "@/types/order.types";
 import {
+    FileText,
     MapPin,
     Navigation,
     Phone,
     PhoneCall,
+    Pill,
     ShoppingBag,
     User,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Alert,
+    Image,
     Linking,
     RefreshControl,
     ScrollView,
@@ -30,6 +34,13 @@ export default function CourierActiveDeliveriesScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
+  const [previewPrescription, setPreviewPrescription] = useState<{
+    url: string;
+    orderNumber?: string;
+    customerName?: string;
+    customerPhone?: string;
+  } | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -263,6 +274,46 @@ export default function CourierActiveDeliveriesScreen() {
                   ))}
                 </View>
 
+                {/* Prescription Preview for Courier */}
+                {order.prescription_image_url ? (
+                  <View style={styles.prescriptionCardWrap}>
+                    <View style={styles.prescriptionBadgeRow}>
+                      <Pill size={14} color="#059669" />
+                      <Text style={styles.prescriptionBadgeText}>
+                        Ordonnance Médicale du client
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.prescriptionThumbCard}
+                      onPress={() =>
+                        setPreviewPrescription({
+                          url: order.prescription_image_url!,
+                          orderNumber: order.order_number,
+                          customerName: order.customer_name,
+                          customerPhone: order.customer_phone,
+                        })
+                      }
+                      activeOpacity={0.88}
+                    >
+                      <Image
+                        source={{ uri: order.prescription_image_url }}
+                        style={styles.prescriptionThumb}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.zoomOverlay}>
+                        <FileText
+                          size={12}
+                          color="#FFFFFF"
+                          style={{ marginRight: 4 }}
+                        />
+                        <Text style={styles.zoomOverlayText}>
+                          Voir l'ordonnance complète
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+
                 <View style={styles.totalBox}>
                   <Text style={styles.totalLabel}>
                     Montant total à encaisser (
@@ -290,6 +341,16 @@ export default function CourierActiveDeliveriesScreen() {
           })
         )}
       </ScrollView>
+
+      {/* Prescription Fullscreen Modal */}
+      <PrescriptionImageViewerModal
+        visible={!!previewPrescription}
+        imageUrl={previewPrescription?.url}
+        orderNumber={previewPrescription?.orderNumber}
+        customerName={previewPrescription?.customerName}
+        customerPhone={previewPrescription?.customerPhone}
+        onClose={() => setPreviewPrescription(null)}
+      />
     </View>
   );
 }
@@ -465,5 +526,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "900",
     color: Colors.primary,
+  },
+  prescriptionCardWrap: {
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: "#F0FDF4",
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+    borderRadius: 14,
+    padding: 10,
+  },
+  prescriptionBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  prescriptionBadgeText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#059669",
+  },
+  prescriptionThumbCard: {
+    width: "100%",
+    height: 110,
+    borderRadius: 10,
+    overflow: "hidden",
+    position: "relative",
+    backgroundColor: "#1F2937",
+  },
+  prescriptionThumb: {
+    width: "100%",
+    height: "100%",
+  },
+  zoomOverlay: {
+    position: "absolute",
+    bottom: 6,
+    right: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(17, 24, 39, 0.85)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  zoomOverlayText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#FFFFFF",
   },
 });

@@ -1,31 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import Card from "@/components/ui/Card";
+import QuantitySelector from "@/components/ui/QuantitySelector";
+import Colors from "@/constants/Colors";
+import { cartService } from "@/services/cart.service";
+import { productService } from "@/services/product.service";
+import { restaurantService } from "@/services/restaurant.service";
+import { AnyPurchasableItem, SelectedCustomization } from "@/types/cart.types";
+import { CustomizationGroup } from "@/types/restaurant.types";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ShieldCheck, UtensilsCrossed } from "lucide-react-native";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  TextInput,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import QuantitySelector from '@/components/ui/QuantitySelector';
-import Colors from '@/constants/Colors';
-import { productService } from '@/services/product.service';
-import { restaurantService } from '@/services/restaurant.service';
-import { cartService } from '@/services/cart.service';
-import { AnyPurchasableItem, SelectedCustomization } from '@/types/cart.types';
-import { CustomizationGroup } from '@/types/restaurant.types';
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function ProductDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [product, setProduct] = useState<AnyPurchasableItem | null>(null);
-  const [customizationGroups, setCustomizationGroups] = useState<CustomizationGroup[]>([]);
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
-  const [specialInstructions, setSpecialInstructions] = useState('');
+  const [customizationGroups, setCustomizationGroups] = useState<
+    CustomizationGroup[]
+  >([]);
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string[]>
+  >({});
+  const [specialInstructions, setSpecialInstructions] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +51,10 @@ export default function ProductDetailScreen() {
             restaurant_id: menuItem.restaurant_id,
           });
 
-          if (menuItem.customization_groups && menuItem.customization_groups.length > 0) {
+          if (
+            menuItem.customization_groups &&
+            menuItem.customization_groups.length > 0
+          ) {
             setCustomizationGroups(menuItem.customization_groups);
 
             // Pre-select default options
@@ -136,7 +143,7 @@ export default function ProductDetailScreen() {
         product,
         quantity,
         formattedSelectedCustomizations,
-        specialInstructions.trim() || undefined
+        specialInstructions.trim() || undefined,
       );
       router.back();
     }
@@ -149,7 +156,10 @@ export default function ProductDetailScreen() {
           <Text style={styles.loadingEmoji}>⏳</Text>
         </View>
         <Text style={styles.loadingText}>Chargement du plat...</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.cancelBtn}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.cancelBtn}
+        >
           <Text style={styles.cancelText}>Retour</Text>
         </TouchableOpacity>
       </View>
@@ -160,10 +170,16 @@ export default function ProductDetailScreen() {
     <View style={styles.container}>
       {/* Top Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          activeOpacity={0.8}
+        >
           <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Personnaliser votre plat</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          Personnaliser votre plat
+        </Text>
         <View style={styles.backBtnPlaceholder} />
       </View>
 
@@ -181,7 +197,7 @@ export default function ProductDetailScreen() {
             />
           ) : (
             <View style={styles.imagePlaceholder}>
-              <Text style={styles.productEmoji}>🍽️</Text>
+              <UtensilsCrossed size={36} color="#7F77DD" strokeWidth={1.5} />
             </View>
           )}
 
@@ -192,7 +208,7 @@ export default function ProductDetailScreen() {
                 product.is_available === false && { color: Colors.error },
               ]}
             >
-              {product.is_available !== false ? '✓ En cuisine à Oujda' : 'Épuisé'}
+              {product.is_available !== false ? "En cuisine à Oujda" : "Épuisé"}
             </Text>
           </View>
         </View>
@@ -208,74 +224,85 @@ export default function ProductDetailScreen() {
           <View style={styles.divider} />
 
           <Text style={styles.sectionHeading}>Description</Text>
-          <Text style={styles.productDescription}>{product.description}</Text>
+          <Text style={styles.productDescription}>
+            {product.description ||
+              "Savoureux plat préparé avec soin à partir d'ingrédients frais du marché d'Oujda."}
+          </Text>
         </Card>
 
-        {/* Customization Options Groups (Sauces, Drinks, Extras) */}
+        {/* Customization Options */}
         {customizationGroups.map((group) => {
-          const selectedInGroup = selectedOptions[group.id] || [];
-
+          const isSelectedAny = (selectedOptions[group.id] || []).length > 0;
           return (
             <Card key={group.id} style={styles.groupCard}>
               <View style={styles.groupHeaderRow}>
-                <View style={{ flex: 1 }}>
+                <View>
                   <Text style={styles.groupTitle}>{group.title}</Text>
-                  {group.max_selection && group.max_selection > 1 && (
-                    <Text style={styles.groupSub}>
-                      Choisissez jusqu'à {group.max_selection} options
-                    </Text>
-                  )}
-                </View>
-                <View
-                  style={[
-                    styles.reqBadge,
-                    group.required ? styles.reqBadgeRequired : styles.reqBadgeOptional,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.reqBadgeText,
-                      group.required ? styles.reqBadgeTextRequired : styles.reqBadgeTextOptional,
-                    ]}
-                  >
-                    {group.required ? 'Obligatoire' : 'Optionnel'}
+                  <Text style={styles.groupSub}>
+                    {group.required
+                      ? "Requis • Choisissez une option"
+                      : `Optionnel • Max ${group.max_selection || 1}`}
                   </Text>
                 </View>
+                {group.required && (
+                  <View
+                    style={[
+                      styles.reqBadge,
+                      isSelectedAny && styles.reqBadgeRequired,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.reqBadgeText,
+                        isSelectedAny && styles.reqBadgeTextRequired,
+                      ]}
+                    >
+                      {isSelectedAny ? "Choisi" : "Requis"}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={styles.optionsList}>
                 {group.options.map((option) => {
-                  const isChecked = selectedInGroup.includes(option.id);
+                  const isChecked = (selectedOptions[group.id] || []).includes(
+                    option.id,
+                  );
+                  const isRadio = group.max_selection === 1;
 
                   return (
                     <TouchableOpacity
                       key={option.id}
-                      style={[styles.optionRow, isChecked && styles.optionRowActive]}
+                      style={[
+                        styles.optionRow,
+                        isChecked && styles.optionRowActive,
+                      ]}
                       onPress={() => handleToggleOption(group, option.id)}
                       activeOpacity={0.7}
                     >
                       <View style={styles.optionLeft}>
                         <View
                           style={[
-                            group.max_selection === 1 ? styles.radioCircle : styles.checkboxBox,
+                            isRadio ? styles.radioCircle : styles.checkboxBox,
                             isChecked && styles.selectedCircle,
                           ]}
                         >
                           {isChecked && <Text style={styles.checkIcon}>✓</Text>}
                         </View>
-                        <Text style={[styles.optionName, isChecked && styles.optionNameActive]}>
+                        <Text
+                          style={[
+                            styles.optionName,
+                            isChecked && styles.optionNameActive,
+                          ]}
+                        >
                           {option.name}
                         </Text>
                       </View>
 
-                      {option.price > 0 ? (
-                        <View style={styles.extraPriceTag}>
-                          <Text style={styles.extraPriceText}>
-                            +{option.price.toFixed(2)} MAD
-                          </Text>
-                        </View>
-                      ) : (
-                        <Text style={styles.freeOptionText}>Gratuit</Text>
+                      {option.price > 0 && (
+                        <Text style={styles.extraPriceText}>
+                          +{option.price.toFixed(2)} MAD
+                        </Text>
                       )}
                     </TouchableOpacity>
                   );
@@ -288,7 +315,7 @@ export default function ProductDetailScreen() {
         {/* Special Instructions Input */}
         <Card style={styles.instructionsCard}>
           <View style={styles.instructionsHeader}>
-            <Text style={styles.instructionsTitle}>📝 Note pour le Chef</Text>
+            <Text style={styles.instructionsTitle}>Note pour le Chef</Text>
             <Text style={styles.instructionsSub}>Optionnel</Text>
           </View>
           <TextInput
@@ -315,9 +342,10 @@ export default function ProductDetailScreen() {
 
         {/* Delivery Guarantee */}
         <View style={styles.deliveryBox}>
-          <Text style={styles.deliveryIcon}>⚡</Text>
+          <ShieldCheck size={20} color="#5C5BDB" strokeWidth={2.2} />
           <Text style={styles.deliveryText}>
-            Préparé à la minute aux saveurs d'Oujda et livré chaud à votre porte.
+            Préparé à la minute aux saveurs d'Oujda et livré chaud à votre
+            porte.
           </Text>
         </View>
       </ScrollView>
@@ -326,19 +354,26 @@ export default function ProductDetailScreen() {
       <View style={styles.bottomBar}>
         <View style={styles.bottomPriceGroup}>
           <Text style={styles.bottomPriceLabel}>Total ({quantity}x)</Text>
-          <Text style={styles.bottomPriceValue}>{totalPrice.toFixed(2)} MAD</Text>
+          <Text style={styles.bottomPriceValue}>
+            {totalPrice.toFixed(2)} MAD
+          </Text>
         </View>
 
-        <Button
-          title={
-            product.is_available !== false
-              ? `Ajouter 🛒 (${totalPrice.toFixed(2)} MAD)`
-              : 'Article Épuisé 🚫'
-          }
+        <TouchableOpacity
+          style={[
+            styles.addBtnPill,
+            product.is_available === false && { backgroundColor: "#94A3B8" },
+          ]}
           onPress={handleAddToCart}
           disabled={product.is_available === false}
-          style={product.is_available === false ? { ...styles.addBtn, backgroundColor: '#94A3B8' } : styles.addBtn}
-        />
+          activeOpacity={0.85}
+        >
+          <Text style={styles.addBtnPillText}>
+            {product.is_available !== false
+              ? `Ajouter (${totalPrice.toFixed(2)} MAD)`
+              : "Article Épuisé"}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -347,14 +382,14 @@ export default function ProductDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   loadingSpinner: {
     marginBottom: 12,
@@ -364,7 +399,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textSecondary,
     marginBottom: 16,
   },
@@ -374,47 +409,47 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   cancelText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.primary,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: "#E2E8F0",
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
   },
   backBtnPlaceholder: {
     width: 38,
   },
   backIcon: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginTop: -3,
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
   },
   scrollContent: {
     padding: 16,
@@ -423,29 +458,29 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 220,
     borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#E2E8F0',
-    position: 'relative',
+    overflow: "hidden",
+    backgroundColor: "#E2E8F0",
+    position: "relative",
     marginBottom: 14,
   },
   productImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   imagePlaceholder: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#EBF2FF',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#EBF2FF",
   },
   productEmoji: {
     fontSize: 72,
   },
   stockBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 14,
@@ -457,7 +492,7 @@ const styles = StyleSheet.create({
   },
   stockBadgeText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.secondary,
   },
   infoCard: {
@@ -466,41 +501,41 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   productName: {
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.textPrimary,
     marginBottom: 8,
     lineHeight: 26,
   },
   priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    alignItems: "baseline",
     marginBottom: 14,
   },
   productPrice: {
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.primary,
   },
   currency: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.primary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: "#F1F5F9",
     marginBottom: 14,
   },
   sectionHeading: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 6,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   productDescription: {
@@ -514,17 +549,17 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   groupHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   groupTitle: {
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.textPrimary,
   },
   groupSub: {
@@ -538,17 +573,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   reqBadgeRequired: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: "#FEE2E2",
   },
   reqBadgeOptional: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: "#F1F5F9",
   },
   reqBadgeText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   reqBadgeTextRequired: {
-    color: '#DC2626',
+    color: "#DC2626",
   },
   reqBadgeTextOptional: {
     color: Colors.textSecondary,
@@ -557,23 +592,23 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   optionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   optionRowActive: {
-    backgroundColor: '#EBF2FF',
+    backgroundColor: "#EBF2FF",
     borderColor: Colors.primary,
   },
   optionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     flex: 1,
   },
@@ -582,9 +617,9 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#CBD5E1',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#CBD5E1",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: Colors.white,
   },
   checkboxBox: {
@@ -592,9 +627,9 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#CBD5E1',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#CBD5E1",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: Colors.white,
   },
   selectedCircle: {
@@ -602,34 +637,34 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   checkIcon: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: "900",
   },
   optionName: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textPrimary,
     flex: 1,
   },
   optionNameActive: {
     color: Colors.primary,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   extraPriceTag: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: "#EFF6FF",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
   },
   extraPriceText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.primary,
   },
   freeOptionText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textMuted,
   },
   instructionsCard: {
@@ -638,17 +673,17 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   instructionsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   instructionsTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
   },
   instructionsSub: {
@@ -656,63 +691,62 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   instructionsInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
     borderRadius: 12,
     padding: 10,
     fontSize: 13,
     color: Colors.textPrimary,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
     minHeight: 50,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   quantityCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
   quantityLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textPrimary,
   },
   deliveryBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EBF2FF',
-    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F7F7FF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#CECBF6",
     padding: 14,
     gap: 10,
   },
-  deliveryIcon: {
-    fontSize: 20,
-  },
   deliveryText: {
     fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '600',
+    color: "#3C3489",
+    fontWeight: "600",
     flex: 1,
     lineHeight: 18,
   },
   bottomBar: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: Colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: "#CECBF6",
     paddingHorizontal: 20,
     paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     shadowColor: Colors.shadowColor,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
@@ -724,15 +758,30 @@ const styles = StyleSheet.create({
   },
   bottomPriceLabel: {
     fontSize: 11,
-    color: Colors.textMuted,
-    fontWeight: '600',
+    color: "#7F77DD",
+    fontWeight: "600",
   },
   bottomPriceValue: {
     fontSize: 20,
-    fontWeight: '900',
-    color: Colors.primary,
+    fontWeight: "900",
+    color: "#5C5BDB",
   },
-  addBtn: {
+  addBtnPill: {
     flex: 1.4,
+    backgroundColor: Colors.cta,
+    borderRadius: 28,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: Colors.cta,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  addBtnPillText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "900",
   },
 });

@@ -1,5 +1,7 @@
+import { CustomAlertModal } from "@/components/ui/CustomAlertModal";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { supabase } from "@/lib/supabase";
+import { alertService } from "@/services/alert.service";
 import { authService } from "@/services/auth.service";
 import { LanguageProvider } from "@/src/context/LanguageContext";
 import { paperTheme } from "@/src/theme";
@@ -10,17 +12,14 @@ import { Slot, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { Alert, Platform } from "react-native";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import Toast from "react-native-toast-message";
 
-export {
-    // Catch any errors thrown by the Layout component.
-    ErrorBoundary
-} from "expo-router";
-
-import { Platform } from "react-native";
+// Wire all app pop-up messages to the branded login-styled alert modal
+Alert.alert = alertService.alert.bind(alertService) as any;
 
 if (Platform.OS === "web" && typeof document !== "undefined") {
   try {
@@ -151,6 +150,7 @@ export default function RootLayout() {
             <StatusBar style="dark" />
             <Slot />
             <Toast />
+            <CustomAlertModal />
           </BottomSheetModalProvider>
         </LanguageProvider>
       </PaperProvider>

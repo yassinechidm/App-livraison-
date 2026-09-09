@@ -114,7 +114,61 @@ CREATE POLICY "promo_codes_full_access" ON promo_codes
   USING (TRUE)
   WITH CHECK (TRUE);
 
--- 8. COURSIERS PAR DÉFAUT POUR OUJDA
+-- 8. ACTIVER RLS ET POLITIQUES POUR PROFILES
+ALTER TABLE IF EXISTS public.profiles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Profiles are viewable by everyone" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_full_access" ON public.profiles;
+
+-- Utiliser (select auth.uid()) pour optimiser le plan d'exécution RLS
+CREATE POLICY "Profiles are viewable by everyone" ON public.profiles
+  FOR SELECT
+  USING (TRUE);
+
+CREATE POLICY "Users can insert own profile" ON public.profiles
+  FOR INSERT
+  WITH CHECK ((SELECT auth.uid()) = id OR (SELECT auth.role()) IN ('authenticated', 'anon'));
+
+CREATE POLICY "Users can update own profile" ON public.profiles
+  FOR UPDATE
+  USING ((SELECT auth.uid()) = id OR (SELECT auth.role()) = 'authenticated')
+  WITH CHECK ((SELECT auth.uid()) = id OR (SELECT auth.role()) = 'authenticated');
+
+-- 9. ACTIVER RLS POUR CATEGORIES, PRODUCTS ET ADDRESSES
+ALTER TABLE IF EXISTS public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.addresses ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "categories_select" ON public.categories;
+DROP POLICY IF EXISTS "categories_insert" ON public.categories;
+DROP POLICY IF EXISTS "categories_update" ON public.categories;
+DROP POLICY IF EXISTS "categories_delete" ON public.categories;
+CREATE POLICY "categories_select" ON public.categories FOR SELECT USING ((SELECT auth.role()) IN ('anon', 'authenticated'));
+CREATE POLICY "categories_insert" ON public.categories FOR INSERT TO authenticated WITH CHECK ((SELECT auth.role()) = 'authenticated');
+CREATE POLICY "categories_update" ON public.categories FOR UPDATE TO authenticated USING ((SELECT auth.role()) = 'authenticated') WITH CHECK ((SELECT auth.role()) = 'authenticated');
+CREATE POLICY "categories_delete" ON public.categories FOR DELETE TO authenticated USING ((SELECT auth.role()) = 'authenticated');
+
+DROP POLICY IF EXISTS "products_select" ON public.products;
+DROP POLICY IF EXISTS "products_insert" ON public.products;
+DROP POLICY IF EXISTS "products_update" ON public.products;
+DROP POLICY IF EXISTS "products_delete" ON public.products;
+CREATE POLICY "products_select" ON public.products FOR SELECT USING ((SELECT auth.role()) IN ('anon', 'authenticated'));
+CREATE POLICY "products_insert" ON public.products FOR INSERT TO authenticated WITH CHECK ((SELECT auth.role()) = 'authenticated');
+CREATE POLICY "products_update" ON public.products FOR UPDATE TO authenticated USING ((SELECT auth.role()) = 'authenticated') WITH CHECK ((SELECT auth.role()) = 'authenticated');
+CREATE POLICY "products_delete" ON public.products FOR DELETE TO authenticated USING ((SELECT auth.role()) = 'authenticated');
+
+DROP POLICY IF EXISTS "addresses_select" ON public.addresses;
+DROP POLICY IF EXISTS "addresses_insert" ON public.addresses;
+DROP POLICY IF EXISTS "addresses_update" ON public.addresses;
+DROP POLICY IF EXISTS "addresses_delete" ON public.addresses;
+CREATE POLICY "addresses_select" ON public.addresses FOR SELECT USING ((SELECT auth.role()) IN ('anon', 'authenticated'));
+CREATE POLICY "addresses_insert" ON public.addresses FOR INSERT TO authenticated WITH CHECK ((SELECT auth.role()) = 'authenticated');
+CREATE POLICY "addresses_update" ON public.addresses FOR UPDATE TO authenticated USING ((SELECT auth.role()) = 'authenticated') WITH CHECK ((SELECT auth.role()) = 'authenticated');
+CREATE POLICY "addresses_delete" ON public.addresses FOR DELETE TO authenticated USING ((SELECT auth.role()) = 'authenticated');
+
+-- 10. COURSIERS PAR DÉFAUT POUR OUJDA
 INSERT INTO couriers (name, phone, vehicle, is_available, rating) VALUES
   ('Mehdi Alami', '+212 6 11 22 33 44', '🛵 Scooter Yamaha', TRUE, 4.9),
   ('Yassine Berrada', '+212 6 55 66 77 88', '🛵 Scooter Honda', TRUE, 4.8),

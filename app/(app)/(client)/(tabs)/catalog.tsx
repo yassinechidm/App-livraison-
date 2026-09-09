@@ -2,8 +2,10 @@ import CartFloatingButton from "@/components/ui/CartFloatingButton";
 import ProductCard from "@/components/ui/ProductCard";
 import Colors from "@/constants/Colors";
 import { cartService } from "@/services/cart.service";
+import { locationStore } from "@/services/location.service";
 import { productService } from "@/services/product.service";
 import { LocationPickerModal } from "@/src/components/LocationPickerModal";
+import { PharmacyOptionsModal } from "@/src/components/PharmacyOptionsModal";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { Category, Product } from "@/types/product.types";
 import { useRouter } from "expo-router";
@@ -26,20 +28,28 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function DiscoverCatalogScreen() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(
-    "Rue Ziri Ibn Atia, 35",
+    locationStore.getAddress() || "Rue Ziri Ibn Atia, 35",
   );
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
+  const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
   const [, setCartVersion] = useState(0);
 
   useEffect(() => {
-    return cartService.subscribe(() => setCartVersion((v) => v + 1));
+    const unsubCart = cartService.subscribe(() => setCartVersion((v) => v + 1));
+    const unsubLoc = locationStore.subscribe((addr) =>
+      setSelectedAddress(addr),
+    );
+    return () => {
+      unsubCart();
+      unsubLoc();
+    };
   }, []);
 
   useEffect(() => {
@@ -134,7 +144,7 @@ export default function DiscoverCatalogScreen() {
                   selectedCategory === "all" && styles.categoryChipTextActive,
                 ]}
               >
-                All
+                {t("catalog.all", "All")}
               </Text>
             </TouchableOpacity>
             {categories.map((cat) => (
@@ -144,11 +154,18 @@ export default function DiscoverCatalogScreen() {
                   styles.categoryChip,
                   selectedCategory === cat.id && styles.categoryChipActive,
                 ]}
-                onPress={() =>
-                  setSelectedCategory(
-                    selectedCategory === cat.id ? "all" : cat.id,
-                  )
-                }
+                onPress={() => {
+                  const isPharmacy =
+                    cat.id === "33333333-3333-3333-3333-333333333333" ||
+                    (cat.name || "").toLowerCase().includes("pharma");
+                  if (isPharmacy) {
+                    setIsPharmacyModalVisible(true);
+                  } else {
+                    setSelectedCategory(
+                      selectedCategory === cat.id ? "all" : cat.id,
+                    );
+                  }
+                }}
               >
                 <Text
                   style={[
@@ -171,10 +188,13 @@ export default function DiscoverCatalogScreen() {
               <Store size={48} color="#9CA3AF" strokeWidth={1.5} />
             </View>
             <Text style={styles.emptyDiscoverTitle}>
-              Nothing to discover for now
+              {t("catalog.nothingToDiscover", "Nothing to discover for now")}
             </Text>
             <Text style={styles.emptyDiscoverSubtitle}>
-              You can still search for something you need to buy or want to try
+              {t(
+                "catalog.nothingToDiscoverSub",
+                "You can still search for something you need to buy or want to try",
+              )}
             </Text>
           </View>
         )}
@@ -184,9 +204,14 @@ export default function DiscoverCatalogScreen() {
           <View style={styles.resultsGrid}>
             {products.length === 0 ? (
               <View style={styles.noResultsBox}>
-                <Text style={styles.noResultsTitle}>Aucun résultat trouvé</Text>
+                <Text style={styles.noResultsTitle}>
+                  {t("catalog.noResultsTitle", "Aucun résultat trouvé")}
+                </Text>
                 <Text style={styles.noResultsSub}>
-                  Essayez un autre mot-clé ou parcourez nos catégories.
+                  {t(
+                    "catalog.noResultsSub",
+                    "Essayez un autre mot-clé ou parcourez nos catégories.",
+                  )}
                 </Text>
               </View>
             ) : (
@@ -213,15 +238,25 @@ export default function DiscoverCatalogScreen() {
         )}
       </ScrollView>
 
-      {/* Floating Cart Button */}
-      <CartFloatingButton />
+      {/* Floating Cart Button sitting above the floating bottom menu */}
+      <CartFloatingButton bottomOffset={Platform.OS === "ios" ? 98 : 88} />
 
       {/* Address Picker Modal */}
       <LocationPickerModal
         visible={isLocationModalVisible}
         onClose={() => setIsLocationModalVisible(false)}
         selectedAddress={selectedAddress}
-        onSelectAddress={(addr) => setSelectedAddress(addr)}
+        initialViewMode="map"
+        onSelectAddress={(addr) => {
+          setSelectedAddress(addr);
+          locationStore.setAddress(addr);
+        }}
+      />
+
+      {/* Pharmacy Options Modal */}
+      <PharmacyOptionsModal
+        visible={isPharmacyModalVisible}
+        onClose={() => setIsPharmacyModalVisible(false)}
       />
     </View>
   );
@@ -280,7 +315,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   scrollContent: {
-    paddingBottom: 90,
+    paddingBottom: 170,
   },
   searchBarContainer: {
     flexDirection: "row",

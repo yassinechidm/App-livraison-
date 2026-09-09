@@ -1,17 +1,25 @@
-import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
 import { addressService } from "@/services/address.service";
 import { authService } from "@/services/auth.service";
 import { cartService } from "@/services/cart.service";
+import { locationStore } from "@/services/location.service";
 import { orderService } from "@/services/order.service";
 import { LocationPickerModal } from "@/src/components";
+import { useLanguage } from "@/src/context/LanguageContext";
 import { CartState } from "@/types/cart.types";
 import { Address, PaymentMethodType } from "@/types/order.types";
 import { BANK_DETAILS } from "@/types/payment.types";
 import { useRouter } from "expo-router";
+import {
+    Banknote,
+    ChevronRight,
+    CreditCard,
+    MapPin,
+} from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     ScrollView,
     StyleSheet,
@@ -23,10 +31,13 @@ import {
 
 export default function CheckoutScreen() {
   const router = useRouter();
+  const { t, isRTL } = useLanguage();
   const [cartState, setCartState] = useState<CartState>(cartService.getState());
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
-  const [customAddress, setCustomAddress] = useState("");
+  const [customAddress, setCustomAddress] = useState(
+    locationStore.getAddress() || "",
+  );
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("CASH");
   const [notes, setNotes] = useState("");
@@ -34,8 +45,12 @@ export default function CheckoutScreen() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const unsubscribe = cartService.subscribe((state) => {
+    const unsubscribeCart = cartService.subscribe((state) => {
       setCartState(state);
+    });
+
+    const unsubscribeLoc = locationStore.subscribe((addr) => {
+      setCustomAddress(addr);
     });
 
     authService.getSession().then((session: any) => {
@@ -56,7 +71,10 @@ export default function CheckoutScreen() {
     const pastCount = orderService.getPastOrderCount();
     cartService.setLoyaltyFreeDelivery(pastCount >= 5);
 
-    return unsubscribe;
+    return () => {
+      unsubscribeCart();
+      unsubscribeLoc();
+    };
   }, []);
 
   async function handleConfirmOrder() {
@@ -122,7 +140,7 @@ export default function CheckoutScreen() {
       // Show non-blocking confirmation (will appear on the orders page)
       setTimeout(() => {
         Alert.alert(
-          "🎉 Commande Confirmée !",
+          "Commande Confirmée !",
           `Votre commande ${order.order_number} a été transmise avec succès.\nSuivez son statut en temps réel ci-dessous.`,
         );
       }, 500);
@@ -143,43 +161,63 @@ export default function CheckoutScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View
+          style={[styles.header, isRTL && { flexDirection: "row-reverse" }]}
+        >
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backBtn}
           >
-            <Text style={styles.backIcon}>←</Text>
+            <Text style={styles.backIcon}>{isRTL ? "→" : "←"}</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Finaliser la Commande</Text>
+          <Text style={styles.headerTitle}>
+            {t("checkout.title", "Finaliser la Commande")}
+          </Text>
           <View style={styles.backBtnPlaceholder} />
         </View>
 
         {/* 1. Delivery Address Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            📍 1. Adresse de livraison (Oujda)
+          <Text style={[styles.sectionTitle, isRTL && { textAlign: "right" }]}>
+            1. {t("checkout.address", "Adresse de livraison (Oujda)")}
           </Text>
 
           {/* Interactive Map Location Picker Button */}
           <TouchableOpacity
-            style={styles.mapPickerCardBtn}
+            style={[
+              styles.mapPickerCardBtn,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
             onPress={() => setIsMapModalVisible(true)}
             activeOpacity={0.8}
           >
-            <View style={styles.mapPickerBtnLeft}>
-              <Text style={styles.mapPickerEmoji}>🗺️</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.mapPickerTitle}>
-                  Choisir l'adresse sur la carte
+            <View
+              style={[
+                styles.mapPickerBtnLeft,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
+              <MapPin size={22} color="#5C5BDB" strokeWidth={2} />
+              <View style={[isRTL && { alignItems: "flex-end" }, { flex: 1 }]}>
+                <Text
+                  style={[
+                    styles.mapPickerTitle,
+                    isRTL && { textAlign: "right" },
+                  ]}
+                >
+                  {t("location.chooseOnMap", "Choisir l'adresse sur la carte")}
                 </Text>
-                <Text style={styles.mapPickerSub} numberOfLines={1}>
+                <Text
+                  style={[styles.mapPickerSub, isRTL && { textAlign: "right" }]}
+                  numberOfLines={1}
+                >
                   {customAddress
                     ? customAddress
-                    : "Carte interactive d'Oujda (Recommandé)"}
+                    : `${t("location.recommended", "Recommandé")} (Oujda)`}
                 </Text>
               </View>
             </View>
-            <Text style={styles.mapPickerArrow}>→</Text>
+            <ChevronRight size={18} color="#7F77DD" strokeWidth={2.2} />
           </TouchableOpacity>
 
           {addresses.map((addr) => {
@@ -247,9 +285,16 @@ export default function CheckoutScreen() {
 
         {/* 2. Payment Method Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💰 2. Mode de paiement</Text>
+          <Text style={[styles.sectionTitle, isRTL && { textAlign: "right" }]}>
+            2. {t("checkout.paymentMethod", "Mode de paiement")}
+          </Text>
 
-          <View style={styles.paymentRow}>
+          <View
+            style={[
+              styles.paymentRow,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={[
                 styles.paymentOption,
@@ -258,8 +303,16 @@ export default function CheckoutScreen() {
               onPress={() => setPaymentMethod("CASH")}
               activeOpacity={0.8}
             >
-              <Text style={styles.paymentEmoji}>💵</Text>
-              <Text style={styles.paymentTitle}>Cash à la livraison</Text>
+              <View style={styles.paymentIconCircle}>
+                <Banknote
+                  size={24}
+                  color={paymentMethod === "CASH" ? "#5C5BDB" : "#7F77DD"}
+                  strokeWidth={1.8}
+                />
+              </View>
+              <Text style={styles.paymentTitle}>
+                {t("checkout.cash", "Cash à la livraison")}
+              </Text>
               <Text style={styles.paymentSub}>
                 Payez au livreur à la réception
               </Text>
@@ -273,7 +326,13 @@ export default function CheckoutScreen() {
               onPress={() => setPaymentMethod("TRANSFER")}
               activeOpacity={0.8}
             >
-              <Text style={styles.paymentEmoji}>🏦</Text>
+              <View style={styles.paymentIconCircle}>
+                <CreditCard
+                  size={24}
+                  color={paymentMethod === "TRANSFER" ? "#5C5BDB" : "#7F77DD"}
+                  strokeWidth={1.8}
+                />
+              </View>
               <Text style={styles.paymentTitle}>Virement Bancaire</Text>
               <Text style={styles.paymentSub}>
                 CIH Bank / Attijariwafa / RIB
@@ -286,7 +345,7 @@ export default function CheckoutScreen() {
             <View style={styles.bankDetailsCard}>
               <View style={styles.bankHeaderRow}>
                 <Text style={styles.bankHeaderBadge}>
-                  🏦 RIB Officiel QuickLivraison
+                  RIB Officiel QuickLivraison
                 </Text>
               </View>
               <View style={styles.bankFieldRow}>
@@ -310,7 +369,7 @@ export default function CheckoutScreen() {
                 </Text>
               </View>
               <Text style={styles.bankNote}>
-                💡 Après validation, vous pourrez transmettre votre reçu de
+                Après validation, vous pourrez transmettre votre reçu de
                 virement par WhatsApp au {BANK_DETAILS.whatsappReceipt}.
               </Text>
             </View>
@@ -319,11 +378,11 @@ export default function CheckoutScreen() {
 
         {/* 3. Delivery Notes */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            📝 3. Instructions pour le livreur
+          <Text style={[styles.sectionTitle, isRTL && { textAlign: "right" }]}>
+            3. {t("checkout.notes", "Instructions pour le livreur")}
           </Text>
           <TextInput
-            style={styles.notesInput}
+            style={[styles.notesInput, isRTL && { textAlign: "right" }]}
             placeholder="Ex: Code porte, sonner au 1er étage, appeler à l'arrivée..."
             placeholderTextColor={Colors.textMuted}
             value={notes}
@@ -334,18 +393,28 @@ export default function CheckoutScreen() {
 
         {/* 4. Order Recap Card */}
         <Card style={styles.recapCard}>
-          <Text style={styles.recapTitle}>Récapitulatif de paiement</Text>
+          <Text style={[styles.recapTitle, isRTL && { textAlign: "right" }]}>
+            {t("cart.paymentDetails", "Récapitulatif de paiement")}
+          </Text>
 
-          <View style={styles.recapRow}>
+          <View
+            style={[styles.recapRow, isRTL && { flexDirection: "row-reverse" }]}
+          >
             <Text style={styles.recapLabel}>
-              Sous-total ({cartState.itemCount} articles)
+              {t("cart.subtotal", "Sous-total")} ({cartState.itemCount}{" "}
+              {cartState.itemCount > 1
+                ? t("cart.articles", "articles")
+                : t("cart.article", "article")}
+              )
             </Text>
             <Text style={styles.recapValue}>
               {cartState.subtotal.toFixed(2)} DH
             </Text>
           </View>
 
-          <View style={styles.recapRow}>
+          <View
+            style={[styles.recapRow, isRTL && { flexDirection: "row-reverse" }]}
+          >
             <Text style={styles.recapLabel}>Livraison Express Oujda</Text>
             {cartState.freeDeliveryReason ? (
               <View
@@ -391,7 +460,7 @@ export default function CheckoutScreen() {
                   textAlign: "center",
                 }}
               >
-                🎉 Livraison GRATUITE — votre commande dépasse 300 DH !
+                Livraison GRATUITE — votre commande dépasse 300 DH !
               </Text>
             </View>
           )}
@@ -413,7 +482,7 @@ export default function CheckoutScreen() {
                   textAlign: "center",
                 }}
               >
-                ⭐ Client fidèle — livraison GRATUITE (5+ commandes) !
+                Client fidèle — livraison GRATUITE (5+ commandes) !
               </Text>
             </View>
           )}
@@ -438,7 +507,7 @@ export default function CheckoutScreen() {
                     textAlign: "center",
                   }}
                 >
-                  🚚 Plus que {(300 - cartState.subtotal).toFixed(0)} DH pour la
+                  Plus que {(300 - cartState.subtotal).toFixed(0)} DH pour la
                   livraison gratuite !
                 </Text>
               </View>
@@ -446,8 +515,12 @@ export default function CheckoutScreen() {
 
           <View style={styles.divider} />
 
-          <View style={styles.recapRow}>
-            <Text style={styles.recapTotalLabel}>Total final</Text>
+          <View
+            style={[styles.recapRow, isRTL && { flexDirection: "row-reverse" }]}
+          >
+            <Text style={styles.recapTotalLabel}>
+              {t("cart.totalTTC", "Total final")}
+            </Text>
             <Text style={styles.recapTotalValue}>
               {cartState.total.toFixed(2)} DH
             </Text>
@@ -455,21 +528,32 @@ export default function CheckoutScreen() {
         </Card>
 
         {/* Confirm Button */}
-        <Button
-          title={`Confirmer la commande (${cartState.total.toFixed(2)} DH) 🚀`}
+        <TouchableOpacity
+          style={styles.confirmButtonPill}
           onPress={handleConfirmOrder}
-          isLoading={isSubmitting}
-          style={styles.confirmBtn}
-        />
+          disabled={isSubmitting}
+          activeOpacity={0.85}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.confirmButtonText}>
+              {t("checkout.confirmOrder", "Confirmer la commande")} (
+              {cartState.total.toFixed(2)} DH)
+            </Text>
+          )}
+        </TouchableOpacity>
 
         {/* Location Picker Map Modal */}
         <LocationPickerModal
           visible={isMapModalVisible}
           onClose={() => setIsMapModalVisible(false)}
           selectedAddress={customAddress || "Oujda — Centre-Ville"}
+          initialViewMode="map"
           onSelectAddress={(selected) => {
             setSelectedAddressId("");
             setCustomAddress(selected);
+            locationStore.setAddress(selected);
           }}
         />
       </ScrollView>
@@ -492,9 +576,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Colors.primaryLight + "30",
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
+    backgroundColor: "#F7F7FF",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
     borderRadius: 16,
     padding: 14,
     marginBottom: 14,
@@ -505,25 +589,17 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
-  mapPickerEmoji: {
-    fontSize: 22,
-  },
   mapPickerTitle: {
     fontSize: 14,
     fontWeight: "800",
-    color: Colors.primaryDark,
+    color: "#3C3489",
   },
   mapPickerSub: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: "#7F77DD",
     marginTop: 2,
+    fontWeight: "500",
   },
-  mapPickerArrow: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: Colors.primary,
-  },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -534,11 +610,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.white,
+    backgroundColor: "#F7F7FF",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   backBtnPlaceholder: {
     width: 40,
@@ -546,20 +622,20 @@ const styles = StyleSheet.create({
   backIcon: {
     fontSize: 20,
     fontWeight: "800",
-    color: Colors.textPrimary,
+    color: "#3C3489",
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: Colors.textPrimary,
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#3C3489",
   },
   section: {
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: "800",
-    color: Colors.textPrimary,
+    fontWeight: "900",
+    color: "#3C3489",
     marginBottom: 10,
   },
   addressCard: {
@@ -569,20 +645,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     marginBottom: 8,
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
     gap: 12,
   },
   addressCardSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: "#F8FAFF",
+    borderColor: "#5C5BDB",
+    backgroundColor: "#F7F7FF",
   },
   radio: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: "#CECBF6",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -590,7 +666,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Colors.primary,
+    backgroundColor: "#5C5BDB",
   },
   addressInfo: {
     flex: 1,
@@ -603,11 +679,13 @@ const styles = StyleSheet.create({
   },
   addressLabel: {
     fontSize: 13,
-    fontWeight: "700",
-    color: Colors.textPrimary,
+    fontWeight: "800",
+    color: "#3C3489",
   },
   defaultBadge: {
-    backgroundColor: "#EBF2FF",
+    backgroundColor: "#F7F7FF",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -615,19 +693,21 @@ const styles = StyleSheet.create({
   defaultBadgeText: {
     fontSize: 9,
     fontWeight: "800",
-    color: Colors.primary,
+    color: "#5C5BDB",
   },
   addressText: {
     fontSize: 12,
-    color: Colors.textMuted,
+    color: "#7F77DD",
   },
   customAddressInput: {
-    backgroundColor: "#F1F5F9",
-    borderRadius: 10,
+    backgroundColor: "#F7F7FF",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
+    borderRadius: 12,
     padding: 10,
     marginTop: 8,
     fontSize: 13,
-    color: Colors.textPrimary,
+    color: "#3C3489",
     minHeight: 40,
   },
   paymentRow: {
@@ -639,38 +719,45 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 14,
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
     alignItems: "center",
   },
   paymentOptionSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: "#F8FAFF",
+    borderColor: "#5C5BDB",
+    backgroundColor: "#F7F7FF",
   },
-  paymentEmoji: {
-    fontSize: 26,
-    marginBottom: 6,
+  paymentIconCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "#F7F7FF",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   paymentTitle: {
     fontSize: 13,
     fontWeight: "800",
-    color: Colors.textPrimary,
+    color: "#3C3489",
     marginBottom: 2,
     textAlign: "center",
   },
   paymentSub: {
     fontSize: 10,
-    color: Colors.textMuted,
+    color: "#7F77DD",
     textAlign: "center",
   },
   notesInput: {
-    backgroundColor: Colors.white,
-    borderRadius: 14,
+    backgroundColor: "#F7F7FF",
+    borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
     fontSize: 13,
-    color: Colors.textPrimary,
+    color: "#3C3489",
     minHeight: 50,
   },
   recapCard: {
@@ -679,12 +766,12 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   recapTitle: {
     fontSize: 15,
-    fontWeight: "800",
-    color: Colors.textPrimary,
+    fontWeight: "900",
+    color: "#3C3489",
     marginBottom: 10,
   },
   recapRow: {
@@ -694,12 +781,12 @@ const styles = StyleSheet.create({
   },
   recapLabel: {
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: "#7F77DD",
   },
   recapValue: {
     fontSize: 13,
     fontWeight: "700",
-    color: Colors.textPrimary,
+    color: "#3C3489",
   },
   divider: {
     height: 1,
@@ -708,24 +795,39 @@ const styles = StyleSheet.create({
   },
   recapTotalLabel: {
     fontSize: 16,
-    fontWeight: "800",
-    color: Colors.textPrimary,
+    fontWeight: "900",
+    color: "#3C3489",
   },
   recapTotalValue: {
     fontSize: 18,
     fontWeight: "900",
-    color: Colors.primary,
+    color: "#5C5BDB",
   },
-  confirmBtn: {
-    marginBottom: 12,
+  confirmButtonPill: {
+    backgroundColor: Colors.cta,
+    borderRadius: 28,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    shadowColor: Colors.cta,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  confirmButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "900",
   },
   bankDetailsCard: {
     marginTop: 14,
-    backgroundColor: "#F0F7FF",
+    backgroundColor: "#F7F7FF",
     borderRadius: 16,
     padding: 16,
-    borderWidth: 1.5,
-    borderColor: "#BAE6FD",
+    borderWidth: 1,
+    borderColor: "#CECBF6",
   },
   bankHeaderRow: {
     marginBottom: 10,
@@ -733,7 +835,7 @@ const styles = StyleSheet.create({
   bankHeaderBadge: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#0369A1",
+    color: "#3C3489",
   },
   bankFieldRow: {
     flexDirection: "row",
@@ -742,39 +844,39 @@ const styles = StyleSheet.create({
   },
   bankFieldLabel: {
     fontSize: 12,
-    color: "#64748B",
+    color: "#7F77DD",
     fontWeight: "600",
   },
   bankFieldValue: {
     fontSize: 12,
-    color: "#0F172A",
+    color: "#3C3489",
     fontWeight: "700",
   },
   bankRibBox: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 10,
     marginTop: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CECBF6",
   },
   bankRibLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#64748B",
+    color: "#7F77DD",
     textTransform: "uppercase",
     marginBottom: 2,
   },
   bankRibValue: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#0284C7",
+    color: "#5C5BDB",
     letterSpacing: 0.5,
   },
   bankNote: {
     fontSize: 11,
-    color: "#475569",
+    color: "#7F77DD",
     lineHeight: 16,
     fontStyle: "italic",
   },

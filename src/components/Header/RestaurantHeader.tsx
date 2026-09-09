@@ -1,10 +1,10 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Surface, Text } from 'react-native-paper';
-import { Image } from 'expo-image';
-import { ArrowLeft, Bike, Clock, Heart, Star } from 'lucide-react-native';
-import { borderRadius, colors, spacing } from '@/src/theme';
-import { RestaurantHeaderProps } from './types';
+import { borderRadius, colors, spacing } from "@/src/theme";
+import { Image } from "expo-image";
+import { ArrowLeft, Bike, Clock, Heart, Star } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Surface, Text } from "react-native-paper";
+import { RestaurantHeaderProps } from "./types";
 
 export const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
   restaurant,
@@ -60,9 +60,13 @@ export const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
           <View style={styles.pill}>
             <Star size={14} color={colors.warning} fill={colors.warning} />
             <Text style={styles.pillTextBold}>
-              {restaurant.rating_percent ? `${restaurant.rating_percent}%` : '4.8'}
+              {restaurant.rating_percent
+                ? `${restaurant.rating_percent}%`
+                : "4.8"}
             </Text>
-            <Text style={styles.pillTextMuted}>({restaurant.rating_count || '500+'})</Text>
+            <Text style={styles.pillTextMuted}>
+              ({restaurant.rating_count || "500+"})
+            </Text>
           </View>
 
           <View style={styles.pill}>
@@ -73,14 +77,16 @@ export const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
           <View style={styles.pill}>
             <Bike size={14} color={colors.textSecondary} />
             <Text style={styles.pillTextBold}>
-              {restaurant.delivery_fee === 0 ? 'Gratuit' : `${restaurant.delivery_fee} DH`}
+              {restaurant.delivery_fee === 0
+                ? "Gratuit"
+                : `${restaurant.delivery_fee} DH`}
             </Text>
           </View>
         </View>
 
         {restaurant.promo_badge && (
           <View style={styles.promoBanner}>
-            <Text style={styles.promoText}>🎉 {restaurant.promo_badge}</Text>
+            <Text style={styles.promoText}>{restaurant.promo_badge}</Text>
           </View>
         )}
       </Surface>
@@ -93,30 +99,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   imageWrapper: {
-    position: 'relative',
+    position: "relative",
     height: 200,
-    width: '100%',
+    width: "100%",
   },
   coverImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
   },
   topActions: {
-    position: 'absolute',
+    position: "absolute",
     top: spacing.md,
     left: spacing.md,
     right: spacing.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   actionBtn: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
     backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 3,
     shadowColor: colors.text,
     shadowOffset: { width: 0, height: 2 },
@@ -133,7 +139,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   name: {
-    fontWeight: '900',
+    fontWeight: "900",
     color: colors.text,
     marginBottom: 2,
   },
@@ -142,14 +148,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   pillsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     backgroundColor: colors.surfaceVariant,
     paddingHorizontal: spacing.sm,
@@ -158,7 +164,7 @@ const styles = StyleSheet.create({
   },
   pillTextBold: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.text,
   },
   pillTextMuted: {
@@ -174,7 +180,7 @@ const styles = StyleSheet.create({
   },
   promoText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.error,
   },
 });

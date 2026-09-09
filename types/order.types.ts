@@ -65,6 +65,7 @@ export interface Order {
   courier_lng?: number;
   restaurant_lat?: number;
   restaurant_lng?: number;
+  prescription_image_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -75,6 +76,7 @@ export interface CreateOrderInput {
   delivery_mode?: "DELIVERY" | "PICKUP";
   payment_method: PaymentMethodType;
   notes?: string;
+  prescription_image_url?: string;
   items: {
     product_id: string;
     product_name: string;
@@ -134,7 +136,7 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, OrderStatusConfig> = {
   },
   OUT_FOR_DELIVERY: {
     key: "OUT_FOR_DELIVERY",
-    label: "Livreur en route 🛵",
+    label: "Livreur en route",
     description: "Votre livreur Deliveroo approche de votre adresse",
     color: "#00CDBC",
     bgColor: "#E8F8F5",
@@ -143,7 +145,7 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, OrderStatusConfig> = {
   },
   DELIVERED: {
     key: "DELIVERED",
-    label: "Livrée 🎉",
+    label: "Livrée",
     description: "Commande livrée ! Régalez-vous bien",
     color: "#00B67A",
     bgColor: "#E6F8F2",

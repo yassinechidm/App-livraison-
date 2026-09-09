@@ -1,46 +1,48 @@
 import Colors from "@/constants/Colors";
+import { locationStore } from "@/services/location.service";
 import { restaurantService } from "@/services/restaurant.service";
 import { LocationPickerModal } from "@/src/components/LocationPickerModal";
+import { PharmacyOptionsModal } from "@/src/components/PharmacyOptionsModal";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { useRouter } from "expo-router";
 import {
-    Bike,
-    MapPin,
-    Send,
-    ShoppingBag,
-    ShoppingCart,
-    Store,
-    UtensilsCrossed,
-    X,
+  Bike,
+  Cross,
+  MapPin,
+  Send,
+  ShoppingBag,
+  ShoppingCart,
+  Store,
+  UtensilsCrossed,
+  X,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Easing,
-    Modal,
-    PanResponder,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Easing,
+  Modal,
+  PanResponder,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import Svg, { Path } from "react-native-svg";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-const PENTAGON_CONTAINER_SIZE = Math.min(SCREEN_WIDTH - 24, 360);
-const PENTAGON_RADIUS = PENTAGON_CONTAINER_SIZE * 0.32;
+const PENTAGON_CONTAINER_SIZE = Math.min(SCREEN_WIDTH - 12, 380);
+const PENTAGON_RADIUS = PENTAGON_CONTAINER_SIZE * 0.355;
 const CX = PENTAGON_CONTAINER_SIZE / 2;
 const CY = PENTAGON_CONTAINER_SIZE / 2 - 8;
-const BUBBLE_WIDTH = 90;
-const BUBBLE_CIRCLE_SIZE = 84;
+const BUBBLE_WIDTH = 100;
+const BUBBLE_CIRCLE_SIZE = 96;
 
 const PENTAGON_POS = {
   food: {
@@ -64,24 +66,6 @@ const PENTAGON_POS = {
     y: CY + PENTAGON_RADIUS * 0.309,
   },
 };
-
-function GreenCrescentIcon({ size = 34 }: { size?: number }) {
-  return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="#10B981"
-      stroke="#059669"
-      strokeWidth={0.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ transform: [{ rotate: "-15deg" }] }}
-    >
-      <Path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </Svg>
-  );
-}
 
 interface DraggableBubbleProps {
   x: number;
@@ -282,18 +266,23 @@ const DraggableBubble: React.FC<DraggableBubbleProps> = ({
 
 export const HomeScreen: React.FC = () => {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
   // Address and modal states
   const [selectedAddress, setSelectedAddress] = useState(
-    "Rue Ziri Ibn Atia, 35",
+    locationStore.getAddress() || "Rue Ziri Ibn Atia, 35",
   );
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
   const [openStoresCount, setOpenStoresCount] = useState(4);
 
+  // Pharmacy modal
+  const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
+
   // Package Delivery modal
   const [isPackageModalVisible, setIsPackageModalVisible] = useState(false);
-  const [pickupAddress, setPickupAddress] = useState("Rue Ziri Ibn Atia, 35");
+  const [pickupAddress, setPickupAddress] = useState(
+    locationStore.getAddress() || "Rue Ziri Ibn Atia, 35",
+  );
   const [dropoffAddress, setDropoffAddress] = useState("");
   const [packageDescription, setPackageDescription] = useState("");
   const [packageSize, setPackageSize] = useState<"small" | "medium" | "large">(
@@ -307,6 +296,13 @@ export const HomeScreen: React.FC = () => {
         setOpenStoresCount(restos.length);
       }
     });
+
+    const unsubLoc = locationStore.subscribe((addr) => {
+      setSelectedAddress(addr);
+      setPickupAddress(addr);
+    });
+
+    return () => unsubLoc();
   }, []);
 
   const handleOrderPackageDelivery = async () => {
@@ -330,7 +326,7 @@ export const HomeScreen: React.FC = () => {
       setIsSubmittingPackage(false);
       setIsPackageModalVisible(false);
       Alert.alert(
-        "Coursier en route ! 🛵",
+        "Coursier en route !",
         `Votre demande de livraison coursier a été transmise.\nUn coursier arrive à "${pickupAddress}" dans ~10 minutes.\nTarif estimé : 15 DH`,
         [
           {
@@ -347,15 +343,40 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* ── Full Yellow Background Canvas ── */}
+      {/* ── Full Brand Background Canvas ── */}
       <View style={styles.yellowCanvas}>
-        {/* Subtle Organic Wave Decor */}
+        {/* Subtle Concentric Rings Backdrop */}
         <View style={styles.organicWaveBackdrop} />
+        <View style={styles.organicWaveBackdropInner} />
 
         <SafeAreaView style={styles.safeArea}>
-          {/* ── 5 Glovo Category Bubbles in Pentagon Shape ── */}
+          {/* ── Top Header: Address Pill + Friendly Greeting ── */}
+          <View style={styles.topHeader}>
+            <TouchableOpacity
+              style={styles.addressPill}
+              onPress={() => setIsLocationModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.addressPillText} numberOfLines={1}>
+                {selectedAddress}
+              </Text>
+              <Text style={styles.addressPillChevron}>▾</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.greetingTitle}>
+              {t("home.greetingTitle", "Qu'est-ce qui vous ferait plaisir ?")}
+            </Text>
+          </View>
+
+          {/* ── Pentagon Drag-Physics Category Bubbles (Image 2) ── */}
           <View style={styles.bubblesContainer}>
-            <View style={styles.pentagonWrapper}>
+            <View
+              style={{
+                width: PENTAGON_CONTAINER_SIZE,
+                height: PENTAGON_CONTAINER_SIZE,
+                position: "relative",
+              }}
+            >
               {/* Bubble 1: Food (Top-Left) */}
               <DraggableBubble
                 index={0}
@@ -369,7 +390,7 @@ export const HomeScreen: React.FC = () => {
                 }
                 icon={
                   <UtensilsCrossed
-                    size={34}
+                    size={38}
                     color="#D97706"
                     strokeWidth={2.2}
                   />
@@ -388,7 +409,7 @@ export const HomeScreen: React.FC = () => {
                   router.push("/(app)/(client)/(tabs)/catalog" as any)
                 }
                 icon={
-                  <ShoppingCart size={34} color="#16A34A" strokeWidth={2.2} />
+                  <ShoppingCart size={38} color="#16A34A" strokeWidth={2.2} />
                 }
               />
 
@@ -400,10 +421,8 @@ export const HomeScreen: React.FC = () => {
                 width={BUBBLE_WIDTH}
                 circleSize={BUBBLE_CIRCLE_SIZE}
                 label={t("home.pharmacy", "Pharmacy")}
-                onPress={() =>
-                  router.push("/(app)/(client)/(tabs)/catalog" as any)
-                }
-                icon={<GreenCrescentIcon size={34} />}
+                onPress={() => setIsPharmacyModalVisible(true)}
+                icon={<Cross size={34} color="#059669" strokeWidth={2.5} />}
               />
 
               {/* Bubble 4: Shops (Middle-Right) */}
@@ -418,7 +437,7 @@ export const HomeScreen: React.FC = () => {
                   router.push("/(app)/(client)/(tabs)/catalog" as any)
                 }
                 icon={
-                  <ShoppingBag size={34} color="#0284C7" strokeWidth={2.2} />
+                  <ShoppingBag size={38} color="#0284C7" strokeWidth={2.2} />
                 }
               />
 
@@ -431,27 +450,56 @@ export const HomeScreen: React.FC = () => {
                 circleSize={BUBBLE_CIRCLE_SIZE}
                 label={t("home.packageDelivery", "Package Delivery")}
                 onPress={() => setIsPackageModalVisible(true)}
-                icon={<Bike size={34} color="#F59E0B" strokeWidth={2.2} />}
+                icon={<Bike size={38} color="#F59E0B" strokeWidth={2.2} />}
               />
             </View>
           </View>
 
           {/* ── Bottom Store Status Card (Image 2) ── */}
           <View style={styles.bottomStatusCardWrapper}>
-            <View style={styles.storeStatusCard}>
+            <View
+              style={[
+                styles.storeStatusCard,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
               <View style={styles.storeStatusIconBox}>
                 <Store size={30} color="#78716C" strokeWidth={1.8} />
               </View>
-              <View style={styles.storeStatusTextCol}>
-                <Text style={styles.storeStatusTitle}>
+              <View
+                style={[
+                  styles.storeStatusTextCol,
+                  isRTL && { alignItems: "flex-end" },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.storeStatusTitle,
+                    isRTL && { textAlign: "right" },
+                  ]}
+                >
                   {openStoresCount > 0
-                    ? `${openStoresCount} stores open right now.`
-                    : "There aren't any stores open right now."}
+                    ? `${openStoresCount} ${t("home.storesOpenCount", "stores open right now.")}`
+                    : t(
+                        "home.noStoresOpen",
+                        "There aren't any stores open right now.",
+                      )}
                 </Text>
-                <Text style={styles.storeStatusSubtitle}>
+                <Text
+                  style={[
+                    styles.storeStatusSubtitle,
+                    isRTL && { textAlign: "right" },
+                  ]}
+                >
                   {openStoresCount > 0
-                    ? "Order now and get delivered in ~25 min"
-                    : "They will start opening again at 07:00"}
+                    ? t(
+                        "home.orderNowEstimate",
+                        "Order now and get delivered in ~25 min",
+                      )
+                    : t(
+                        "home.openingAgain",
+                        "They will start opening again at 07:00",
+                      )}
                 </Text>
               </View>
             </View>
@@ -464,7 +512,17 @@ export const HomeScreen: React.FC = () => {
         visible={isLocationModalVisible}
         onClose={() => setIsLocationModalVisible(false)}
         selectedAddress={selectedAddress}
-        onSelectAddress={(addr) => setSelectedAddress(addr)}
+        initialViewMode="map"
+        onSelectAddress={(addr) => {
+          setSelectedAddress(addr);
+          locationStore.setAddress(addr);
+        }}
+      />
+
+      {/* ── Pharmacy Options Modal ── */}
+      <PharmacyOptionsModal
+        visible={isPharmacyModalVisible}
+        onClose={() => setIsPharmacyModalVisible(false)}
       />
 
       {/* ── Package Delivery Modal (Coursier Express) ── */}
@@ -633,11 +691,22 @@ const styles = StyleSheet.create({
   organicWaveBackdrop: {
     position: "absolute",
     alignSelf: "center",
-    top: "16%",
-    width: 340,
-    height: 340,
-    borderRadius: 170,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    top: "22%",
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+  },
+  organicWaveBackdropInner: {
+    position: "absolute",
+    alignSelf: "center",
+    top: "27%",
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
   },
   safeArea: {
     flex: 1,
@@ -645,30 +714,52 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "android" ? 36 : 20,
   },
 
-  // Address Pill (Image 2)
-  topAddressWrapper: {
+  // Top Header: Address Pill + Greeting
+  topHeader: {
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "android" ? 10 : 6,
     alignItems: "center",
-    paddingTop: 8,
   },
   addressPill: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    paddingVertical: 10,
+    paddingVertical: 9,
     paddingHorizontal: 16,
     borderRadius: 24,
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
     elevation: 4,
-    maxWidth: SCREEN_WIDTH * 0.85,
+    maxWidth: SCREEN_WIDTH * 0.9,
   },
   addressPillText: {
     fontSize: 14,
     fontWeight: "700",
     color: "#3C3489",
-    maxWidth: SCREEN_WIDTH * 0.6,
+    maxWidth: SCREEN_WIDTH * 0.62,
+  },
+  addressPillChevron: {
+    fontSize: 14,
+    color: "#7F77DD",
+    marginLeft: 6,
+    fontWeight: "700",
+  },
+  greetingBox: {
+    marginTop: 14,
+    alignItems: "center",
+    paddingHorizontal: 16,
+  },
+  greetingTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    textAlign: "center",
+    letterSpacing: -0.3,
+    textShadowColor: "rgba(0, 0, 0, 0.15)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 
   // Category Bubbles (Pentagon Arrangement)
@@ -681,7 +772,7 @@ const styles = StyleSheet.create({
   },
   pentagonWrapper: {
     width: PENTAGON_CONTAINER_SIZE,
-    height: PENTAGON_CONTAINER_SIZE + 24,
+    height: PENTAGON_CONTAINER_SIZE + 36,
     position: "relative",
   },
   bubbleCol: {
@@ -692,25 +783,25 @@ const styles = StyleSheet.create({
     width: BUBBLE_CIRCLE_SIZE,
     height: BUBBLE_CIRCLE_SIZE,
     borderRadius: BUBBLE_CIRCLE_SIZE / 2,
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    backgroundColor: "rgba(255, 255, 255, 0.45)",
     alignItems: "center",
     justifyContent: "center",
-    padding: 4,
+    padding: 5,
   },
   bubbleOuterCircleActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.75)",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.32,
-    shadowRadius: 18,
-    elevation: 14,
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 16,
   },
   bubbleCircle: {
     width: BUBBLE_CIRCLE_SIZE - 10,
     height: BUBBLE_CIRCLE_SIZE - 10,
     borderRadius: (BUBBLE_CIRCLE_SIZE - 10) / 2,
     backgroundColor: "#FFFFFF",
-    borderWidth: 3,
+    borderWidth: 3.5,
     borderColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
@@ -723,20 +814,20 @@ const styles = StyleSheet.create({
   bubbleBadge: {
     backgroundColor: "#FFFFFF",
     width: BUBBLE_WIDTH,
-    height: 26,
-    borderRadius: 13,
+    height: 28,
+    borderRadius: 14,
     marginTop: 6,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   bubbleBadgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "800",
     color: "#3C3489",
     textAlign: "center",
@@ -745,7 +836,7 @@ const styles = StyleSheet.create({
   // Bottom Status Card (Image 2)
   bottomStatusCardWrapper: {
     paddingHorizontal: 16,
-    paddingBottom: Platform.OS === "ios" ? 95 : 85,
+    paddingBottom: Platform.OS === "ios" ? 100 : 90,
   },
   storeStatusCard: {
     backgroundColor: "#FFFFFF",

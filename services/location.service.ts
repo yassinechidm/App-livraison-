@@ -9,6 +9,54 @@ export interface LocationResult {
   city: string;
 }
 
+type LocationListener = (
+  address: string,
+  coords: { latitude: number; longitude: number },
+) => void;
+
+class LocationStore {
+  private currentAddress: string = "Rue Ziri Ibn Atia, 35";
+  private currentCoords: { latitude: number; longitude: number } = {
+    latitude: 34.6867,
+    longitude: -1.9114,
+  };
+  private listeners: Set<LocationListener> = new Set();
+
+  public getAddress(): string {
+    return this.currentAddress;
+  }
+
+  public getCoords(): { latitude: number; longitude: number } {
+    return this.currentCoords;
+  }
+
+  public setAddress(
+    address: string,
+    coords?: { latitude: number; longitude: number },
+  ) {
+    if (!address) return;
+    this.currentAddress = address;
+    if (coords) {
+      this.currentCoords = coords;
+    }
+    this.listeners.forEach((listener) => {
+      try {
+        listener(this.currentAddress, this.currentCoords);
+      } catch {}
+    });
+  }
+
+  public subscribe(listener: LocationListener): () => void {
+    this.listeners.add(listener);
+    listener(this.currentAddress, this.currentCoords);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+}
+
+export const locationStore = new LocationStore();
+
 export const locationService = {
   /**
    * Request permission and fetch user's live GPS location

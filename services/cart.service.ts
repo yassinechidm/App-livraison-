@@ -1,4 +1,9 @@
-import { CartItem, CartState, AnyPurchasableItem, SelectedCustomization } from '@/types/cart.types';
+import {
+    AnyPurchasableItem,
+    CartItem,
+    CartState,
+    SelectedCustomization,
+} from "@/types/cart.types";
 
 type CartListener = (state: CartState) => void;
 
@@ -6,8 +11,8 @@ class CartManager {
   private items: CartItem[] = [];
   private listeners: Set<CartListener> = new Set();
   private deliveryFeeRate: number = 15.0; // 15 MAD flat rate for delivery in Oujda
-  private freeDeliveryThreshold: number = 300.0; // Free delivery above 300 MAD
-  private deliveryMode: 'DELIVERY' | 'PICKUP' = 'DELIVERY';
+  private freeDeliveryThreshold: number = 100.0; // Free delivery above 100 MAD
+  private deliveryMode: "DELIVERY" | "PICKUP" = "DELIVERY";
   private loyaltyFreeDelivery: boolean = false; // true if client has 5+ past orders
 
   public setLoyaltyFreeDelivery(isFree: boolean) {
@@ -17,22 +22,26 @@ class CartManager {
 
   public getState(): CartState {
     const subtotal = this.items.reduce((sum, item) => {
-      const unitPrice = item.unit_total_price ?? item.product.price;
-      return sum + unitPrice * item.quantity;
+      const unitPrice =
+        Number(item.unit_total_price ?? item.product.price) || 0;
+      return sum + unitPrice * (Number(item.quantity) || 1);
     }, 0);
 
-    const itemCount = this.items.reduce((sum, item) => sum + item.quantity, 0);
+    const itemCount = this.items.reduce(
+      (sum, item) => sum + (Number(item.quantity) || 0),
+      0,
+    );
 
     let deliveryFee = 0;
-    let freeDeliveryReason: 'threshold' | 'loyalty' | null = null;
+    let freeDeliveryReason: "threshold" | "loyalty" | null = null;
 
-    if (this.deliveryMode === 'DELIVERY' && itemCount > 0) {
+    if (this.deliveryMode === "DELIVERY" && itemCount > 0) {
       if (this.loyaltyFreeDelivery) {
         deliveryFee = 0;
-        freeDeliveryReason = 'loyalty';
+        freeDeliveryReason = "loyalty";
       } else if (subtotal >= this.freeDeliveryThreshold) {
         deliveryFee = 0;
-        freeDeliveryReason = 'threshold';
+        freeDeliveryReason = "threshold";
       } else {
         deliveryFee = this.deliveryFeeRate;
       }
@@ -71,7 +80,7 @@ class CartManager {
     };
   }
 
-  public setDeliveryMode(mode: 'DELIVERY' | 'PICKUP') {
+  public setDeliveryMode(mode: "DELIVERY" | "PICKUP") {
     this.deliveryMode = mode;
     this.notify();
   }
@@ -80,20 +89,32 @@ class CartManager {
     product: AnyPurchasableItem,
     quantity: number = 1,
     selected_customizations?: SelectedCustomization[],
-    special_instructions?: string
+    special_instructions?: string,
   ) {
-    const customExtra = (selected_customizations || []).reduce((sum, c) => sum + c.price, 0);
-    const unit_total_price = product.price + customExtra;
+    if (!product || !product.id) return;
+
+    const basePrice = Number(product.price) || 0;
+    const customExtra = (selected_customizations || []).reduce(
+      (sum, c) => sum + (Number(c.price) || 0),
+      0,
+    );
+    const unit_total_price = basePrice + customExtra;
 
     // Generate unique key based on product id + customizations
     const customKey = (selected_customizations || [])
       .map((c) => `${c.groupId}:${c.optionId}`)
       .sort()
-      .join('|');
-    const cartItemId = `${product.id}_${customKey}_${(special_instructions || '').trim()}`;
+      .join("|");
+    const safeInstructions = (special_instructions || "").trim();
+    const cartItemId =
+      customKey || safeInstructions
+        ? `${product.id}_${customKey}_${safeInstructions}`
+        : product.id;
 
     const existingIndex = this.items.findIndex(
-      (i) => (i.cart_item_id || i.product.id) === cartItemId
+      (i) =>
+        i.cart_item_id === cartItemId ||
+        (!customKey && !safeInstructions && i.product.id === product.id),
     );
 
     if (existingIndex > -1) {
@@ -101,10 +122,13 @@ class CartManager {
     } else {
       this.items.push({
         cart_item_id: cartItemId,
-        product,
+        product: {
+          ...product,
+          price: basePrice,
+        },
         quantity,
         selected_customizations,
-        special_instructions,
+        special_instructions: safeInstructions || undefined,
         unit_total_price,
       });
     }
@@ -119,7 +143,9 @@ class CartManager {
     }
 
     const item = this.items.find(
-      (i) => (i.cart_item_id || i.product.id) === cartItemIdOrProductId
+      (i) =>
+        i.cart_item_id === cartItemIdOrProductId ||
+        i.product.id === cartItemIdOrProductId,
     );
     if (item) {
       item.quantity = quantity;
@@ -129,7 +155,9 @@ class CartManager {
 
   public removeItem(cartItemIdOrProductId: string) {
     this.items = this.items.filter(
-      (i) => (i.cart_item_id || i.product.id) !== cartItemIdOrProductId
+      (i) =>
+        i.cart_item_id !== cartItemIdOrProductId &&
+        i.product.id !== cartItemIdOrProductId,
     );
     this.notify();
   }

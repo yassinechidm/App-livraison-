@@ -181,6 +181,7 @@ export const orderService = {
       total,
       payment_method: input.payment_method,
       notes: input.notes,
+      prescription_image_url: input.prescription_image_url,
       estimated_delivery_minutes: 25,
       items: orderItems,
       created_at: new Date().toISOString(),
@@ -196,6 +197,13 @@ export const orderService = {
 
     // Async attempt to persist into Supabase PostgreSQL
     try {
+      let combinedNotes = input.notes || null;
+      if (input.prescription_image_url) {
+        combinedNotes = combinedNotes
+          ? `${combinedNotes} [ORDONNANCE_IMG:${input.prescription_image_url}]`
+          : `[ORDONNANCE_IMG:${input.prescription_image_url}]`;
+      }
+
       const insertPayload: any = {
         order_number: orderNumber,
         delivery_address_text: input.delivery_address_text,
@@ -205,7 +213,8 @@ export const orderService = {
         delivery_fee,
         total,
         payment_method: input.payment_method,
-        notes: input.notes || null,
+        notes: combinedNotes,
+        prescription_image_url: input.prescription_image_url || null,
         estimated_delivery_minutes: 25,
         delivery_mode: input.delivery_mode || "DELIVERY",
         customer_name: newOrder.customer_name,
@@ -589,6 +598,21 @@ function _mergeOrders(dbOrders: Order[]) {
 }
 
 function _mapDbOrder(row: any, items: any[]): Order {
+  let prescriptionUrl = row.prescription_image_url || undefined;
+  let cleanNotes = row.notes || undefined;
+  if (
+    !prescriptionUrl &&
+    cleanNotes &&
+    cleanNotes.includes("[ORDONNANCE_IMG:")
+  ) {
+    const match = cleanNotes.match(/\[ORDONNANCE_IMG:(.*?)\]/);
+    if (match && match[1]) {
+      prescriptionUrl = match[1];
+      cleanNotes =
+        cleanNotes.replace(/\[ORDONNANCE_IMG:.*?\]/, "").trim() || undefined;
+    }
+  }
+
   return {
     id: row.id,
     order_number: row.order_number,
@@ -604,7 +628,8 @@ function _mapDbOrder(row: any, items: any[]): Order {
     delivery_mode: (row.delivery_mode as "DELIVERY" | "PICKUP") || "DELIVERY",
     total: Number(row.total),
     payment_method: row.payment_method,
-    notes: row.notes || undefined,
+    notes: cleanNotes,
+    prescription_image_url: prescriptionUrl,
     estimated_delivery_minutes: row.estimated_delivery_minutes ?? 25,
     rating: row.rating || undefined,
     review_text: row.review_text || undefined,
