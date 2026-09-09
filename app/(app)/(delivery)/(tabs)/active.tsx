@@ -37,9 +37,6 @@ export default function CourierActiveDeliveriesScreen() {
     const unsubscribe = orderService.subscribe(() => {
       loadData();
     });
-    const interval = setInterval(() => {
-      loadData();
-    }, 3000);
 
     authService.getSession().then((session: any) => {
       if (session?.user) setUser(session.user);
@@ -47,7 +44,6 @@ export default function CourierActiveDeliveriesScreen() {
 
     return () => {
       unsubscribe();
-      clearInterval(interval);
       liveLocationService.stopCourierTracking();
     };
   }, []);

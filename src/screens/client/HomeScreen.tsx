@@ -1,4 +1,3 @@
-import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import {
     ArrowRight,
@@ -6,13 +5,12 @@ import {
     Bike,
     ChevronDown,
     Clock,
-    Crosshair,
     MapPin,
     Search,
     SlidersHorizontal,
     Tag,
 } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Dimensions,
     RefreshControl,
@@ -26,13 +24,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-import { OUJDA_NEIGHBORHOODS } from "@/constants/mockData";
 import { cartService } from "@/services/cart.service";
-import { locationService } from "@/services/location.service";
 import { orderService } from "@/services/order.service";
 import { restaurantService } from "@/services/restaurant.service";
 import {
-    AppBottomSheet,
     AppButton,
     CategoryCard,
     EmptyState,
@@ -58,7 +53,6 @@ const CATEGORIES: CategoryItem[] = [
 
 export const HomeScreen: React.FC = () => {
   const router = useRouter();
-  const addressSheetRef = useRef<BottomSheetModal>(null);
 
   // States
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -75,7 +69,6 @@ export const HomeScreen: React.FC = () => {
   >("all");
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
   const [cartState, setCartState] = useState(cartService.getState());
 
   useEffect(() => {
@@ -110,19 +103,6 @@ export const HomeScreen: React.FC = () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-  }
-
-  async function locateWithGps() {
-    setIsLocating(true);
-    try {
-      const location = await locationService.getCurrentLocation();
-      setSelectedCity(`Oujda — ${location.neighborhood}`);
-      addressSheetRef.current?.dismiss();
-    } catch {
-      setSelectedCity("Oujda — Centre-Ville");
-    } finally {
-      setIsLocating(false);
-    }
   }
 
   // Filter logic
@@ -276,7 +256,7 @@ export const HomeScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.trackActionBtn}
               onPress={() =>
-                router.push(`/(app)/(client)/order/${activeOrder.id}` as any)
+                router.push("/(app)/(client)/(tabs)/orders" as any)
               }
             >
               <ArrowRight size={18} color={colors.primary} />
@@ -578,74 +558,6 @@ export const HomeScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       )}
-
-      {/* ── Address Picker Bottom Sheet ── */}
-      <AppBottomSheet
-        sheetRef={addressSheetRef}
-        snapPoints={["55%", "85%"]}
-        title="Adresse de livraison"
-      >
-        <BottomSheetScrollView
-          contentContainerStyle={styles.bottomSheetContent}
-        >
-          <TouchableOpacity
-            style={styles.gpsButton}
-            onPress={locateWithGps}
-            disabled={isLocating}
-            activeOpacity={0.8}
-          >
-            <View style={styles.gpsIconCircle}>
-              <Crosshair size={18} color={colors.primary} />
-            </View>
-            <View style={styles.gpsTextWrapper}>
-              <Text variant="titleSmall" style={styles.gpsTitle}>
-                {isLocating
-                  ? "Localisation en cours..."
-                  : "Ma position actuelle (GPS)"}
-              </Text>
-              <Text variant="bodySmall" style={styles.gpsSub}>
-                Détecter automatiquement mon quartier
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          <Text variant="labelMedium" style={styles.sheetSectionTitle}>
-            QUARTIERS D'OUJDA
-          </Text>
-
-          {OUJDA_NEIGHBORHOODS.map((item) => {
-            const neighborhoodName = `Oujda — ${item.split(" (")[0]}`;
-            const isSelected = selectedCity === neighborhoodName;
-
-            return (
-              <TouchableOpacity
-                key={item}
-                style={[
-                  styles.neighborhoodItem,
-                  isSelected && styles.neighborhoodItemSelected,
-                ]}
-                onPress={() => {
-                  setSelectedCity(neighborhoodName);
-                  addressSheetRef.current?.dismiss();
-                }}
-              >
-                <MapPin
-                  size={18}
-                  color={isSelected ? colors.primary : colors.textSecondary}
-                />
-                <Text
-                  style={[
-                    styles.neighborhoodText,
-                    isSelected && styles.neighborhoodTextSelected,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </BottomSheetScrollView>
-      </AppBottomSheet>
 
       {/* ── Interactive Location Picker Map Modal ── */}
       <LocationPickerModal

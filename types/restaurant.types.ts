@@ -48,6 +48,13 @@ export interface Restaurant {
   menu_items: MenuItem[];
 }
 
+export interface CategoryItem {
+  id: string;
+  name: string;
+  iconName: string;
+  badge?: string;
+}
+
 export interface RestaurantCategoryFilter {
   id: string;
   name: string;

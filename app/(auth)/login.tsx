@@ -56,12 +56,23 @@ export default function LoginScreen() {
     return Object.keys(newErrors).length === 0;
   }
 
+  function redirectByRole() {
+    const role = authService.getUserRole()?.toLowerCase();
+    if (role === "admin") {
+      router.replace("/(app)/(admin)/(tabs)" as any);
+    } else if (role === "delivery") {
+      router.replace("/(app)/(delivery)/(tabs)" as any);
+    } else {
+      router.replace("/(app)/(client)/(tabs)" as any);
+    }
+  }
+
   async function handlePhoneLogin() {
     if (!validatePhone()) return;
     setIsLoading(true);
     try {
       await authService.signInWithPhone(phone);
-      router.replace("/(app)/(client)/(tabs)" as any);
+      redirectByRole();
     } catch {
       Alert.alert("Erreur", "Impossible de se connecter");
     } finally {
@@ -73,7 +84,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await authService.signInWithSocial(provider);
-      router.replace("/(app)/(client)/(tabs)" as any);
+      redirectByRole();
     } catch {
       Alert.alert("Erreur", "Connexion annulée");
     } finally {
@@ -86,14 +97,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await authService.signIn({ email: email.trim(), password });
-      const role = authService.getUserRole()?.toLowerCase();
-      if (role === "admin") {
-        router.replace("/(app)/(admin)/(tabs)" as any);
-      } else if (role === "delivery") {
-        router.replace("/(app)/(delivery)/(tabs)" as any);
-      } else {
-        router.replace("/(app)/(client)/(tabs)" as any);
-      }
+      redirectByRole();
     } catch {
       Alert.alert("Erreur de connexion", "Identifiants invalides");
     } finally {

@@ -1,10 +1,10 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Surface, Text } from 'react-native-paper';
-import { Image } from 'expo-image';
-import { borderRadius, colors, spacing } from '@/src/theme';
-import ProductQuantitySelector from './ProductQuantitySelector';
-import { CartItemRowProps } from './types';
+import { borderRadius, colors, spacing } from "@/src/theme";
+import { Image } from "expo-image";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Surface, Text } from "react-native-paper";
+import ProductQuantitySelector from "./ProductQuantitySelector";
+import { CartItemRowProps } from "./types";
 
 export const CartItem: React.FC<CartItemRowProps> = ({
   item,
@@ -12,11 +12,17 @@ export const CartItem: React.FC<CartItemRowProps> = ({
   onDecrement,
   style,
 }) => {
+  const prod = item.item || item.product;
+  const itemTotal =
+    item.item_total ??
+    item.unit_total_price ??
+    (prod?.price ? prod.price * item.quantity : 0);
+
   return (
     <Surface elevation={0} style={[styles.card, style]}>
-      {item.item.image_url ? (
+      {prod?.image_url ? (
         <Image
-          source={{ uri: item.item.image_url }}
+          source={{ uri: prod.image_url }}
           style={styles.image}
           contentFit="cover"
         />
@@ -25,20 +31,24 @@ export const CartItem: React.FC<CartItemRowProps> = ({
       <View style={styles.content}>
         <View style={styles.titleRow}>
           <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
-            {item.item.name}
+            {prod?.name || "Produit"}
           </Text>
-          <Text style={styles.price}>{item.item_total.toFixed(2)} DH</Text>
+          <Text style={styles.price}>{itemTotal.toFixed(2)} DH</Text>
         </View>
 
         {item.selected_options_text ? (
-          <Text variant="bodySmall" style={styles.customizations} numberOfLines={2}>
+          <Text
+            variant="bodySmall"
+            style={styles.customizations}
+            numberOfLines={2}
+          >
             {item.selected_options_text}
           </Text>
         ) : null}
 
         <View style={styles.actionRow}>
           <Text variant="bodySmall" style={styles.unitPrice}>
-            {item.item.price.toFixed(2)} DH / unité
+            {(prod?.price || 0).toFixed(2)} DH / unité
           </Text>
           <ProductQuantitySelector
             quantity={item.quantity}
@@ -59,10 +69,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: spacing.sm,
     marginBottom: spacing.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
   image: {
     width: 64,
@@ -74,19 +84,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 2,
   },
   name: {
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text,
     flex: 1,
     marginRight: spacing.sm,
   },
   price: {
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.text,
     fontSize: 14,
   },
@@ -96,9 +106,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 2,
   },
   unitPrice: {

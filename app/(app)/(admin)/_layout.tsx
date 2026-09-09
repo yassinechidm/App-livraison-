@@ -5,7 +5,7 @@ import { Redirect, Stack } from "expo-router";
 export default function AdminLayout() {
   const role = authService.getUserRole();
   if (role !== "admin") {
-    return <Redirect href="/" />;
+    return <Redirect href="/(app)/(client)/(tabs)" />;
   }
 
   return (

@@ -1,6 +1,7 @@
 import Colors from "@/constants/Colors";
 import { OUJDA_NEIGHBORHOODS } from "@/constants/mockData";
 import { locationService } from "@/services/location.service";
+import Constants from "expo-constants";
 import {
     AlertTriangle,
     Check,
@@ -43,6 +44,10 @@ const SHEET_MAX_HEIGHT = Math.min(SCREEN_HEIGHT * 0.88, 700);
 const SNAP_EXPANDED = 0; // Fully expanded
 const SNAP_HALF = SHEET_MAX_HEIGHT - 380; // Half open (~380px visible)
 const SNAP_COLLAPSED = SHEET_MAX_HEIGHT - 80; // Collapsed peek (~80px visible)
+
+const isExpoGo =
+  Constants?.appOwnership === "expo" ||
+  Constants?.executionEnvironment === "storeClient";
 
 export interface LocationPickerModalProps {
   visible: boolean;
@@ -152,8 +157,133 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     onClose();
   };
 
-  const isNativeMapSupported =
-    Platform.OS !== "web" && MapView && Marker && !mapError;
+  // Map Pan & Zoom states using refs to guarantee real-time reactivity without stale closures
+  const [mapPan, setMapPan] = useState({ x: 0, y: 0 });
+  const [mapZoom, setMapZoom] = useState(1.0);
+  const [activeAreaName, setActiveAreaName] = useState("Oujda — Centre-Ville");
+  const [isOutOfArea, setIsOutOfArea] = useState(false);
+
+  const mapPanRef = useRef({ x: 0, y: 0 });
+  const startPanRef = useRef({ x: 0, y: 0 });
+  const mapZoomRef = useRef(1.0);
+  const initialPinchDist = useRef<number | null>(null);
+  const initialZoomOnPinch = useRef<number>(1.0);
+  const activeAreaRef = useRef("Oujda — Centre-Ville");
+  const isOutOfAreaRef = useRef(false);
+
+  // Reactively calculate neighborhood & out of area warning based on map offset
+  const updateSelectedPoint = (x: number, y: number) => {
+    const dist = Math.hypot(x, y);
+    let areaName = "Oujda — Centre-Ville";
+    let outOfArea = false;
+
+    if (dist > 180) {
+      outOfArea = true;
+      areaName = "Zone Hors-Livraison (Oujda Est)";
+    } else {
+      outOfArea = false;
+      if (Math.abs(x) < 40 && Math.abs(y) < 40) {
+        areaName = "Oujda — Centre-Ville";
+      } else if (x > 40) {
+        areaName = "Oujda — Hay Al Qods";
+      } else if (x < -40) {
+        areaName = "Oujda — Lazaret";
+      } else if (y > 40) {
+        areaName = "Oujda — Technopole";
+      } else {
+        areaName = "Oujda — Boulevard Mohammed V";
+      }
+    }
+
+    activeAreaRef.current = areaName;
+    isOutOfAreaRef.current = outOfArea;
+    setIsOutOfArea(outOfArea);
+    setActiveAreaName(areaName);
+    return { areaName, outOfArea };
+  };
+
+  // PanResponder for 1-finger drag panning + 2-finger pinch-to-zoom + tap-to-select
+  const mapPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dx) > 2 || Math.abs(gestureState.dy) > 2,
+      onPanResponderGrant: (evt) => {
+        startPanRef.current = {
+          x: mapPanRef.current.x,
+          y: mapPanRef.current.y,
+        };
+        const touches = evt.nativeEvent.touches;
+        if (touches && touches.length === 2) {
+          const dx = touches[0].pageX - touches[1].pageX;
+          const dy = touches[0].pageY - touches[1].pageY;
+          initialPinchDist.current = Math.hypot(dx, dy);
+          initialZoomOnPinch.current = mapZoomRef.current;
+        } else {
+          initialPinchDist.current = null;
+        }
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        const touches = evt.nativeEvent.touches;
+        if (touches && touches.length === 2) {
+          // 2-Finger Pinch Zoom In / Out
+          const dx = touches[0].pageX - touches[1].pageX;
+          const dy = touches[0].pageY - touches[1].pageY;
+          const currentDist = Math.hypot(dx, dy);
+
+          if (initialPinchDist.current && initialPinchDist.current > 0) {
+            const scaleRatio = currentDist / initialPinchDist.current;
+            const newZoom = Math.max(
+              0.5,
+              Math.min(3.0, initialZoomOnPinch.current * scaleRatio),
+            );
+            mapZoomRef.current = newZoom;
+            setMapZoom(newZoom);
+          }
+        } else if (!initialPinchDist.current) {
+          // 1-Finger Drag / Pan: Direct 1:1 displacement tracking
+          const newX = startPanRef.current.x + gestureState.dx;
+          const newY = startPanRef.current.y + gestureState.dy;
+          mapPanRef.current = { x: newX, y: newY };
+          setMapPan({ x: newX, y: newY });
+          updateSelectedPoint(newX, newY);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        initialPinchDist.current = null;
+        const distMoved = Math.hypot(gestureState.dx, gestureState.dy);
+
+        // Tap to select / center point
+        if (distMoved < 6) {
+          const offsetX = (gestureState.x0 - 180) * 0.4;
+          const offsetY = (gestureState.y0 - 200) * 0.4;
+          const newX = startPanRef.current.x - offsetX;
+          const newY = startPanRef.current.y - offsetY;
+          mapPanRef.current = { x: newX, y: newY };
+          setMapPan({ x: newX, y: newY });
+          const { areaName, outOfArea } = updateSelectedPoint(newX, newY);
+          if (!outOfArea) {
+            onSelectAddress(areaName);
+          }
+          return;
+        }
+
+        // Drag release: commit current selected address
+        if (!isOutOfAreaRef.current && activeAreaRef.current) {
+          onSelectAddress(activeAreaRef.current);
+        }
+      },
+    }),
+  ).current;
+
+  const handleRecenter = () => {
+    mapPanRef.current = { x: 0, y: 0 };
+    mapZoomRef.current = 1.0;
+    setMapPan({ x: 0, y: 0 });
+    setMapZoom(1.0);
+    updateSelectedPoint(0, 0);
+    onSelectAddress("Oujda — Centre-Ville");
+  };
 
   // Reactive Parallax map scaling & opacity based on sheet position
   const mapOpacity = panY.interpolate({
@@ -167,6 +297,9 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     outputRange: [0.92, 0.98, 1.0],
     extrapolate: "clamp",
   });
+
+  const isNativeMapSupported =
+    Platform.OS !== "web" && !isExpoGo && MapView && Marker && !mapError;
 
   return (
     <Modal
@@ -191,8 +324,13 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             <MapView
               provider={PROVIDER_GOOGLE}
               style={styles.map}
-              region={region}
-              onRegionChangeComplete={setRegion}
+              initialRegion={region}
+              onRegionChangeComplete={(newReg: any) => {
+                setRegion(newReg);
+                onSelectAddress(
+                  `Oujda (${newReg.latitude.toFixed(4)}, ${newReg.longitude.toFixed(4)})`,
+                );
+              }}
             >
               <Marker
                 coordinate={{
@@ -206,32 +344,102 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               </Marker>
             </MapView>
           ) : (
-            <View style={styles.webMapSim}>
-              {/* Oujda Region Road Network Visual Simulation */}
-              <View style={styles.roadLineHoriz} />
-              <View style={styles.roadLineVert} />
+            <View {...mapPanResponder.panHandlers} style={styles.webMapSim}>
+              {/* Reactive Oujda Road Network Grid */}
+              <View
+                style={[
+                  styles.mapGridLayer,
+                  {
+                    transform: [
+                      { translateX: mapPan.x },
+                      { translateY: mapPan.y },
+                      { scale: mapZoom },
+                    ],
+                  },
+                ]}
+              >
+                <View style={styles.roadLineHoriz} />
+                <View style={styles.roadLineVert} />
+                <View style={styles.roadLineDiag1} />
+                <View style={styles.roadLineDiag2} />
 
-              {/* City Name Badges on Map */}
-              <View style={[styles.mapCityBadge, { top: "15%", left: "20%" }]}>
-                <Text style={styles.mapCityText}>Saidia (السعيدية)</Text>
-              </View>
-              <View style={[styles.mapCityBadge, { top: "35%", left: "45%" }]}>
-                <Text style={styles.mapCityText}>Ahfir (أحفير)</Text>
-              </View>
-              <View style={[styles.mapCityBadge, { top: "50%", left: "65%" }]}>
-                <Text style={styles.mapCityText}>Bni Drar (بني درار)</Text>
+                {/* Interactive Neighborhood Badges */}
+                <TouchableOpacity
+                  style={[styles.mapCityBadge, { top: "25%", left: "20%" }]}
+                  onPress={() => {
+                    const nx = -60,
+                      ny = -40;
+                    mapPanRef.current = { x: nx, y: ny };
+                    setMapPan({ x: nx, y: ny });
+                    const { areaName } = updateSelectedPoint(nx, ny);
+                    onSelectAddress(areaName);
+                  }}
+                >
+                  <Text style={styles.mapCityText}>📍 Bd Mohammed V</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.mapCityBadge, { top: "45%", left: "65%" }]}
+                  onPress={() => {
+                    const nx = 80,
+                      ny = 0;
+                    mapPanRef.current = { x: nx, y: ny };
+                    setMapPan({ x: nx, y: ny });
+                    const { areaName } = updateSelectedPoint(nx, ny);
+                    onSelectAddress(areaName);
+                  }}
+                >
+                  <Text style={styles.mapCityText}>📍 Hay Al Qods</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.mapCityBadge, { top: "65%", left: "30%" }]}
+                  onPress={() => {
+                    const nx = 0,
+                      ny = 80;
+                    mapPanRef.current = { x: nx, y: ny };
+                    setMapPan({ x: nx, y: ny });
+                    const { areaName } = updateSelectedPoint(nx, ny);
+                    onSelectAddress(areaName);
+                  }}
+                >
+                  <Text style={styles.mapCityText}>📍 Technopole</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.mapCityBadge, { top: "35%", left: "10%" }]}
+                  onPress={() => {
+                    const nx = -80,
+                      ny = 0;
+                    mapPanRef.current = { x: nx, y: ny };
+                    setMapPan({ x: nx, y: ny });
+                    const { areaName } = updateSelectedPoint(nx, ny);
+                    onSelectAddress(areaName);
+                  }}
+                >
+                  <Text style={styles.mapCityText}>📍 Lazaret</Text>
+                </TouchableOpacity>
               </View>
 
-              {/* Center Location Pin with Warning Badge */}
-              <View style={styles.centerPinWrapper}>
-                <View style={styles.tooltipBadge}>
-                  <Text style={styles.tooltipText}>
-                    Zone de livraison Oujda
-                  </Text>
-                </View>
+              {/* Fixed Center Pin Marker with Active Selection Tooltip */}
+              <View style={styles.centerPinWrapper} pointerEvents="none">
+                {isOutOfArea ? (
+                  <View style={styles.tooltipBadgeWarning}>
+                    <Text style={styles.tooltipTextWarning}>
+                      Zone Hors-Livraison ⚠️
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.tooltipBadgeActive}>
+                    <Text style={styles.tooltipTextActive}>
+                      📍 {activeAreaName}
+                    </Text>
+                  </View>
+                )}
                 <View style={styles.pinCircleWarning}>
                   <AlertTriangle size={24} color="#1F2937" />
                 </View>
+                <View style={styles.pinShadow} />
               </View>
             </View>
           )}
@@ -239,7 +447,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           {/* Floating Bottom Right Re-center Compass Button */}
           <TouchableOpacity
             style={styles.recenterButtonCircle}
-            onPress={handleUseCurrentLocation}
+            onPress={handleRecenter}
             activeOpacity={0.8}
           >
             <Navigation
@@ -389,50 +597,114 @@ const styles = StyleSheet.create({
   },
   webMapSim: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "#E2ECE9",
+    backgroundColor: "#CBD5E1",
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
+  },
+  mapGridLayer: {
+    ...StyleSheet.absoluteFill,
+    width: "200%",
+    height: "200%",
+    left: "-50%",
+    top: "-50%",
+    backgroundColor: "#E2ECE9",
   },
   roadLineHoriz: {
     position: "absolute",
-    top: "40%",
+    top: "50%",
     left: 0,
     right: 0,
-    height: 12,
+    height: 14,
     backgroundColor: "#FFFFFF",
   },
   roadLineVert: {
     position: "absolute",
-    left: "55%",
+    left: "50%",
     top: 0,
     bottom: 0,
-    width: 12,
+    width: 14,
     backgroundColor: "#FFFFFF",
+  },
+  roadLineDiag1: {
+    position: "absolute",
+    top: "20%",
+    left: 0,
+    right: 0,
+    height: 10,
+    backgroundColor: "#FFFFFF",
+    transform: [{ rotate: "25deg" }],
+  },
+  roadLineDiag2: {
+    position: "absolute",
+    top: "70%",
+    left: 0,
+    right: 0,
+    height: 10,
+    backgroundColor: "#FFFFFF",
+    transform: [{ rotate: "-25deg" }],
   },
   mapCityBadge: {
     position: "absolute",
-    backgroundColor: "rgba(255, 255, 255, 0.85)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#0066FF",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   mapCityText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#334155",
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0066FF",
   },
   centerPinWrapper: {
+    position: "absolute",
     alignItems: "center",
+    justifyContent: "center",
+    zIndex: 99,
   },
-  tooltipBadge: {
-    backgroundColor: "#1F2937",
+  tooltipBadgeActive: {
+    backgroundColor: "#0066FF",
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 20,
     marginBottom: 8,
-    elevation: 4,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  tooltipTextActive: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  tooltipBadgeWarning: {
+    backgroundColor: "#EF4444",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginBottom: 8,
+    elevation: 6,
+  },
+  tooltipTextWarning: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  pinShadow: {
+    width: 16,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "rgba(0,0,0,0.2)",
+    marginTop: 4,
   },
   tooltipText: {
     color: "#FFFFFF",

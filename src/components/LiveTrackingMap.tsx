@@ -1,5 +1,6 @@
 import Colors from "@/constants/Colors";
 import { liveLocationService } from "@/services/liveLocation.service";
+import Constants from "expo-constants";
 import { Bike, MapPin, Navigation, UtensilsCrossed } from "lucide-react-native";
 import React, { useMemo } from "react";
 import {
@@ -81,10 +82,13 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
   };
 
   const [mapError, setMapError] = React.useState(false);
+  const isExpoGo =
+    Constants?.appOwnership === "expo" ||
+    Constants?.executionEnvironment === "storeClient";
 
   // ── Native MapView rendering (iOS/Android) ──
   const isNativeMapSupported =
-    Platform.OS !== "web" && MapView && Marker && !mapError;
+    Platform.OS !== "web" && !isExpoGo && MapView && Marker && !mapError;
 
   if (isNativeMapSupported) {
     const region = {

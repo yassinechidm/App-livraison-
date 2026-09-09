@@ -6,6 +6,6 @@ export * from "./Header";
 export * from "./Input";
 export * from "./LiveTrackingMap";
 export * from "./LocationPickerModal";
-export * from "./Map";
 export * from "./Order";
+export * from "./UserLiveLocationTracker";
 

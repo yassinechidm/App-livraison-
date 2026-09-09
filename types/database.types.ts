@@ -96,6 +96,42 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['order_items']['Row'], 'id'>;
         Update: Partial<Database['public']['Tables']['order_items']['Insert']>;
       };
+      restaurants: {
+        Row: {
+          id: string;
+          name: string;
+          cuisine_type: string;
+          logo_url: string;
+          cover_image: string;
+          rating_percent: number;
+          rating_count: string;
+          delivery_time: string;
+          delivery_fee: number;
+          is_top_rated: boolean;
+          is_open: boolean;
+          opening_hours: string;
+          categories: string[];
+          created_at?: string;
+        };
+        Insert: Omit<Database['public']['Tables']['restaurants']['Row'], 'id'>;
+        Update: Partial<Database['public']['Tables']['restaurants']['Insert']>;
+      };
+      restaurant_menu_items: {
+        Row: {
+          id: string;
+          restaurant_id: string;
+          category: string;
+          name: string;
+          description: string;
+          price: number;
+          image_url: string;
+          is_popular: boolean;
+          is_available: boolean;
+          created_at?: string;
+        };
+        Insert: Omit<Database['public']['Tables']['restaurant_menu_items']['Row'], 'id'>;
+        Update: Partial<Database['public']['Tables']['restaurant_menu_items']['Insert']>;
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
