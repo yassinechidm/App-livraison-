@@ -4,6 +4,8 @@ import { locationService, locationStore } from "@/services/location.service";
 import { useLanguage } from "@/src/context/LanguageContext";
 import {
     ArrowLeft,
+    ChevronDown,
+    ChevronUp,
     Edit2,
     Home,
     MapPin,
@@ -15,8 +17,10 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Animated,
     Dimensions,
     Modal,
+    PanResponder,
     Platform,
     SafeAreaView,
     ScrollView,
@@ -114,6 +118,77 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
   const webViewRef = useRef<any>(null);
   const geocodeTimeoutRef = useRef<any>(null);
+
+  // ── Reactive Draggable Bottom Sheet Logic ──
+  const [panelHeight, setPanelHeight] = useState(420);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const translateY = useRef(new Animated.Value(0)).current;
+  const currentTranslateY = useRef(0);
+
+  useEffect(() => {
+    const id = translateY.addListener((val) => {
+      currentTranslateY.current = val.value;
+    });
+    return () => {
+      translateY.removeListener(id);
+    };
+  }, []);
+
+  const collapsedSnapPoint = useMemo(() => {
+    return Math.max(panelHeight - 68, 280);
+  }, [panelHeight]);
+
+  const snapTo = (toValue: number) => {
+    Animated.spring(translateY, {
+      toValue,
+      useNativeDriver: false,
+      bounciness: 4,
+      speed: 14,
+    }).start(() => {
+      setIsCollapsed(toValue > 100);
+    });
+  };
+
+  const toggleCollapse = () => {
+    if (isCollapsed) {
+      snapTo(0);
+    } else {
+      snapTo(collapsedSnapPoint);
+    }
+  };
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          return Math.abs(gestureState.dy) > 4;
+        },
+        onPanResponderGrant: () => {
+          translateY.setOffset(currentTranslateY.current);
+          translateY.setValue(0);
+        },
+        onPanResponderMove: (_, gestureState) => {
+          const newY = currentTranslateY.current + gestureState.dy;
+          if (newY >= -40 && newY <= collapsedSnapPoint + 30) {
+            translateY.setValue(gestureState.dy);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          translateY.flattenOffset();
+          const targetY = currentTranslateY.current;
+
+          if (gestureState.vy > 0.4 || targetY > collapsedSnapPoint / 2.5) {
+            // Dragged down -> Snap to Full Screen Map (collapsed sheet)
+            snapTo(collapsedSnapPoint);
+          } else {
+            // Dragged up -> Snap to Expanded Address list
+            snapTo(0);
+          }
+        },
+      }),
+    [collapsedSnapPoint],
+  );
 
   useEffect(() => {
     if (visible) {
@@ -520,22 +595,24 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             </TouchableOpacity>
           </SafeAreaView>
 
-          {/* Floating Recenter Button */}
-          <TouchableOpacity
-            style={styles.recenterFab}
-            onPress={handleUseCurrentLocation}
-            activeOpacity={0.85}
-          >
-            {isLocating ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
-            ) : (
-              <Navigation
-                size={20}
-                color="#3C3489"
-                style={{ transform: [{ rotate: "45deg" }] }}
-              />
-            )}
-          </TouchableOpacity>
+          {/* Recenter Button when in Pin mode */}
+          {viewMode === "map" && (
+            <TouchableOpacity
+              style={[styles.recenterFab, { bottom: 170 }]}
+              onPress={handleUseCurrentLocation}
+              activeOpacity={0.85}
+            >
+              {isLocating ? (
+                <ActivityIndicator size="small" color={Colors.primary} />
+              ) : (
+                <Navigation
+                  size={20}
+                  color="#3C3489"
+                  style={{ transform: [{ rotate: "45deg" }] }}
+                />
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* ── Search Dropdown Modal/Overlay ── */}
@@ -588,11 +665,83 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           </View>
         )}
 
-        {/* ── MODE 1: "Where should we deliver?" Sheet (Screenshot #11, #14) ── */}
+        {/* Floating Recenter Button (Dynamically lifted above draggable sheet) */}
         {viewMode === "list" && !isSearchActive && (
-          <View style={styles.sheetContainer}>
-            <View style={styles.sheetHandleArea}>
-              <View style={styles.sheetHandle} />
+          <Animated.View
+            style={[
+              styles.recenterFab,
+              {
+                bottom: translateY.interpolate({
+                  inputRange: [0, collapsedSnapPoint],
+                  outputRange: [panelHeight + 14, 84],
+                  extrapolate: "clamp",
+                }),
+              },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.recenterInnerBtn}
+              onPress={handleUseCurrentLocation}
+              activeOpacity={0.85}
+            >
+              {isLocating ? (
+                <ActivityIndicator size="small" color={Colors.primary} />
+              ) : (
+                <Navigation
+                  size={20}
+                  color="#3C3489"
+                  style={{ transform: [{ rotate: "45deg" }] }}
+                />
+              )}
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* ── MODE 1: Reactive Draggable Bottom Panel (Swipe Up / Down for Full Screen Map) ── */}
+        {viewMode === "list" && !isSearchActive && (
+          <Animated.View
+            style={[
+              styles.sheetContainer,
+              {
+                transform: [{ translateY }],
+              },
+            ]}
+            onLayout={(e) => {
+              const h = e.nativeEvent.layout.height;
+              if (h > 150 && Math.abs(h - panelHeight) > 10) {
+                setPanelHeight(h);
+              }
+            }}
+          >
+            {/* Draggable Handle Header (Touch/Drag Area) */}
+            <View {...panResponder.panHandlers} style={styles.sheetHandleArea}>
+              <TouchableOpacity
+                style={styles.sheetHandleTouchable}
+                onPress={toggleCollapse}
+                activeOpacity={0.7}
+              >
+                <View style={styles.sheetHandle} />
+                <View
+                  style={[
+                    styles.dragHintRow,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
+                >
+                  <Text style={styles.dragHintText}>
+                    {isCollapsed
+                      ? t("location.where", "Where should we deliver?")
+                      : t(
+                          "location.dragHint",
+                          "Faites glisser vers le bas pour carte plein écran",
+                        )}
+                  </Text>
+                  {isCollapsed ? (
+                    <ChevronUp size={16} color="#7F77DD" />
+                  ) : (
+                    <ChevronDown size={14} color="#A5B4FC" />
+                  )}
+                </View>
+              </TouchableOpacity>
             </View>
 
             <Text style={[styles.sheetTitle, isRTL && { textAlign: "right" }]}>
@@ -697,7 +846,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 {t("location.addNew", "Add a new address")}
               </Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         )}
 
         {/* ── MODE 2: Pin Confirmation Card (Screenshot #15) ── */}
@@ -759,10 +908,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
+    position: "relative",
   },
   mapContainer: {
-    flex: 1,
-    position: "relative",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   topBar: {
     position: "absolute",
@@ -876,29 +1029,57 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Where should we deliver sheet (Screenshot #11)
+  // Where should we deliver sheet (Draggable & Reactive)
   sheetContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: Platform.OS === "ios" ? 34 : 20,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowColor: "#3C3489",
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    elevation: 16,
+    zIndex: 250,
   },
   sheetHandleArea: {
     alignItems: "center",
-    paddingVertical: 8,
+    paddingTop: 6,
+    paddingBottom: 4,
+  },
+  sheetHandleTouchable: {
+    width: "100%",
+    alignItems: "center",
+    paddingVertical: 4,
   },
   sheetHandle: {
-    width: 44,
-    height: 4,
-    borderRadius: 2,
+    width: 48,
+    height: 5,
+    borderRadius: 3,
     backgroundColor: "#CECBF6",
+    marginBottom: 6,
+  },
+  dragHintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  dragHintText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#7F77DD",
+  },
+  recenterInnerBtn: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   sheetTitle: {
     fontSize: 22,

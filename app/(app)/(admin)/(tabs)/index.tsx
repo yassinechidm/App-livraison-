@@ -9,28 +9,28 @@ import { LiveTrackingMap } from "@/src/components/LiveTrackingMap";
 import { Order, ORDER_STATUS_CONFIG } from "@/types/order.types";
 import { useRouter } from "expo-router";
 import {
-  Bike,
-  CheckCircle2,
-  ChefHat,
-  ChevronRight,
-  Flame,
-  ShieldCheck,
-  ShoppingBag,
-  Star,
-  Tag,
-  TrendingUp,
-  User,
-  UtensilsCrossed,
-  Wallet
+    Bike,
+    CheckCircle2,
+    ChefHat,
+    ChevronRight,
+    Flame,
+    ShieldCheck,
+    ShoppingBag,
+    Star,
+    Tag,
+    TrendingUp,
+    User,
+    UtensilsCrossed,
+    Wallet,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 // Top selling dishes computed dynamically from real orders
@@ -42,7 +42,8 @@ function computeTopSellingDishes(allOrders: Order[]) {
   for (const order of allOrders) {
     if (!order.items) continue;
     for (const item of order.items) {
-      const key = item.product_name || item.product_id;
+      const key =
+        item.product_name || item.product_id || item.raw_item_id || "item";
       if (!dishMap[key]) {
         dishMap[key] = {
           name: item.product_name || key,
@@ -82,15 +83,20 @@ export default function AdminDashboardScreen() {
       loadDashboard();
     });
 
-    const unsubscribeLocation = liveLocationService.subscribeToAllActiveLocations((update) => {
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === update.order_id
-            ? { ...o, courier_lat: update.courier_lat, courier_lng: update.courier_lng }
-            : o
-        )
-      );
-    });
+    const unsubscribeLocation =
+      liveLocationService.subscribeToAllActiveLocations((update) => {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.id === update.order_id
+              ? {
+                  ...o,
+                  courier_lat: update.courier_lat,
+                  courier_lng: update.courier_lng,
+                }
+              : o,
+          ),
+        );
+      });
 
     const interval = setInterval(() => {
       loadDashboard();
@@ -301,26 +307,32 @@ export default function AdminDashboardScreen() {
       {/* Real-time Fleet & Active Deliveries Map */}
       <View style={styles.sectionHeader}>
         <Bike size={18} color={Colors.primary} style={{ marginRight: 6 }} />
-        <Text style={styles.sectionTitle}>Suivi Flotte & Commandes en Direct (Oujda)</Text>
+        <Text style={styles.sectionTitle}>
+          Suivi Flotte & Commandes en Direct (Oujda)
+        </Text>
       </View>
 
       <Card style={{ padding: 12, marginBottom: 20 }}>
         {(() => {
-          const activeDelivery = orders.find((o) => o.status === "OUT_FOR_DELIVERY" || o.status === "READY") || orders[0];
+          const activeDelivery =
+            orders.find(
+              (o) => o.status === "OUT_FOR_DELIVERY" || o.status === "READY",
+            ) || orders[0];
           return (
             <LiveTrackingMap
               courierLocation={{
-                latitude: activeDelivery?.courier_lat || 34.6880,
-                longitude: activeDelivery?.courier_lng || -1.9130,
+                latitude: activeDelivery?.courier_lat || 34.688,
+                longitude: activeDelivery?.courier_lng || -1.913,
               }}
               deliveryLocation={{
                 latitude: activeDelivery?.delivery_lat || 34.6867,
                 longitude: activeDelivery?.delivery_lng || -1.9114,
-                addressText: activeDelivery?.delivery_address_text || "Centre-Ville Oujda",
+                addressText:
+                  activeDelivery?.delivery_address_text || "Centre-Ville Oujda",
               }}
               restaurantLocation={{
-                latitude: activeDelivery?.restaurant_lat || 34.6890,
-                longitude: activeDelivery?.restaurant_lng || -1.9150,
+                latitude: activeDelivery?.restaurant_lat || 34.689,
+                longitude: activeDelivery?.restaurant_lng || -1.915,
                 name: "Hub Oujda",
               }}
               courierName={activeDelivery?.driver_name || "Livreur En Course"}

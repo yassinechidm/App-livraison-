@@ -111,16 +111,22 @@ export const liveLocationService = {
     // 2. Persist in memory store via orderService
     orderService.updateOrderCourierPosition(orderId, courier_lat, courier_lng);
 
-    // 3. Broadcast to Supabase DB / Realtime channel
+    // 3. Broadcast to Supabase DB / Realtime channel via secure RPC
     try {
-      await (supabase as any)
-        .from("orders")
-        .update({
-          courier_lat,
-          courier_lng,
-          updated_at: update.updated_at,
-        })
-        .eq("id", orderId);
+      const { error } = await (supabase as any).rpc(
+        "rpc_update_courier_location",
+        {
+          p_order_id: orderId,
+          p_courier_lat: courier_lat,
+          p_courier_lng: courier_lng,
+        },
+      );
+      if (error) {
+        console.warn(
+          "[liveLocationService] rpc_update_courier_location error:",
+          error,
+        );
+      }
     } catch (err) {
       console.warn("[liveLocationService] DB update warning:", err);
     }

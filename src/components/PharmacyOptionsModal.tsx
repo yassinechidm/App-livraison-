@@ -1,4 +1,5 @@
 import Colors from "@/constants/Colors";
+import { supabase } from "@/lib/supabase";
 import { authService } from "@/services/auth.service";
 import { locationStore } from "@/services/location.service";
 import { orderService } from "@/services/order.service";
@@ -6,7 +7,6 @@ import { useLanguage } from "@/src/context/LanguageContext";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
-    AlertCircle,
     Camera,
     CheckCircle2,
     Image as ImageIcon,
@@ -15,7 +15,7 @@ import {
     Pill,
     Trash2,
     Upload,
-    X,
+    X
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -184,10 +184,42 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
         ? instructions.trim()
         : "Photo d'ordonnance médicale transmise par le client.";
 
+      // 1. Upload to Supabase Storage private prescriptions bucket
+      const fileExt = "jpg";
+      const filePath = `${user.id || "guest"}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      let storagePath: string | undefined = undefined;
+
+      try {
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        const { error: uploadError } = await supabase.storage
+          .from("prescriptions")
+          .upload(filePath, blob, {
+            contentType: "image/jpeg",
+            upsert: false,
+          });
+
+        if (!uploadError) {
+          storagePath = filePath;
+        } else {
+          console.warn(
+            "[PharmacyOptionsModal] Storage upload warning:",
+            uploadError,
+          );
+        }
+      } catch (uploadErr) {
+        console.warn(
+          "[PharmacyOptionsModal] Storage upload exception:",
+          uploadErr,
+        );
+      }
+
+      // 2. Create authoritative order via RPC
       await orderService.createOrder(
         {
           items: [
             {
+              item_type: "prescription",
               product_id: "33333333-3333-3333-3333-333333333333",
               product_name: t(
                 "pharmacy.orderItemTitle",
@@ -202,6 +234,7 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
           delivery_address_text: address,
           payment_method: "CASH",
           notes: noteText,
+          prescription_storage_path: storagePath,
           prescription_image_url: selectedImage,
         },
         user,
@@ -273,10 +306,20 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                   <Pill size={22} color="#059669" />
                 </View>
                 <View style={styles.headerTextCol}>
-                  <Text style={[styles.headerTitle, isRTL && { textAlign: "right" }]}>
+                  <Text
+                    style={[
+                      styles.headerTitle,
+                      isRTL && { textAlign: "right" },
+                    ]}
+                  >
                     {t("pharmacy.modalTitle", "Service Pharmacie")}
                   </Text>
-                  <Text style={[styles.headerSubtitle, isRTL && { textAlign: "right" }]}>
+                  <Text
+                    style={[
+                      styles.headerSubtitle,
+                      isRTL && { textAlign: "right" },
+                    ]}
+                  >
                     {t(
                       "pharmacy.modalSubtitle",
                       "Commandez vos médicaments en toute simplicité",
@@ -310,13 +353,23 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                     <Upload size={18} color="#059669" />
                   </View>
                   <View style={styles.optionTitleCol}>
-                    <Text style={[styles.optionTitle, isRTL && { textAlign: "right" }]}>
+                    <Text
+                      style={[
+                        styles.optionTitle,
+                        isRTL && { textAlign: "right" },
+                      ]}
+                    >
                       {t(
                         "pharmacy.option1Title",
                         "1. Télécharger une ordonnance",
                       )}
                     </Text>
-                    <Text style={[styles.optionDescription, isRTL && { textAlign: "right" }]}>
+                    <Text
+                      style={[
+                        styles.optionDescription,
+                        isRTL && { textAlign: "right" },
+                      ]}
+                    >
                       {t(
                         "pharmacy.option1Desc",
                         "Prenez en photo votre ordonnance médicale pour une préparation express.",
@@ -333,7 +386,11 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                       onPress={handleTakePhoto}
                       activeOpacity={0.85}
                     >
-                      <Camera size={16} color="#059669" style={{ marginRight: 6 }} />
+                      <Camera
+                        size={16}
+                        color="#059669"
+                        style={{ marginRight: 6 }}
+                      />
                       <Text style={styles.photoChoiceText} numberOfLines={1}>
                         {t("pharmacy.takePhoto", "Prendre photo")}
                       </Text>
@@ -344,7 +401,11 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                       onPress={handlePickFromGallery}
                       activeOpacity={0.85}
                     >
-                      <ImageIcon size={16} color="#059669" style={{ marginRight: 6 }} />
+                      <ImageIcon
+                        size={16}
+                        color="#059669"
+                        style={{ marginRight: 6 }}
+                      />
                       <Text style={styles.photoChoiceText} numberOfLines={1}>
                         {t("pharmacy.fromGallery", "Galerie photos")}
                       </Text>
@@ -359,7 +420,11 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                         resizeMode="cover"
                       />
                       <View style={styles.previewBadge}>
-                        <CheckCircle2 size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
+                        <CheckCircle2
+                          size={13}
+                          color="#FFFFFF"
+                          style={{ marginRight: 4 }}
+                        />
                         <Text style={styles.previewBadgeText}>
                           {t("pharmacy.photoAdded", "Ordonnance prête")}
                         </Text>
@@ -372,7 +437,11 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                         onPress={handleTakePhoto}
                         activeOpacity={0.8}
                       >
-                        <Camera size={13} color="#3C3489" style={{ marginRight: 4 }} />
+                        <Camera
+                          size={13}
+                          color="#3C3489"
+                          style={{ marginRight: 4 }}
+                        />
                         <Text style={styles.changePhotoText}>
                           {t("pharmacy.changePhoto", "Changer")}
                         </Text>
@@ -383,7 +452,11 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                         onPress={() => setSelectedImage(null)}
                         activeOpacity={0.8}
                       >
-                        <Trash2 size={13} color="#EF4444" style={{ marginRight: 4 }} />
+                        <Trash2
+                          size={13}
+                          color="#EF4444"
+                          style={{ marginRight: 4 }}
+                        />
                         <Text style={styles.deletePhotoText}>
                           {t("pharmacy.deletePhoto", "Supprimer")}
                         </Text>
@@ -417,8 +490,12 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                       ]}
                     >
                       <MapPin size={13} color="#5C5BDB" />
-                      <Text style={styles.addressReminderText} numberOfLines={1}>
-                        {locationStore.getAddress() || "Oujda, Région de l'Oriental"}
+                      <Text
+                        style={styles.addressReminderText}
+                        numberOfLines={1}
+                      >
+                        {locationStore.getAddress() ||
+                          "Oujda, Région de l'Oriental"}
                       </Text>
                     </View>
 
@@ -447,9 +524,7 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
               {/* Symmetrical Divider with OR */}
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>
-                  {t("common.or", "OU")}
-                </Text>
+                <Text style={styles.dividerText}>{t("common.or", "OU")}</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -465,13 +540,23 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                     <PhoneCall size={18} color="#2563EB" />
                   </View>
                   <View style={styles.optionTitleCol}>
-                    <Text style={[styles.optionTitle, isRTL && { textAlign: "right" }]}>
+                    <Text
+                      style={[
+                        styles.optionTitle,
+                        isRTL && { textAlign: "right" },
+                      ]}
+                    >
                       {t(
                         "pharmacy.option2Title",
                         "2. Appeler le service pharmacie",
                       )}
                     </Text>
-                    <Text style={[styles.optionDescription, isRTL && { textAlign: "right" }]}>
+                    <Text
+                      style={[
+                        styles.optionDescription,
+                        isRTL && { textAlign: "right" },
+                      ]}
+                    >
                       {t(
                         "pharmacy.option2Desc",
                         "Passez commande directement par téléphone avec nos conseillers à Oujda.",
@@ -486,9 +571,14 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
                   onPress={handleDirectCall}
                   activeOpacity={0.85}
                 >
-                  <PhoneCall size={17} color="#FFFFFF" style={{ marginRight: 8 }} />
+                  <PhoneCall
+                    size={17}
+                    color="#FFFFFF"
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={styles.callActionButtonText}>
-                    {t("pharmacy.callBtn", "Appeler")} {COMPANY_PHARMACY_PHONE_DISPLAY}
+                    {t("pharmacy.callBtn", "Appeler")}{" "}
+                    {COMPANY_PHARMACY_PHONE_DISPLAY}
                   </Text>
                 </TouchableOpacity>
               </View>

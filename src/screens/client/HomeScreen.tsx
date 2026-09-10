@@ -1,38 +1,40 @@
 import Colors from "@/constants/Colors";
+import { authService } from "@/services/auth.service";
 import { locationStore } from "@/services/location.service";
+import { orderService } from "@/services/order.service";
 import { restaurantService } from "@/services/restaurant.service";
 import { LocationPickerModal } from "@/src/components/LocationPickerModal";
 import { PharmacyOptionsModal } from "@/src/components/PharmacyOptionsModal";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { useRouter } from "expo-router";
 import {
-  Bike,
-  Cross,
-  MapPin,
-  Send,
-  ShoppingBag,
-  ShoppingCart,
-  Store,
-  UtensilsCrossed,
-  X,
+    Bike,
+    Cross,
+    MapPin,
+    Send,
+    ShoppingBag,
+    ShoppingCart,
+    Store,
+    UtensilsCrossed,
+    X,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  PanResponder,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Easing,
+    Modal,
+    PanResponder,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -322,12 +324,47 @@ export const HomeScreen: React.FC = () => {
     }
 
     setIsSubmittingPackage(true);
-    setTimeout(() => {
-      setIsSubmittingPackage(false);
+    try {
+      const session = await authService.getSession();
+      const user = session?.user || {
+        id: "client-id",
+        name: "Client Coursier",
+      };
+
+      const order = await orderService.createOrder(
+        {
+          items: [
+            {
+              item_type: "parcel",
+              product_id: "55555555-5555-5555-5555-555555555555",
+              product_name: "Livraison de Colis Express",
+              unit_price: 0,
+              quantity: 1,
+              special_instructions: `Colis (${packageSize}): ${packageDescription.trim()}`,
+            },
+          ],
+          delivery_mode: "DELIVERY",
+          delivery_address_text: `De: ${pickupAddress.trim()} -> À: ${dropoffAddress.trim()}`,
+          payment_method: "CASH",
+          notes: `[COLIS] Pickup: ${pickupAddress.trim()} | Dropoff: ${dropoffAddress.trim()} | Desc: ${packageDescription.trim()} | Taille: ${packageSize}`,
+          is_package_delivery: true,
+          package_details: {
+            pickup_address: pickupAddress.trim(),
+            dropoff_address: dropoffAddress.trim(),
+            description: packageDescription.trim(),
+            size: packageSize,
+          },
+        },
+        user,
+      );
+
       setIsPackageModalVisible(false);
+      setDropoffAddress("");
+      setPackageDescription("");
+
       Alert.alert(
         "Coursier en route !",
-        `Votre demande de livraison coursier a été transmise.\nUn coursier arrive à "${pickupAddress}" dans ~10 minutes.\nTarif estimé : 15 DH`,
+        `Votre commande ${order.order_number} a été transmise.\nUn coursier arrive à "${pickupAddress}" dans ~10 minutes.\nTarif : ${order.total} DH`,
         [
           {
             text: "Suivre la course",
@@ -336,9 +373,14 @@ export const HomeScreen: React.FC = () => {
           { text: "OK" },
         ],
       );
-      setDropoffAddress("");
-      setPackageDescription("");
-    }, 1200);
+    } catch (err: any) {
+      Alert.alert(
+        "Erreur",
+        err?.message || "Impossible de créer la commande de colis.",
+      );
+    } finally {
+      setIsSubmittingPackage(false);
+    }
   };
 
   return (

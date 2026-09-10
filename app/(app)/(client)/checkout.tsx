@@ -122,6 +122,7 @@ export default function CheckoutScreen() {
               product_name: item.product.name,
               quantity: item.quantity,
               unit_price: unitPrice,
+              selected_customizations: item.selected_customizations,
               selected_customizations_text: customText || undefined,
               special_instructions: item.special_instructions,
             };

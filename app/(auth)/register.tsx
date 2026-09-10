@@ -6,13 +6,13 @@ import { authService } from "@/services/auth.service";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 export default function RegisterScreen() {
@@ -79,12 +79,20 @@ export default function RegisterScreen() {
 
       if (data.user && !data.session) {
         Alert.alert(
-          "Vérifiez votre email",
-          "Un email de confirmation a été envoyé à votre adresse. Veuillez le vérifier pour activer votre compte.",
-          [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
+          "Code de confirmation",
+          "Veuillez saisir le code de confirmation envoyé à votre adresse email pour activer votre compte.",
+          [
+            {
+              text: "Saisir le code",
+              onPress: () =>
+                router.push({
+                  pathname: "/(auth)/otp" as any,
+                  params: { email: email.trim() },
+                }),
+            },
+          ],
         );
       } else {
-        // Automatically signed in, navigate to main client app
         router.replace("/(app)/(client)/(tabs)" as any);
       }
     } catch (error) {

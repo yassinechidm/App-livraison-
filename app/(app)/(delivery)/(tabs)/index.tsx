@@ -44,9 +44,6 @@ export default function CourierOrdersFeedScreen() {
     const unsubscribe = orderService.subscribe(() => {
       loadData();
     });
-    const interval = setInterval(() => {
-      loadData();
-    }, 3000);
 
     authService.getSession().then((session: any) => {
       if (session?.user) setUser(session.user);
@@ -54,7 +51,6 @@ export default function CourierOrdersFeedScreen() {
 
     return () => {
       unsubscribe();
-      clearInterval(interval);
     };
   }, []);
 
@@ -68,6 +64,7 @@ export default function CourierOrdersFeedScreen() {
             o.status === "PREPARING" ||
             o.status === "CONFIRMED" ||
             o.status === "PENDING") &&
+          !o.courier_id &&
           !o.driver_name,
       );
       setOrders(availablePool);
@@ -85,22 +82,18 @@ export default function CourierOrdersFeedScreen() {
   async function handleClaimOrder(order: Order) {
     setIsClaimingId(order.id);
     try {
-      const courierName = user?.email?.split("@")[0] || "Livreur Oujda";
-      const courierPhone = "+212 6 XX XX XX XX";
-      await orderService.assignCourier(
-        order.id,
-        user?.id || "courier-1",
-        courierName,
-        courierPhone,
-      );
+      await orderService.claimOrder(order.id);
       await loadData();
       Alert.alert(
         "Commande Prise en Charge",
         `Vous avez accepté la commande ${order.order_number}.\nRendez-vous dans "En Cours" pour suivre la livraison.`,
       );
       router.push("/(app)/(delivery)/(tabs)/active" as any);
-    } catch {
-      Alert.alert("Erreur", "Impossible d'accepter cette commande.");
+    } catch (err: any) {
+      Alert.alert(
+        "Erreur",
+        err?.message || "Impossible d'accepter cette commande.",
+      );
     } finally {
       setIsClaimingId(null);
     }

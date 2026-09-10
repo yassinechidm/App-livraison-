@@ -78,8 +78,16 @@ export default function ClientOrdersScreen() {
       loadOrders();
     });
 
-    const unsubscribeLocation =
-      liveLocationService.subscribeToAllActiveLocations((update) => {
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!expandedOrderId) return;
+    const unsubscribeLocation = liveLocationService.subscribeToOrderLocation(
+      expandedOrderId,
+      (update) => {
         setOrders((prev) =>
           prev.map((o) =>
             o.id === update.order_id
@@ -91,13 +99,13 @@ export default function ClientOrdersScreen() {
               : o,
           ),
         );
-      });
+      },
+    );
 
     return () => {
-      unsubscribe();
       unsubscribeLocation();
     };
-  }, []);
+  }, [expandedOrderId]);
 
   async function loadOrders() {
     const list = await orderService.getClientOrders();

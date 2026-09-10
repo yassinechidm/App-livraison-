@@ -2,6 +2,7 @@ export type SupportedLanguage = "en" | "fr" | "ar" | "es";
 
 export const translations: Record<SupportedLanguage, Record<string, string>> = {
   en: {
+    "location.dragHint": "Drag down for full-screen map",
     "cart.viewCart": "View Cart",
     "home.pharmacy": "Pharmacy",
     "pharmacy.modalTitle": "Pharmacy Service",
@@ -230,6 +231,7 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
   },
 
   fr: {
+    "location.dragHint": "Glisser vers le bas pour carte plein écran",
     "cart.viewCart": "Voir le panier",
     "home.pharmacy": "Pharmacie",
     "pharmacy.modalTitle": "Service Pharmacie",
@@ -458,6 +460,7 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
   },
 
   ar: {
+    "location.dragHint": "اسحب للأسفل لعرض الخريطة كاملة",
     "cart.viewCart": "عرض السلة",
     "home.pharmacy": "الصيدلية",
     "pharmacy.modalTitle": "خدمة الصيدلية",
@@ -686,6 +689,7 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
   },
 
   es: {
+    "location.dragHint": "Deslizar hacia abajo para mapa completo",
     "cart.viewCart": "Ver carrito",
     "home.pharmacy": "Farmacia",
     "pharmacy.modalTitle": "Servicio de Farmacia",

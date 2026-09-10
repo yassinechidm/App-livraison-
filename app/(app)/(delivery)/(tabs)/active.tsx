@@ -1,6 +1,7 @@
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
+import { supabase } from "@/lib/supabase";
 import { authService } from "@/services/auth.service";
 import { liveLocationService } from "@/services/liveLocation.service";
 import { orderService } from "@/services/order.service";
@@ -65,23 +66,31 @@ export default function CourierActiveDeliveriesScreen() {
     );
     if (activeDelivering) {
       liveLocationService.startCourierTracking(activeDelivering.id);
+    } else {
+      liveLocationService.stopCourierTracking();
     }
   }, [orders]);
 
   async function loadData() {
     try {
       const all = await orderService.getAllOrdersAdmin();
-      const currentUserName = user?.email?.split("@")[0] || "Livreur";
-      // Deliveries in progress assigned to this driver or active delivery status
-      const myActive = all.filter(
-        (o) =>
-          o.status !== "CANCELLED" &&
-          (o.status === "OUT_FOR_DELIVERY" ||
-            (o.driver_name &&
-              o.driver_name
-                .toLowerCase()
-                .includes(currentUserName.toLowerCase()))),
-      );
+      let courierId: string | null = null;
+      if (user?.id) {
+        const { data: cData } = await (supabase as any)
+          .from("couriers")
+          .select("id")
+          .eq("user_id", user.id)
+          .single();
+        if (cData) courierId = cData.id;
+      }
+
+      const myActive = all.filter((o) => {
+        if (o.status !== "OUT_FOR_DELIVERY") return false;
+        if (courierId && o.courier_id) {
+          return o.courier_id === courierId;
+        }
+        return o.courier_id === user?.id;
+      });
       setOrders(myActive);
     } catch {
       setOrders([]);

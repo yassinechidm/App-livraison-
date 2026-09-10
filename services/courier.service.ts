@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 export interface Courier {
   id: string;
@@ -14,26 +14,32 @@ type CourierListener = () => void;
 const listeners = new Set<CourierListener>();
 
 function notify() {
-  listeners.forEach((l) => { try { l(); } catch {} });
+  listeners.forEach((l) => {
+    try {
+      l();
+    } catch {}
+  });
 }
 
 export const courierService = {
   subscribe(listener: CourierListener): () => void {
     listeners.add(listener);
-    return () => { listeners.delete(listener); };
+    return () => {
+      listeners.delete(listener);
+    };
   },
 
   async getCouriers(): Promise<Courier[]> {
     try {
       const { data, error } = await (supabase as any)
-        .from('couriers')
-        .select('*')
-        .order('name', { ascending: true });
+        .from("couriers")
+        .select("*")
+        .order("name", { ascending: true });
 
       if (error) throw error;
       return (data || []).map(_mapCourier);
     } catch (err) {
-      console.warn('[courierService] getCouriers failed:', err);
+      console.warn("[courierService] getCouriers failed:", err);
       return [];
     }
   },
@@ -41,28 +47,47 @@ export const courierService = {
   async toggleAvailability(id: string): Promise<void> {
     try {
       const { data: current } = await (supabase as any)
-        .from('couriers').select('is_available').eq('id', id).single();
+        .from("couriers")
+        .select("is_available")
+        .eq("id", id)
+        .single();
       if (!current) return;
 
-      await (supabase as any)
-        .from('couriers')
-        .update({ is_available: !current.is_available })
-        .eq('id', id);
+      const newAvailability = !current.is_available;
+      const { error } = await (supabase as any).rpc(
+        "rpc_toggle_courier_availability",
+        {
+          p_courier_id: id,
+          p_is_available: newAvailability,
+        },
+      );
+      if (error) throw error;
 
       notify();
     } catch (err) {
-      console.warn('[courierService] toggleAvailability failed:', err);
+      console.warn("[courierService] toggleAvailability failed:", err);
     }
   },
 
-  async addCourier(name: string, phone: string, vehicle: string): Promise<Courier> {
+  async addCourier(
+    name: string,
+    phone: string,
+    vehicle: string,
+  ): Promise<Courier> {
     const { data, error } = await (supabase as any)
-      .from('couriers')
-      .insert({ name, phone, vehicle, is_available: true, active_orders_count: 0, rating: 5.0 })
+      .from("couriers")
+      .insert({
+        name,
+        phone,
+        vehicle,
+        is_available: true,
+        active_orders_count: 0,
+        rating: 5.0,
+      })
       .select()
       .single();
 
-    if (error) throw new Error('Impossible de créer le coursier');
+    if (error) throw new Error("Impossible de créer le coursier");
     notify();
     return _mapCourier(data);
   },
@@ -70,9 +95,9 @@ export const courierService = {
   async updateActiveOrdersCount(id: string, count: number): Promise<void> {
     try {
       await (supabase as any)
-        .from('couriers')
+        .from("couriers")
         .update({ active_orders_count: count })
-        .eq('id', id);
+        .eq("id", id);
       notify();
     } catch {}
   },
@@ -83,7 +108,7 @@ function _mapCourier(row: any): Courier {
     id: row.id,
     name: row.name,
     phone: row.phone,
-    vehicle: row.vehicle || '🛵 Scooter',
+    vehicle: row.vehicle || "🛵 Scooter",
     is_available: row.is_available,
     active_orders_count: row.active_orders_count ?? 0,
     rating: Number(row.rating) || 5.0,

@@ -105,23 +105,6 @@ export default function LoginScreen() {
     }
   }
 
-  async function handleQuickDemo(role: "client" | "admin" | "delivery") {
-    setIsLoading(true);
-    try {
-      const demoEmail = `${role}@quicklivraison.ma`;
-      await authService.signIn({ email: demoEmail, password: "123456" });
-      if (role === "admin") {
-        router.replace("/(app)/(admin)/(tabs)" as any);
-      } else if (role === "delivery") {
-        router.replace("/(app)/(delivery)/(tabs)" as any);
-      } else {
-        router.replace("/(app)/(client)/(tabs)" as any);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -141,14 +124,6 @@ export default function LoginScreen() {
       >
         {/* Top Header Background (sky blue header with brand logo) */}
         <View style={styles.topHeader}>
-          {/* Skip Button */}
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={() => handleQuickDemo("client")}
-          >
-            <Text style={styles.skipButtonText}>Skip</Text>
-          </TouchableOpacity>
-
           {/* Logo Brand Title */}
           <View style={styles.brandContainer}>
             <Text style={styles.brandTitle}>QuickL</Text>
@@ -262,6 +237,17 @@ export default function LoginScreen() {
               />
             </View>
           )}
+
+          {/* Sign up / Register Link */}
+          <View style={styles.signUpPromptRow}>
+            <Text style={styles.signUpPromptText}>Pas encore de compte ? </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(auth)/register")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.signUpPromptLink}>Créer un compte</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Legals Footer */}
           <Text style={styles.footerText}>
@@ -516,6 +502,24 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     backgroundColor: Colors.background,
+  },
+  signUpPromptRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 14,
+    marginBottom: 4,
+  },
+  signUpPromptText: {
+    fontSize: 14,
+    color: "#5C54A4",
+    fontWeight: "500",
+  },
+  signUpPromptLink: {
+    fontSize: 14,
+    color: Colors.cta,
+    fontWeight: "800",
+    textDecorationLine: "underline",
   },
   footerText: {
     fontSize: 11,

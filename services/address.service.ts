@@ -1,45 +1,92 @@
-import { Address } from '@/types/order.types';
-
-export let INITIAL_ADDRESSES: Address[] = [
-  {
-    id: 'addr-1',
-    user_id: 'client-oujda-1',
-    label: 'Maison',
-    address: 'Rue Al Andalous 14, Résidence Al Yassamine Apt 4',
-    city: 'Hay Al Qods (وجدة)',
-    is_default: true,
-  },
-  {
-    id: 'addr-2',
-    user_id: 'client-oujda-1',
-    label: 'Bureau / Travail',
-    address: 'Boulevard Mohammed V, Immeuble BMCE 2ème étage',
-    city: 'Centre-Ville (وجدة)',
-    is_default: false,
-  },
-];
+import { supabase } from "@/lib/supabase";
+import { Address } from "@/types/order.types";
 
 export const addressService = {
   async getAddresses(userId?: string): Promise<Address[]> {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    return [...INITIAL_ADDRESSES];
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const currentUserId = userId || session?.user?.id;
+      if (!currentUserId) return [];
+
+      const { data, error } = await (supabase as any)
+        .from("addresses")
+        .select("*")
+        .eq("user_id", currentUserId)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(_mapAddress);
+    } catch (err) {
+      console.warn("[addressService] getAddresses error:", err);
+      return [];
+    }
   },
 
-  async addAddress(address: Omit<Address, 'id'>): Promise<Address> {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    const newAddr: Address = {
-      ...address,
-      id: `addr-${Date.now()}`,
-      created_at: new Date().toISOString(),
-    };
-    if (newAddr.is_default) {
-      INITIAL_ADDRESSES.forEach((a) => (a.is_default = false));
+  async addAddress(input: Omit<Address, "id">): Promise<Address> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id || input.user_id;
+    if (!userId) {
+      throw new Error("Vous devez être connecté pour ajouter une adresse.");
     }
-    INITIAL_ADDRESSES.push(newAddr);
-    return newAddr;
+
+    if (input.is_default) {
+      // Unset previous defaults for user
+      await (supabase as any)
+        .from("addresses")
+        .update({ is_default: false })
+        .eq("user_id", userId);
+    }
+
+    const { data, error } = await (supabase as any)
+      .from("addresses")
+      .insert({
+        user_id: userId,
+        label: input.label,
+        street: input.address,
+        city: input.city || "Oujda",
+        latitude: input.latitude || 34.6867,
+        longitude: input.longitude || -1.9114,
+        is_default: input.is_default ?? false,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[addressService] addAddress error:", error);
+      throw new Error(error.message || "Impossible d'enregistrer l'adresse.");
+    }
+
+    return _mapAddress(data);
   },
 
   async deleteAddress(id: string): Promise<void> {
-    INITIAL_ADDRESSES = INITIAL_ADDRESSES.filter((a) => a.id !== id);
+    const { error } = await (supabase as any)
+      .from("addresses")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("[addressService] deleteAddress error:", error);
+      throw new Error(error.message || "Impossible de supprimer l'adresse.");
+    }
   },
 };
+
+function _mapAddress(row: any): Address {
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    label: row.label,
+    address: row.street || row.address || "",
+    city: row.city || "Oujda",
+    latitude: row.latitude ? Number(row.latitude) : undefined,
+    longitude: row.longitude ? Number(row.longitude) : undefined,
+    is_default: row.is_default ?? false,
+    created_at: row.created_at,
+  };
+}

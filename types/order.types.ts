@@ -24,7 +24,10 @@ export interface Address {
 export interface OrderItem {
   id?: string;
   order_id?: string;
+  item_type?: "product" | "restaurant_menu_item" | "prescription" | "parcel";
   product_id: string;
+  menu_item_id?: string;
+  raw_item_id?: string;
   product_name: string;
   quantity: number;
   unit_price: number;
@@ -45,10 +48,13 @@ export interface Order {
   status: OrderStatus;
   subtotal: number;
   delivery_fee: number;
+  discount_amount?: number;
   delivery_mode?: "DELIVERY" | "PICKUP";
   total: number;
   payment_method: PaymentMethodType;
   notes?: string;
+  prescription_storage_path?: string;
+  prescription_image_url?: string; // Resolved signed URL or preview in client UI
   estimated_delivery_minutes: number;
   items?: OrderItem[];
   rating?: number; // 1 to 5 stars
@@ -56,6 +62,7 @@ export interface Order {
   driver_name?: string;
   driver_phone?: string;
   driver_id?: string;
+  courier_id?: string;
   courier_rating?: number; // 1 to 5 stars for delivery driver
   courier_review_text?: string;
   courier_tags?: string[];
@@ -65,7 +72,8 @@ export interface Order {
   courier_lng?: number;
   restaurant_lat?: number;
   restaurant_lng?: number;
-  prescription_image_url?: string;
+  is_package_delivery?: boolean;
+  package_details?: any;
   created_at: string;
   updated_at: string;
 }
@@ -76,12 +84,20 @@ export interface CreateOrderInput {
   delivery_mode?: "DELIVERY" | "PICKUP";
   payment_method: PaymentMethodType;
   notes?: string;
+  prescription_storage_path?: string;
   prescription_image_url?: string;
+  is_package_delivery?: boolean;
+  package_details?: any;
+  promo_code?: string;
   items: {
+    item_type?: "product" | "restaurant_menu_item" | "prescription" | "parcel";
     product_id: string;
+    menu_item_id?: string;
+    raw_item_id?: string;
     product_name: string;
     quantity: number;
     unit_price: number;
+    selected_customizations?: any[];
     selected_customizations_text?: string;
     special_instructions?: string;
   }[];
