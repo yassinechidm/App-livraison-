@@ -2,11 +2,20 @@ import Card from "@/components/ui/Card";
 import QuantitySelector from "@/components/ui/QuantitySelector";
 import Colors from "@/constants/Colors";
 import { cartService } from "@/services/cart.service";
+import { orderService } from "@/services/order.service";
 import { productService } from "@/services/product.service";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { AnyPurchasableItem, CartState } from "@/types/cart.types";
+import { Order, ORDER_STATUS_CONFIG } from "@/types/order.types";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ShieldCheck, ShoppingBag } from "lucide-react-native";
+import {
+    ArrowRight,
+    ChevronRight,
+    Package,
+    ShieldCheck,
+    ShoppingBag,
+    Truck
+} from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
     Image,
@@ -18,6 +27,7 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ClientOrdersView } from "./orders";
 
 const CROSS_SELL_SUGGESTIONS: AnyPurchasableItem[] = [
   {
@@ -65,7 +75,9 @@ const CROSS_SELL_SUGGESTIONS: AnyPurchasableItem[] = [
 export default function CartScreen() {
   const router = useRouter();
   const { t, isRTL } = useLanguage();
+  const [mainTab, setMainTab] = useState<"cart" | "orders">("cart");
   const [cartState, setCartState] = useState<CartState>(cartService.getState());
+  const [orders, setOrders] = useState<Order[]>([]);
   const [foodCategoryIds, setFoodCategoryIds] = useState<Set<string>>(
     new Set(["11111111-1111-1111-1111-111111111111"]),
   );
@@ -90,52 +102,243 @@ export default function CartScreen() {
       .catch(() => {});
   }, []);
 
+  const loadOrders = useCallback(async () => {
+    try {
+      const list = await orderService.getClientOrders();
+      setOrders(list);
+    } catch {
+      setOrders([]);
+    }
+  }, []);
+
   useEffect(() => {
-    const unsubscribe = cartService.subscribe((state) => {
+    loadOrders();
+    const unsubscribeOrders = orderService.subscribe(() => {
+      loadOrders();
+    });
+    const unsubscribeCart = cartService.subscribe((state) => {
       setCartState(state);
     });
-    return unsubscribe;
-  }, []);
+    return () => {
+      unsubscribeOrders();
+      unsubscribeCart();
+    };
+  }, [loadOrders]);
 
   useFocusEffect(
     useCallback(() => {
       setCartState(cartService.getState());
-    }, []),
+      loadOrders();
+    }, [loadOrders]),
   );
 
+  const activeOrdersCount = orders.filter(
+    (o) => o.status !== "DELIVERED" && o.status !== "CANCELLED",
+  ).length;
+
+  const renderTopSegmentedHeader = () => {
+    const isCartActive = mainTab === "cart";
+    const isOrdersActive = mainTab === "orders";
+
+    return (
+      <SafeAreaView edges={["top"]} style={styles.headerSafe}>
+        <View
+          style={[
+            styles.segmentedRow,
+            isRTL && { flexDirection: "row-reverse" },
+          ]}
+        >
+          <TouchableOpacity
+            style={[styles.segmentBtn, isCartActive && styles.segmentBtnActive]}
+            onPress={() => setMainTab("cart")}
+            activeOpacity={0.8}
+          >
+            <ShoppingBag
+              size={16}
+              color={isCartActive ? "#FFFFFF" : "#5C5BDB"}
+            />
+            <Text
+              style={[
+                styles.segmentBtnText,
+                isCartActive && styles.segmentBtnTextActive,
+              ]}
+            >
+              {t("cart.title", "Mon Panier")} ({cartState.itemCount})
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.segmentBtn,
+              isOrdersActive && styles.segmentBtnActive,
+            ]}
+            onPress={() => setMainTab("orders")}
+            activeOpacity={0.8}
+          >
+            <Package size={16} color={isOrdersActive ? "#FFFFFF" : "#5C5BDB"} />
+            <Text
+              style={[
+                styles.segmentBtnText,
+                isOrdersActive && styles.segmentBtnTextActive,
+              ]}
+            >
+              {t("orders.title", "Commandes")}{" "}
+              {orders.length > 0 ? `(${orders.length})` : ""}
+            </Text>
+            {activeOrdersCount > 0 && (
+              <View style={styles.activeBadgePill}>
+                <Text style={styles.activeBadgeText}>{activeOrdersCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  };
+
+  // Render Orders View if user switched to Orders tab
+  if (mainTab === "orders") {
+    return (
+      <View style={styles.container}>
+        {renderTopSegmentedHeader()}
+        <ClientOrdersView embedded={true} hideHeader={true} />
+      </View>
+    );
+  }
+
+  // Render Cart View (with Empty state + Recent Orders)
   if (cartState.items.length === 0) {
     return (
       <View style={styles.container}>
-        <SafeAreaView edges={["top"]} style={styles.headerSafe}>
-          <Text
-            style={[styles.screenHeaderTitle, isRTL && { textAlign: "right" }]}
-          >
-            {t("cart.title", "Mon Panier")}
-          </Text>
-        </SafeAreaView>
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconCircle}>
-            <ShoppingBag size={48} color="#5C5BDB" strokeWidth={1.6} />
-          </View>
-          <Text style={styles.emptyTitle}>
-            {t("cart.emptyTitle", "Votre panier est vide")}
-          </Text>
-          <Text style={styles.emptySubtitle}>
-            {t(
-              "cart.emptySubtitle",
-              "Ajoutez de délicieux plats, des sandwichs ou des courses pour commencer votre commande à Oujda !",
-            )}
-          </Text>
-          <TouchableOpacity
-            style={styles.emptyButtonPill}
-            onPress={() => router.push("/(app)/(client)/(tabs)/catalog" as any)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.emptyButtonText}>
-              {t("cart.browseCatalog", "Découvrir le catalogue")}
+        {renderTopSegmentedHeader()}
+
+        <ScrollView
+          contentContainerStyle={styles.emptyScrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconCircle}>
+              <ShoppingBag size={48} color="#5C5BDB" strokeWidth={1.6} />
+            </View>
+            <Text style={styles.emptyTitle}>
+              {t("cart.emptyTitle", "Votre panier est vide")}
             </Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.emptySubtitle}>
+              {t(
+                "cart.emptySubtitle",
+                "Ajoutez de délicieux plats, des sandwichs ou des courses pour commencer votre commande à Oujda !",
+              )}
+            </Text>
+            <TouchableOpacity
+              style={styles.emptyButtonPill}
+              onPress={() =>
+                router.push("/(app)/(client)/(tabs)/catalog" as any)
+              }
+              activeOpacity={0.85}
+            >
+              <Text style={styles.emptyButtonText}>
+                {t("cart.browseCatalog", "Découvrir le catalogue")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Recent Orders Section directly on Cart Page */}
+          {orders.length > 0 && (
+            <View style={styles.recentOrdersSection}>
+              <View style={styles.recentOrdersHeader}>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                >
+                  <Package size={18} color="#3C3489" />
+                  <Text style={styles.recentOrdersTitle}>
+                    {t("orders.recentOrders", "Vos Commandes")} ({orders.length}
+                    )
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setMainTab("orders")}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+                >
+                  <Text style={styles.viewAllOrdersText}>
+                    {t("orders.viewAll", "Voir tout")}
+                  </Text>
+                  <ArrowRight size={14} color={Colors.primary} />
+                </TouchableOpacity>
+              </View>
+
+              {orders.slice(0, 3).map((order) => {
+                const statusCfg = ORDER_STATUS_CONFIG[order.status];
+                const isOngoing =
+                  order.status !== "DELIVERED" && order.status !== "CANCELLED";
+
+                return (
+                  <TouchableOpacity
+                    key={order.id}
+                    style={styles.recentOrderCard}
+                    onPress={() => setMainTab("orders")}
+                    activeOpacity={0.88}
+                  >
+                    <View style={styles.recentOrderTop}>
+                      <View>
+                        <Text style={styles.recentOrderNum}>
+                          Commande #{order.order_number}
+                        </Text>
+                        <Text style={styles.recentOrderDate}>
+                          {new Date(order.created_at).toLocaleDateString(
+                            "fr-FR",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                        </Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.recentStatusBadge,
+                          { backgroundColor: statusCfg.bgColor },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.recentStatusText,
+                            { color: statusCfg.color },
+                          ]}
+                        >
+                          {statusCfg.label}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.recentOrderItems}>
+                      <Text style={styles.recentItemsSummary} numberOfLines={1}>
+                        {order.items && order.items.length > 0
+                          ? order.items
+                              .map((i) => `${i.quantity}x ${i.product_name}`)
+                              .join(", ")
+                          : "Articles de la commande"}
+                      </Text>
+                    </View>
+
+                    <View style={styles.recentOrderBottom}>
+                      <Text style={styles.recentOrderPrice}>
+                        {order.total.toFixed(2)} DH
+                      </Text>
+                      <View style={styles.recentOrderTrackBtn}>
+                        <Text style={styles.recentOrderTrackText}>
+                          {isOngoing ? "Suivi en direct" : "Détails"}
+                        </Text>
+                        <ChevronRight size={14} color={Colors.primary} />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </ScrollView>
       </View>
     );
   }
@@ -165,29 +368,35 @@ export default function CartScreen() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={["top"]} style={styles.headerSafe}>
-        <View
-          style={[
-            styles.headerTopRow,
-            isRTL && { flexDirection: "row-reverse" },
-          ]}
-        >
-          <Text style={styles.screenHeaderTitle}>
-            {t("cart.title", "Mon Panier")}
-          </Text>
-          <Text style={styles.screenHeaderSubtitle}>
-            {cartState.itemCount}{" "}
-            {cartState.itemCount > 1
-              ? t("cart.articles", "articles")
-              : t("cart.article", "article")}
-          </Text>
-        </View>
-      </SafeAreaView>
+      {renderTopSegmentedHeader()}
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Live Active Order Banner if ongoing order exists */}
+        {activeOrdersCount > 0 && (
+          <TouchableOpacity
+            style={styles.activeOrderBanner}
+            onPress={() => setMainTab("orders")}
+            activeOpacity={0.85}
+          >
+            <View style={styles.activeBannerPulse}>
+              <Truck size={16} color="#FFFFFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.activeBannerTitle}>
+                {activeOrdersCount === 1
+                  ? "1 course en cours de livraison"
+                  : `${activeOrdersCount} courses en cours de livraison`}
+              </Text>
+              <Text style={styles.activeBannerSub}>
+                Touchez pour suivre le livreur sur la carte en direct
+              </Text>
+            </View>
+            <ChevronRight size={18} color="#5C5BDB" />
+          </TouchableOpacity>
+        )}
         {/* Free Delivery Animated Progress Gauge */}
         <Card style={styles.gaugeCard}>
           <View
@@ -872,5 +1081,181 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: "800",
+  },
+  emptyScrollContent: {
+    paddingBottom: 120,
+  },
+  segmentedRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 10,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  segmentBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#F7F7FF",
+    borderWidth: 1.5,
+    borderColor: "#E0E7FF",
+    position: "relative",
+  },
+  segmentBtnActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  segmentBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#5C5BDB",
+  },
+  segmentBtnTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+  },
+  activeBadgePill: {
+    backgroundColor: Colors.cta,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 5,
+  },
+  activeBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "900",
+  },
+  recentOrdersSection: {
+    marginTop: 8,
+    paddingHorizontal: 16,
+    marginBottom: 30,
+  },
+  recentOrdersHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  recentOrdersTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#3C3489",
+  },
+  viewAllOrdersText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
+  recentOrderCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+  },
+  recentOrderTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  recentOrderNum: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1E293B",
+  },
+  recentOrderDate: {
+    fontSize: 11,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  recentStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  recentStatusText: {
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  recentOrderItems: {
+    marginBottom: 10,
+  },
+  recentItemsSummary: {
+    fontSize: 12,
+    color: "#475569",
+    fontWeight: "500",
+  },
+  recentOrderBottom: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+  },
+  recentOrderPrice: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#3C3489",
+  },
+  recentOrderTrackBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
+  recentOrderTrackText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
+  activeOrderBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "#EEF2FF",
+    borderWidth: 1,
+    borderColor: "#C7D2FE",
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 14,
+  },
+  activeBannerPulse: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activeBannerTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#1E1B4B",
+  },
+  activeBannerSub: {
+    fontSize: 11,
+    color: "#4338CA",
+    marginTop: 1,
   },
 });

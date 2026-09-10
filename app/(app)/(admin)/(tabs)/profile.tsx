@@ -1,23 +1,27 @@
-import Colors from "@/constants/Colors";
 import {
-  AdminClientInfo,
-  AdminDashboardStats,
-  adminService,
+    AdminClientInfo,
+    AdminDashboardStats,
+    adminService,
 } from "@/services/admin.service";
 import { authService } from "@/services/auth.service";
 import { User } from "@supabase/supabase-js";
-import { ChevronRight, LogOut, ShieldCheck, TrendingUp, Users } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    LogOut,
+    ShieldCheck,
+    TrendingUp,
+    Users
+} from "lucide-react-native";
+import { useEffect, useState } from "react";
+import {
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AdminProfileScreen() {
   const [user, setUser] = useState<User | any | null>(null);
@@ -37,32 +41,38 @@ export default function AdminProfileScreen() {
   }, []);
 
   async function handleLogout() {
-    Alert.alert("Déconnexion", "Êtes-vous sûr de vouloir quitter l'espace Administrateur ?", [
-      { text: "Annuler", style: "cancel" },
-      {
-        text: "Se déconnecter",
-        style: "destructive",
-        onPress: async () => {
-          setIsLoggingOut(true);
-          try {
-            await authService.signOut();
-          } catch (error) {
-            const message =
-              error instanceof Error ? error.message : "Une erreur est survenue";
-            Alert.alert("Erreur", message);
-            setIsLoggingOut(false);
-          }
+    Alert.alert(
+      "Déconnexion",
+      "Êtes-vous sûr de vouloir quitter l'espace Administrateur ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Se déconnecter",
+          style: "destructive",
+          onPress: async () => {
+            setIsLoggingOut(true);
+            try {
+              await authService.signOut();
+            } catch (error) {
+              const message =
+                error instanceof Error
+                  ? error.message
+                  : "Une erreur est survenue";
+              Alert.alert("Erreur", message);
+              setIsLoggingOut(false);
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   }
 
   const adminId = user?.id
-    ? (user.id.startsWith("admin-user-")
-        ? `ID: #ADMIN-${user.id.replace(/[^0-9]/g, "") || "01"}`
-        : user.id.length > 8
+    ? user.id.startsWith("admin-user-")
+      ? `ID: #ADMIN-${user.id.replace(/[^0-9]/g, "") || "01"}`
+      : user.id.length > 8
         ? `ID: #ADMIN-${user.id.slice(0, 6).toUpperCase()}`
-        : `ID: #${user.id.toUpperCase()}`)
+        : `ID: #${user.id.toUpperCase()}`
     : "ID: #ADMIN-01";
 
   return (
@@ -104,7 +114,10 @@ export default function AdminProfileScreen() {
           <View style={styles.statRow}>
             <Text style={styles.statLabel}>Chiffre d'affaires cumulé</Text>
             <Text style={styles.statValueBold}>
-              {stats?.totalTurnoverMAD ? stats.totalTurnoverMAD.toFixed(2) : "0.00"} DH
+              {stats?.totalTurnoverMAD
+                ? stats.totalTurnoverMAD.toFixed(2)
+                : "0.00"}{" "}
+              DH
             </Text>
           </View>
           <View style={styles.statRow}>
@@ -127,7 +140,9 @@ export default function AdminProfileScreen() {
           </View>
 
           {clients.length === 0 ? (
-            <Text style={styles.emptyClientsText}>Aucun client enregistré pour l'instant.</Text>
+            <Text style={styles.emptyClientsText}>
+              Aucun client enregistré pour l'instant.
+            </Text>
           ) : (
             clients.map((c, index) => (
               <View
@@ -138,7 +153,9 @@ export default function AdminProfileScreen() {
                 ]}
               >
                 <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={styles.clientName}>{c.full_name || "Client"}</Text>
+                  <Text style={styles.clientName}>
+                    {c.full_name || "Client"}
+                  </Text>
                   <Text style={styles.clientDetails}>
                     {c.email} {c.phone ? `• ${c.phone}` : ""}
                   </Text>
@@ -161,7 +178,9 @@ export default function AdminProfileScreen() {
           <Text style={styles.cardTitle}>Compte Superviseur</Text>
           <View style={styles.statRow}>
             <Text style={styles.statLabel}>Email superviseur :</Text>
-            <Text style={styles.statValue}>{user?.email || "admin@quicklivraison.ma"}</Text>
+            <Text style={styles.statValue}>
+              {user?.email || "admin@quicklivraison.ma"}
+            </Text>
           </View>
           <View style={[styles.statRow, { borderBottomWidth: 0 }]}>
             <Text style={styles.statLabel}>Niveau d'accès :</Text>
@@ -181,7 +200,9 @@ export default function AdminProfileScreen() {
           <View style={styles.logoutLeft}>
             <LogOut size={20} color="#FF4D6D" style={{ marginRight: 12 }} />
             <Text style={styles.logoutText}>
-              {isLoggingOut ? "Déconnexion..." : "Se déconnecter de l'espace Admin"}
+              {isLoggingOut
+                ? "Déconnexion..."
+                : "Se déconnecter de l'espace Admin"}
             </Text>
           </View>
         </TouchableOpacity>

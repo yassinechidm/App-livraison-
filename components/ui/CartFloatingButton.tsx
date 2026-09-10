@@ -44,8 +44,10 @@ export default function CartFloatingButton({
 
   return (
     <View
-      style={[styles.floatingContainer, { bottom: defaultOffset }]}
-      pointerEvents="box-none"
+      style={[
+        styles.floatingContainer,
+        { bottom: defaultOffset, pointerEvents: "box-none" as const },
+      ]}
     >
       <TouchableOpacity
         style={[styles.button, isRTL && { flexDirection: "row-reverse" }]}

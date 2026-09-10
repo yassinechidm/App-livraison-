@@ -1,6 +1,7 @@
 import Colors from "@/constants/Colors";
 import {
     ActivityIndicator,
+    Platform,
     StyleSheet,
     Text,
     TextStyle,
@@ -58,11 +59,18 @@ export default function Button({
 const variantStyles = StyleSheet.create({
   primary: {
     backgroundColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    ...Platform.select({
+      web: {
+        boxShadow: "0px 2px 4px rgba(92, 91, 219, 0.25)",
+      } as any,
+      default: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+      },
+    }),
   },
   secondary: {
     backgroundColor: Colors.backgroundWhite,
@@ -71,11 +79,18 @@ const variantStyles = StyleSheet.create({
   },
   success: {
     backgroundColor: Colors.secondary,
-    shadowColor: Colors.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    ...Platform.select({
+      web: {
+        boxShadow: "0px 2px 4px rgba(16, 185, 129, 0.25)",
+      } as any,
+      default: {
+        shadowColor: Colors.secondary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+      },
+    }),
   },
   ghost: {
     backgroundColor: Colors.transparent,

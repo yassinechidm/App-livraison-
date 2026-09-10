@@ -232,6 +232,7 @@ export default function CourierActiveDeliveriesScreen() {
                     orderStatus={order.status}
                     height={190}
                     showNavigationButton={true}
+                    lastUpdated={order.updated_at}
                   />
                 </View>
 

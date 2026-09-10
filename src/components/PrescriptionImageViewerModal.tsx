@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { FileText, Phone, X } from "lucide-react-native";
 import React from "react";
@@ -8,12 +7,12 @@ import {
     Linking,
     Modal,
     Platform,
-    SafeAreaView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface PrescriptionImageViewerModalProps {
   visible: boolean;

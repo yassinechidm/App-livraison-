@@ -28,7 +28,6 @@ import {
     Modal,
     PanResponder,
     Platform,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
@@ -36,6 +35,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -96,6 +96,8 @@ const DraggableBubble: React.FC<DraggableBubbleProps> = ({
   const [isDragging, setIsDragging] = React.useState(false);
   const floatAnimRef = React.useRef<Animated.CompositeAnimation | null>(null);
 
+  const useNative = Platform.OS !== "web";
+
   const startFloat = React.useCallback(() => {
     floatAnimRef.current?.stop();
     const anim = Animated.loop(
@@ -104,19 +106,19 @@ const DraggableBubble: React.FC<DraggableBubbleProps> = ({
           toValue: -5,
           duration: 1700 + index * 200,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          useNativeDriver: useNative,
         }),
         Animated.timing(floatY, {
           toValue: 4,
           duration: 1700 + index * 200,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          useNativeDriver: useNative,
         }),
       ]),
     );
     floatAnimRef.current = anim;
     anim.start();
-  }, [index, floatY]);
+  }, [index, floatY, useNative]);
 
   React.useEffect(() => {
     const delay = setTimeout(startFloat, index * 220);
@@ -145,7 +147,7 @@ const DraggableBubble: React.FC<DraggableBubbleProps> = ({
             toValue: 1.16,
             bounciness: 6,
             speed: 14,
-            useNativeDriver: true,
+            useNativeDriver: useNative,
           }).start();
         },
         onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
@@ -162,13 +164,13 @@ const DraggableBubble: React.FC<DraggableBubbleProps> = ({
               Animated.timing(scale, {
                 toValue: 0.9,
                 duration: 75,
-                useNativeDriver: true,
+                useNativeDriver: useNative,
               }),
               Animated.spring(scale, {
                 toValue: 1,
                 bounciness: 8,
                 speed: 16,
-                useNativeDriver: true,
+                useNativeDriver: useNative,
               }),
             ]).start(() => {
               startFloat();
@@ -181,13 +183,13 @@ const DraggableBubble: React.FC<DraggableBubbleProps> = ({
                 toValue: { x: 0, y: 0 },
                 bounciness: 14,
                 speed: 12,
-                useNativeDriver: true,
+                useNativeDriver: useNative,
               }),
               Animated.spring(scale, {
                 toValue: 1,
                 bounciness: 8,
                 speed: 14,
-                useNativeDriver: true,
+                useNativeDriver: useNative,
               }),
             ]).start(() => {
               startFloat();
@@ -202,20 +204,20 @@ const DraggableBubble: React.FC<DraggableBubbleProps> = ({
               toValue: { x: 0, y: 0 },
               bounciness: 12,
               speed: 12,
-              useNativeDriver: true,
+              useNativeDriver: useNative,
             }),
             Animated.spring(scale, {
               toValue: 1,
               bounciness: 8,
               speed: 14,
-              useNativeDriver: true,
+              useNativeDriver: useNative,
             }),
           ]).start(() => {
             startFloat();
           });
         },
       }),
-    [onPress, startFloat, pan, scale],
+    [onPress, startFloat, pan, scale, useNative],
   );
 
   const rotateInterpolation = pan.x.interpolate({
@@ -799,9 +801,16 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     textAlign: "center",
     letterSpacing: -0.3,
-    textShadowColor: "rgba(0, 0, 0, 0.15)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    ...Platform.select({
+      web: {
+        textShadow: "0px 1px 3px rgba(0, 0, 0, 0.15)",
+      } as any,
+      default: {
+        textShadowColor: "rgba(0, 0, 0, 0.15)",
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
+      },
+    }),
   },
 
   // Category Bubbles (Pentagon Arrangement)

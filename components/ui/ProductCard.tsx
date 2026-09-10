@@ -1,8 +1,13 @@
-import Colors from '@/constants/Colors';
-import { Product } from '@/types/product.types';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import QuantitySelector from './QuantitySelector';
+import Colors from "@/constants/Colors";
+import { Product } from "@/types/product.types";
+import {
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import QuantitySelector from "./QuantitySelector";
 
 interface ProductCardProps {
   product: Product;
@@ -73,25 +78,32 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: Colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    borderColor: "#E2E8F0",
+    ...Platform.select({
+      web: {
+        boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.04)",
+      } as any,
+      default: {
+        shadowColor: Colors.shadowColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+        elevation: 2,
+      },
+    }),
   },
   content: {
     flex: 1,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 4,
   },
   name: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.textPrimary,
     flex: 1,
     lineHeight: 20,
@@ -103,23 +115,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 2,
   },
   priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    alignItems: "baseline",
   },
   price: {
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Colors.primary,
   },
   currency: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.primary,
   },
   addButton: {
@@ -128,12 +140,11 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.primary + '40',
+    borderColor: Colors.primary + "40",
   },
   addButtonText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.primaryDeep,
   },
-
 });

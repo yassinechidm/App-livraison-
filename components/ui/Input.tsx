@@ -1,6 +1,7 @@
 import Colors from "@/constants/Colors";
 import { useState } from "react";
 import {
+    Platform,
     StyleSheet,
     Text,
     TextInput,
@@ -85,11 +86,18 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: Colors.borderFocus,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
+    ...Platform.select({
+      web: {
+        boxShadow: "0px 0px 8px rgba(92, 91, 219, 0.15)",
+      } as any,
+      default: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 2,
+      },
+    }),
   },
   inputError: {
     borderColor: Colors.error,

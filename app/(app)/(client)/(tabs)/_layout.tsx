@@ -47,8 +47,10 @@ function FloatingTabBar({
 
   return (
     <View
-      style={[styles.floatingBarContainer, { bottom: bottomOffset }]}
-      pointerEvents="box-none"
+      style={[
+        styles.floatingBarContainer,
+        { bottom: bottomOffset, pointerEvents: "box-none" as const },
+      ]}
     >
       {/* 1. Home Circle Button */}
       <TouchableOpacity

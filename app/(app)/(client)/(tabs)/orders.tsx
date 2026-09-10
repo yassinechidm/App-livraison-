@@ -41,7 +41,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-export default function ClientOrdersScreen() {
+export function ClientOrdersView({
+  embedded = false,
+  hideHeader = false,
+}: {
+  embedded?: boolean;
+  hideHeader?: boolean;
+} = {}) {
   const router = useRouter();
   const { t, isRTL } = useLanguage();
   const [ratingCourierOrder, setRatingCourierOrder] = useState<Order | null>(
@@ -247,12 +253,19 @@ export default function ClientOrdersScreen() {
   );
   const historyOrders = orders.filter((o) => o.status === "DELIVERED");
 
+  const ContainerComponent: any = embedded ? View : SafeAreaView;
+  const containerProps = embedded
+    ? { style: styles.container }
+    : { style: styles.container, edges: ["top"] as any };
+
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <ContainerComponent {...containerProps}>
       {/* ── Screen Title (Screenshot #2 & #4) ── */}
-      <View style={styles.headerTitleRow}>
-        <Text style={styles.mainTitle}>{t("orders.title", "Orders")}</Text>
-      </View>
+      {!hideHeader && (
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.mainTitle}>{t("orders.title", "Orders")}</Text>
+        </View>
+      )}
 
       {/* ── Segmented Top Tabs: In progress | History (Screenshot #2 & #4) ── */}
       <View style={[styles.tabsRow, isRTL && { flexDirection: "row-reverse" }]}>
@@ -414,6 +427,8 @@ export default function ClientOrdersScreen() {
                             }
                           : undefined
                       }
+                      courierName={order.driver_name || "Livreur Quickly"}
+                      lastUpdated={order.updated_at}
                     />
 
                     {/* Expand details toggle */}
@@ -970,7 +985,7 @@ export default function ClientOrdersScreen() {
         orderNumber={previewPrescription?.orderNumber}
         onClose={() => setPreviewPrescription(null)}
       />
-    </SafeAreaView>
+    </ContainerComponent>
   );
 }
 
@@ -1426,3 +1441,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 });
+
+export default function ClientOrdersScreen() {
+  return <ClientOrdersView />;
+}

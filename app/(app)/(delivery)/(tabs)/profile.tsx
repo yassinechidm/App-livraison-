@@ -1,46 +1,38 @@
-import Colors from "@/constants/Colors";
 import { authService } from "@/services/auth.service";
 import { orderService } from "@/services/order.service";
 import { useLanguage } from "@/src/context/LanguageContext";
-import { Order } from "@/types/order.types";
 import { User } from "@supabase/supabase-js";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import {
-  Bike,
-  Camera,
-  CheckCircle2,
-  ChevronRight,
-  Edit3,
-  Image as ImageIcon,
-  LogOut,
-  MapPin,
-  Phone,
-  Plus,
-  ShieldCheck,
-  Star,
-  ThumbsUp,
-  Trash2,
-  User as UserIcon,
-  X,
-  Zap,
+    Bike,
+    Camera,
+    Edit3,
+    Image as ImageIcon,
+    LogOut,
+    Plus,
+    Star,
+    ThumbsUp,
+    Trash2,
+    User as UserIcon,
+    X
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Alert,
-  Dimensions,
-  Image,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Image,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -56,7 +48,7 @@ export default function CourierProfileScreen() {
   const [vehicleModel, setVehicleModel] = useState("Scooter Yamaha NMAX 125cc");
   const [licensePlate, setLicensePlate] = useState("18492 | أ | 48 (Oujda)");
   const [courierBio, setCourierBio] = useState(
-    "Livreur professionnel et ponctuel. Toujours souriant et respectueux des délais et des colis partout à Oujda."
+    "Livreur professionnel et ponctuel. Toujours souriant et respectueux des délais et des colis partout à Oujda.",
   );
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [vehiclePhotos, setVehiclePhotos] = useState<string[]>([]);
@@ -88,8 +80,8 @@ export default function CourierProfileScreen() {
     ? user.id.startsWith("delivery-user-") || user.id.startsWith("courier-")
       ? `ID: #DELIV-${user.id.replace(/[^0-9]/g, "") || "01"}`
       : user.id.length > 8
-      ? `ID: #DELIV-${user.id.slice(0, 6).toUpperCase()}`
-      : `ID: #${user.id.toUpperCase()}`
+        ? `ID: #DELIV-${user.id.slice(0, 6).toUpperCase()}`
+        : `ID: #${user.id.toUpperCase()}`
     : "ID: #DELIV-01";
 
   // Load User & Saved Profile Details
@@ -99,7 +91,9 @@ export default function CourierProfileScreen() {
         setUser(session.user);
         const nameFromEmail = session.user.email?.split("@")[0];
         if (nameFromEmail && !courierName) {
-          setCourierName(nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1));
+          setCourierName(
+            nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1),
+          );
         }
       }
     });
@@ -124,7 +118,9 @@ export default function CourierProfileScreen() {
           savedStr = localStorage.getItem("courier_profile_custom_data_v1");
         }
       } else {
-        savedStr = await SecureStore.getItemAsync("courier_profile_custom_data_v1");
+        savedStr = await SecureStore.getItemAsync(
+          "courier_profile_custom_data_v1",
+        );
       }
 
       if (savedStr) {
@@ -150,7 +146,10 @@ export default function CourierProfileScreen() {
           localStorage.setItem("courier_profile_custom_data_v1", dataStr);
         }
       } else {
-        await SecureStore.setItemAsync("courier_profile_custom_data_v1", dataStr);
+        await SecureStore.setItemAsync(
+          "courier_profile_custom_data_v1",
+          dataStr,
+        );
       }
     } catch (e) {
       console.warn("[CourierProfile] saveProfileToStorage error:", e);
@@ -162,7 +161,7 @@ export default function CourierProfileScreen() {
       const allOrders = await orderService.getAllOrdersAdmin();
       // Filter orders with courier ratings
       const ratedOrders = allOrders.filter(
-        (o) => o.courier_rating && o.courier_rating > 0
+        (o) => o.courier_rating && o.courier_rating > 0,
       );
 
       // Base default real reviews so profile is never empty
@@ -172,7 +171,8 @@ export default function CourierProfileScreen() {
           orderNumber: "CMD-2026-894102",
           clientName: "Amine B. (Hay Al Qods)",
           rating: 5,
-          reviewText: "Livreur ponctuel et très courtois, commande arrivée bien chaude !",
+          reviewText:
+            "Livreur ponctuel et très courtois, commande arrivée bien chaude !",
           tags: ["⚡ Ultra Fast", "😊 Very Polite", "🛵 Careful with package"],
           date: "Il y a 20 min",
         },
@@ -200,7 +200,9 @@ export default function CourierProfileScreen() {
       const liveReviews = ratedOrders.map((o) => ({
         id: o.id,
         orderNumber: o.order_number,
-        clientName: o.customer_name || `Client (${o.delivery_address_text?.split(",")[0] || "Oujda"})`,
+        clientName:
+          o.customer_name ||
+          `Client (${o.delivery_address_text?.split(",")[0] || "Oujda"})`,
         rating: o.courier_rating || 5,
         reviewText: o.courier_review_text || "Livraison effectuée avec succès.",
         tags: o.courier_tags || ["⚡ Ultra Fast"],
@@ -222,17 +224,18 @@ export default function CourierProfileScreen() {
   // Pick Profile Avatar Photo
   async function handlePickProfilePhoto() {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
           "Permission requise",
-          "Veuillez autoriser l'accès aux photos pour changer votre photo de profil."
+          "Veuillez autoriser l'accès aux photos pour changer votre photo de profil.",
         );
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -250,7 +253,10 @@ export default function CourierProfileScreen() {
           profilePhoto: newPhotoUri,
           vehiclePhotos,
         });
-        Alert.alert("Photo mise à jour ! 📸", "Votre photo de profil livreur a été enregistrée.");
+        Alert.alert(
+          "Photo mise à jour ! 📸",
+          "Votre photo de profil livreur a été enregistrée.",
+        );
       }
     } catch (error) {
       Alert.alert("Erreur", "Impossible de charger l'image.");
@@ -260,17 +266,18 @@ export default function CourierProfileScreen() {
   // Add Vehicle / Gear Photo
   async function handleAddVehiclePhoto() {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
           "Permission requise",
-          "Veuillez autoriser l'accès aux photos pour ajouter une photo de votre véhicule."
+          "Veuillez autoriser l'accès aux photos pour ajouter une photo de votre véhicule.",
         );
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -288,7 +295,10 @@ export default function CourierProfileScreen() {
           profilePhoto,
           vehiclePhotos: newPhotos,
         });
-        Alert.alert("Photo ajoutée ! 🛵", "Photo de votre véhicule/équipement ajoutée à votre profil.");
+        Alert.alert(
+          "Photo ajoutée ! 🛵",
+          "Photo de votre véhicule/équipement ajoutée à votre profil.",
+        );
       }
     } catch (error) {
       Alert.alert("Erreur", "Impossible d'ajouter la photo.");
@@ -340,28 +350,37 @@ export default function CourierProfileScreen() {
     });
 
     setIsEditModalVisible(false);
-    Alert.alert("Profil mis à jour ! ✓", "Vos informations de livreur ont été enregistrées avec succès.");
+    Alert.alert(
+      "Profil mis à jour ! ✓",
+      "Vos informations de livreur ont été enregistrées avec succès.",
+    );
   }
 
   async function handleLogout() {
-    Alert.alert(t("profile.logout", "Déconnexion"), t("profile.logoutConfirm", "Êtes-vous sûr de vouloir vous déconnecter ?"), [
-      { text: t("common.cancel", "Annuler"), style: "cancel" },
-      {
-        text: t("profile.logout", "Se déconnecter"),
-        style: "destructive",
-        onPress: async () => {
-          setIsLoggingOut(true);
-          try {
-            await authService.signOut();
-          } catch (error) {
-            const message =
-              error instanceof Error ? error.message : "Une erreur est survenue";
-            Alert.alert(t("common.error", "Erreur"), message);
-            setIsLoggingOut(false);
-          }
+    Alert.alert(
+      t("profile.logout", "Déconnexion"),
+      t("profile.logoutConfirm", "Êtes-vous sûr de vouloir vous déconnecter ?"),
+      [
+        { text: t("common.cancel", "Annuler"), style: "cancel" },
+        {
+          text: t("profile.logout", "Se déconnecter"),
+          style: "destructive",
+          onPress: async () => {
+            setIsLoggingOut(true);
+            try {
+              await authService.signOut();
+            } catch (error) {
+              const message =
+                error instanceof Error
+                  ? error.message
+                  : "Une erreur est survenue";
+              Alert.alert(t("common.error", "Erreur"), message);
+              setIsLoggingOut(false);
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   }
 
   return (
@@ -377,7 +396,10 @@ export default function CourierProfileScreen() {
               activeOpacity={0.85}
             >
               {profilePhoto ? (
-                <Image source={{ uri: profilePhoto }} style={styles.avatarImage} />
+                <Image
+                  source={{ uri: profilePhoto }}
+                  style={styles.avatarImage}
+                />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Bike size={34} color="#5C5BDB" strokeWidth={2.2} />
@@ -406,7 +428,12 @@ export default function CourierProfileScreen() {
                   <Text style={styles.driverIdText}>{driverId}</Text>
                 </View>
                 <View style={styles.ratingHeroPill}>
-                  <Star size={12} color="#FFD166" fill="#FFD166" style={{ marginRight: 3 }} />
+                  <Star
+                    size={12}
+                    color="#FFD166"
+                    fill="#FFD166"
+                    style={{ marginRight: 3 }}
+                  />
                   <Text style={styles.ratingHeroText}>
                     {averageRating}/5 ({clientReviews.length} avis)
                   </Text>
@@ -431,14 +458,18 @@ export default function CourierProfileScreen() {
         <View style={styles.card}>
           <View style={styles.switchRow}>
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
                 <View
                   style={[
                     styles.statusDot,
                     { backgroundColor: isOnline ? "#10B981" : "#94A3B8" },
                   ]}
                 />
-                <Text style={styles.switchTitle}>Disponibilité aux courses</Text>
+                <Text style={styles.switchTitle}>
+                  Disponibilité aux courses
+                </Text>
               </View>
               <Text style={styles.switchSub}>
                 {isOnline
@@ -459,7 +490,9 @@ export default function CourierProfileScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
             <Star size={18} color="#FFD166" fill="#FFD166" />
-            <Text style={styles.cardTitle}>Performance & Avis Clients Directs</Text>
+            <Text style={styles.cardTitle}>
+              Performance & Avis Clients Directs
+            </Text>
           </View>
 
           <View style={styles.statsSummaryGrid}>
@@ -472,26 +505,34 @@ export default function CourierProfileScreen() {
               <Text style={styles.statMetricLabel}>Courses Réussies</Text>
             </View>
             <View style={styles.statMetricBox}>
-              <Text style={[styles.statMetricValue, { color: "#10B981" }]}>99%</Text>
+              <Text style={[styles.statMetricValue, { color: "#10B981" }]}>
+                99%
+              </Text>
               <Text style={styles.statMetricLabel}>Satisfaction</Text>
             </View>
           </View>
 
           {/* Quick Compliments Badges */}
           <View style={styles.complimentsContainer}>
-            <Text style={styles.complimentsHeading}>Compliments reçus des clients :</Text>
+            <Text style={styles.complimentsHeading}>
+              Compliments reçus des clients :
+            </Text>
             <View style={styles.tagsPillsRow}>
               <View style={styles.compBadge}>
                 <Text style={styles.compBadgeText}>⚡ Ultra Rapide (38)</Text>
               </View>
               <View style={styles.compBadge}>
-                <Text style={styles.compBadgeText}>😊 Poli & Souriant (29)</Text>
+                <Text style={styles.compBadgeText}>
+                  😊 Poli & Souriant (29)
+                </Text>
               </View>
               <View style={styles.compBadge}>
                 <Text style={styles.compBadgeText}>🛵 Soin du colis (24)</Text>
               </View>
               <View style={styles.compBadge}>
-                <Text style={styles.compBadgeText}>📍 Adresse trouvée vite (19)</Text>
+                <Text style={styles.compBadgeText}>
+                  📍 Adresse trouvée vite (19)
+                </Text>
               </View>
             </View>
           </View>
@@ -500,7 +541,9 @@ export default function CourierProfileScreen() {
         {/* ── Section: Photos du Livreur & Véhicule ── */}
         <View style={styles.card}>
           <View style={styles.cardHeaderWithAction}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
               <ImageIcon size={18} color="#5C5BDB" />
               <Text style={styles.cardTitle}>Photos & Équipement</Text>
             </View>
@@ -515,7 +558,8 @@ export default function CourierProfileScreen() {
           </View>
 
           <Text style={styles.sectionSubtitle}>
-            Vos photos rassurent les clients sur l'état de votre véhicule et votre équipement de livraison.
+            Vos photos rassurent les clients sur l'état de votre véhicule et
+            votre équipement de livraison.
           </Text>
 
           {/* Horizontal Gallery */}
@@ -531,11 +575,16 @@ export default function CourierProfileScreen() {
               activeOpacity={0.85}
             >
               {profilePhoto ? (
-                <Image source={{ uri: profilePhoto }} style={styles.galleryImage} />
+                <Image
+                  source={{ uri: profilePhoto }}
+                  style={styles.galleryImage}
+                />
               ) : (
                 <View style={styles.galleryPlaceholderBox}>
                   <Camera size={24} color="#7F77DD" />
-                  <Text style={styles.galleryPlaceholderText}>Photo Profil</Text>
+                  <Text style={styles.galleryPlaceholderText}>
+                    Photo Profil
+                  </Text>
                 </View>
               )}
               <View style={styles.thumbnailLabelTag}>
@@ -555,7 +604,9 @@ export default function CourierProfileScreen() {
                   <Trash2 size={12} color="#FFFFFF" />
                 </TouchableOpacity>
                 <View style={styles.thumbnailLabelTag}>
-                  <Text style={styles.thumbnailLabelText}>Véhicule #{index + 1}</Text>
+                  <Text style={styles.thumbnailLabelText}>
+                    Véhicule #{index + 1}
+                  </Text>
                 </View>
               </View>
             ))}
@@ -575,7 +626,9 @@ export default function CourierProfileScreen() {
         {/* ── Section: Details & Bio ── */}
         <View style={styles.card}>
           <View style={styles.cardHeaderWithAction}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
               <UserIcon size={18} color="#5C5BDB" />
               <Text style={styles.cardTitle}>Détails & Véhicule</Text>
             </View>
@@ -606,12 +659,16 @@ export default function CourierProfileScreen() {
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Zone affectée :</Text>
-            <Text style={styles.infoValue}>Centre-Ville, Lazaret, Al Qods (Oujda)</Text>
+            <Text style={styles.infoValue}>
+              Centre-Ville, Lazaret, Al Qods (Oujda)
+            </Text>
           </View>
 
           {/* Bio Box */}
           <View style={styles.bioContainer}>
-            <Text style={styles.bioHeading}>Présentation pour les clients :</Text>
+            <Text style={styles.bioHeading}>
+              Présentation pour les clients :
+            </Text>
             <Text style={styles.bioText}>"{courierBio}"</Text>
           </View>
         </View>
@@ -620,11 +677,14 @@ export default function CourierProfileScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
             <ThumbsUp size={18} color="#5C5BDB" />
-            <Text style={styles.cardTitle}>Derniers Avis Clients en Direct</Text>
+            <Text style={styles.cardTitle}>
+              Derniers Avis Clients en Direct
+            </Text>
           </View>
 
           <Text style={styles.sectionSubtitle}>
-            Évaluations et commentaires laissés en temps réel par les clients après livraison.
+            Évaluations et commentaires laissés en temps réel par les clients
+            après livraison.
           </Text>
 
           <View style={{ gap: 12, marginTop: 10 }}>
@@ -632,8 +692,12 @@ export default function CourierProfileScreen() {
               <View key={rev.id} style={styles.clientReviewCard}>
                 <View style={styles.reviewCardHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.reviewClientName}>{rev.clientName}</Text>
-                    <Text style={styles.reviewOrderRef}>Commande #{rev.orderNumber}</Text>
+                    <Text style={styles.reviewClientName}>
+                      {rev.clientName}
+                    </Text>
+                    <Text style={styles.reviewOrderRef}>
+                      Commande #{rev.orderNumber}
+                    </Text>
                   </View>
                   <View style={styles.reviewStarsBox}>
                     <Star size={13} color="#FFD166" fill="#FFD166" />
@@ -652,7 +716,9 @@ export default function CourierProfileScreen() {
                 )}
 
                 {rev.reviewText ? (
-                  <Text style={styles.reviewCommentText}>"{rev.reviewText}"</Text>
+                  <Text style={styles.reviewCommentText}>
+                    "{rev.reviewText}"
+                  </Text>
                 ) : null}
 
                 <Text style={styles.reviewDateText}>{rev.date}</Text>
@@ -671,7 +737,9 @@ export default function CourierProfileScreen() {
           <View style={styles.logoutLeft}>
             <LogOut size={20} color="#FF4D6D" style={{ marginRight: 12 }} />
             <Text style={styles.logoutText}>
-              {isLoggingOut ? "Déconnexion..." : "Se déconnecter de l'espace Livreur"}
+              {isLoggingOut
+                ? "Déconnexion..."
+                : "Se déconnecter de l'espace Livreur"}
             </Text>
           </View>
         </TouchableOpacity>
@@ -687,7 +755,9 @@ export default function CourierProfileScreen() {
         <View style={styles.editModalBackdrop}>
           <View style={styles.editModalContainer}>
             <View style={styles.editModalHeader}>
-              <Text style={styles.editModalTitle}>Modifier mes informations</Text>
+              <Text style={styles.editModalTitle}>
+                Modifier mes informations
+              </Text>
               <TouchableOpacity
                 onPress={() => setIsEditModalVisible(false)}
                 style={styles.closeModalBtn}
@@ -737,9 +807,14 @@ export default function CourierProfileScreen() {
                 placeholderTextColor="#7F77DD"
               />
 
-              <Text style={styles.inputLabel}>Présentation aux clients (Bio) :</Text>
+              <Text style={styles.inputLabel}>
+                Présentation aux clients (Bio) :
+              </Text>
               <TextInput
-                style={[styles.textInput, { height: 75, textAlignVertical: "top" }]}
+                style={[
+                  styles.textInput,
+                  { height: 75, textAlignVertical: "top" },
+                ]}
                 value={tempBio}
                 onChangeText={setTempBio}
                 placeholder="Quelques mots pour vous présenter..."

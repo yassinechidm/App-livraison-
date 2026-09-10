@@ -22,7 +22,6 @@ import {
     Modal,
     PanResponder,
     Platform,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
@@ -30,6 +29,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 let WebViewComponent: any = null;
 if (Platform.OS !== "web") {
@@ -851,7 +851,12 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
         {/* ── MODE 2: Pin Confirmation Card (Screenshot #15) ── */}
         {viewMode === "map" && !isSearchActive && (
-          <View style={styles.mapPinBottomContainer} pointerEvents="box-none">
+          <View
+            style={[
+              styles.mapPinBottomContainer,
+              { pointerEvents: "box-none" as const },
+            ]}
+          >
             <View
               style={[
                 styles.pinInstructionBox,
