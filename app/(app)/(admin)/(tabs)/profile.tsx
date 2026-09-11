@@ -5,12 +5,7 @@ import {
 } from "@/services/admin.service";
 import { authService } from "@/services/auth.service";
 import { User } from "@supabase/supabase-js";
-import {
-    LogOut,
-    ShieldCheck,
-    TrendingUp,
-    Users
-} from "lucide-react-native";
+import { LogOut, ShieldCheck, TrendingUp, Users } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Alert,

@@ -1,5 +1,6 @@
-import Colors from '@/constants/Colors';
+import React from 'react';
 import { Image, ImageStyle, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import Colors from '../../constants/Colors';
 
 interface LogoProps {
   size?: number;
@@ -36,8 +37,8 @@ export default function Logo({
         <Image
           source={
             variant === 'blue'
-              ? require('@/assets/images/quickly-logo-transparent.png')
-              : require('@/assets/images/quickly-logo-blue.png')
+              ? require('../../assets/images/quickly-logo-transparent.png')
+              : require('../../assets/images/quickly-logo-blue.png')
           }
           style={[
             {
@@ -52,14 +53,32 @@ export default function Logo({
       {showText && (
         <View style={styles.textContainer}>
           <View style={styles.textRow}>
-            <Text style={[styles.brandTitle, variant === 'white' && { color: Colors.white }]}>
+            <Text
+              style={[
+                styles.brandTitle,
+                variant === 'white' && { color: Colors.white },
+              ]}
+            >
               Quickly
             </Text>
-            <Text style={[styles.brandBadge, variant === 'white' && { backgroundColor: Colors.white, color: Colors.primary }]}>
+            <Text
+              style={[
+                styles.brandBadge,
+                variant === 'white' && {
+                  backgroundColor: Colors.white,
+                  color: Colors.primary,
+                },
+              ]}
+            >
               EXPRESS
             </Text>
           </View>
-          <Text style={[styles.brandSubtitle, variant === 'white' && { color: 'rgba(255,255,255,0.85)' }]}>
+          <Text
+            style={[
+              styles.brandSubtitle,
+              variant === 'white' && { color: 'rgba(255,255,255,0.85)' },
+            ]}
+          >
             LIVRAISON RAPIDE
           </Text>
         </View>
@@ -117,5 +136,6 @@ const styles = StyleSheet.create({
     marginTop: -1,
   },
 });
+
 
 

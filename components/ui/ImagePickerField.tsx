@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Colors from '@/constants/Colors';
+import Colors from '../../constants/Colors';
 
 const PRESET_FOOD_IMAGES = [
   {
@@ -303,3 +303,4 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
 });
+

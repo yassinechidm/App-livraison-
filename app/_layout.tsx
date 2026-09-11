@@ -1,12 +1,4 @@
-import { CustomAlertModal } from "@/components/ui/CustomAlertModal";
-import LoadingScreen from "@/components/ui/LoadingScreen";
-import { supabase } from "@/lib/supabase";
-import { alertService } from "@/services/alert.service";
-import { authService } from "@/services/auth.service";
-import { LanguageProvider } from "@/src/context/LanguageContext";
-import { paperTheme } from "@/src/theme";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { Session } from "@supabase/supabase-js";
 import { useFonts } from "expo-font";
 import { Slot, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -17,6 +9,12 @@ import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import Toast from "react-native-toast-message";
+import { CustomAlertModal } from "../components/ui/CustomAlertModal";
+import LoadingScreen from "../components/ui/LoadingScreen";
+import { alertService } from "../services/alert.service";
+import { authService } from "../services/auth.service";
+import { LanguageProvider } from "../src/context/LanguageContext";
+import { paperTheme } from "../src/theme";
 
 // Wire all app pop-up messages to the branded login-styled alert modal
 Alert.alert = alertService.alert.bind(alertService) as any;
@@ -69,36 +67,20 @@ export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const [session, setSession] = useState<Session | any | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [authState, setAuthState] = useState(authService.getAuthState());
   const segments = useSegments();
   const router = useRouter();
 
-  // Listen for auth state changes
+  // Initialize and listen to authoritative auth state
   useEffect(() => {
-    // Get initial session
-    authService.getSession().then((currentSession: any) => {
-      setSession(currentSession);
-      setIsInitialized(true);
-    });
+    authService.initialize();
 
-    // Listen for custom auth service changes (demo + real)
-    const unsubscribeAuth = authService.onAuthStateChange((newSession) => {
-      setSession(newSession);
-    });
-
-    // Listen for Supabase auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      if (newSession) {
-        setSession(newSession);
-      }
+    const unsubscribe = authService.onAuthStateChange((state) => {
+      setAuthState(state);
     });
 
     return () => {
-      unsubscribeAuth();
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
@@ -107,24 +89,30 @@ export default function RootLayout() {
     if (fontError) throw fontError;
   }, [fontError]);
 
-  // Hide splash screen when fonts are loaded
+  // Hide splash screen when fonts are loaded and auth is initialized
   useEffect(() => {
-    if (fontsLoaded && isInitialized) {
+    if (fontsLoaded && authState.isInitialized) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, isInitialized]);
+  }, [fontsLoaded, authState.isInitialized]);
 
-  // Auth guard — redirect based on session state
+  // Auth guard — deterministic redirect based on auth status and role
   useEffect(() => {
-    if (!isInitialized || !fontsLoaded) return;
+    if (!authState.isInitialized || !fontsLoaded) return;
+    if (authState.status === "INITIALIZING") return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const inCallbackRoute = segments[0] === "auth";
 
-    if (!session && !inAuthGroup) {
-      // Not signed in — redirect to login
+    if (inCallbackRoute) {
+      // Allow callback screen to handle OAuth processing
+      return;
+    }
+
+    if (authState.status === "UNAUTHENTICATED" && !inAuthGroup) {
       router.replace("/(auth)/login");
-    } else if (session && inAuthGroup) {
-      const role = authService.getUserRole()?.toLowerCase();
+    } else if (authState.status === "AUTHENTICATED" && inAuthGroup) {
+      const role = authState.role || authService.getUserRole();
       if (role === "admin") {
         router.replace("/(app)/(admin)/(tabs)" as any);
       } else if (role === "delivery") {
@@ -133,10 +121,20 @@ export default function RootLayout() {
         router.replace("/(app)/(client)/(tabs)" as any);
       }
     }
-  }, [session, segments, isInitialized, fontsLoaded]);
+  }, [
+    authState.status,
+    authState.role,
+    authState.isInitialized,
+    segments,
+    fontsLoaded,
+  ]);
 
   // Show loading while initializing
-  if (!fontsLoaded || !isInitialized) {
+  if (
+    !fontsLoaded ||
+    !authState.isInitialized ||
+    authState.status === "INITIALIZING"
+  ) {
     return <LoadingScreen />;
   }
 

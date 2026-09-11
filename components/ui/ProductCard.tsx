@@ -1,5 +1,3 @@
-import Colors from "@/constants/Colors";
-import { Product } from "@/types/product.types";
 import {
     Platform,
     StyleSheet,
@@ -7,6 +5,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import Colors from "../../constants/Colors";
+import { Product } from "../../types/product.types";
 import QuantitySelector from "./QuantitySelector";
 
 interface ProductCardProps {

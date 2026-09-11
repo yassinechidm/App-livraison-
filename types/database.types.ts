@@ -1,7 +1,4 @@
-import {
-    OrderStatus,
-    PaymentMethodType
-} from "./order.types";
+import { OrderStatus, PaymentMethodType } from "./order.types";
 import { UserRole } from "./user.types";
 
 export interface Database {
@@ -10,7 +7,7 @@ export interface Database {
       profiles: {
         Row: {
           id: string;
-          email: string;
+          email: string | null;
           full_name: string | null;
           phone: string | null;
           role: UserRole;

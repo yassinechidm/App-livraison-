@@ -1,4 +1,4 @@
-import { colors } from "@/src/theme";
+import { colors } from "../src/theme";
 
 // Quickly Livraison Design System Palette
 const Colors = {

@@ -1,6 +1,3 @@
-import Colors from "@/constants/Colors";
-import { favoritesService } from "@/services/favorites.service";
-import { Restaurant } from "@/types/restaurant.types";
 import { Clock3, Heart, MapPin, Star } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
@@ -11,6 +8,9 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import Colors from "../../constants/Colors";
+import { favoritesService } from "../../services/favorites.service";
+import { Restaurant } from "../../types/restaurant.types";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;

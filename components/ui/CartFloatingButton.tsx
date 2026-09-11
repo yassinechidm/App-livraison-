@@ -1,7 +1,3 @@
-import Colors from "@/constants/Colors";
-import { cartService } from "@/services/cart.service";
-import { useLanguage } from "@/src/context/LanguageContext";
-import { CartState } from "@/types/cart.types";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +8,10 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Colors from "../../constants/Colors";
+import { cartService } from "../../services/cart.service";
+import { useLanguage } from "../../src/context/LanguageContext";
+import { CartState } from "../../types/cart.types";
 
 interface CartFloatingButtonProps {
   bottomOffset?: number;

@@ -1,7 +1,7 @@
-import Colors from '@/constants/Colors';
-import { MenuItem } from '@/types/restaurant.types';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Colors from '../../constants/Colors';
+import { MenuItem } from '../../types/restaurant.types';
 import QuantitySelector from './QuantitySelector';
 
 interface MenuItemRowProps {
@@ -211,4 +211,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+
 

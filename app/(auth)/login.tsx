@@ -1,7 +1,3 @@
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import Colors from "@/constants/Colors";
-import { authService } from "@/services/auth.service";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -17,6 +13,10 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Colors from "../../constants/Colors";
+import { authService } from "../../services/auth.service";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -25,13 +25,17 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showEmailForm, setShowEmailForm] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSms, setIsLoadingSms] = useState(false);
+  const [isLoadingWhatsApp, setIsLoadingWhatsApp] = useState(false);
+  const [isLoadingSocial, setIsLoadingSocial] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
     phone?: string;
   }>({});
   const router = useRouter();
+
+  const isBusy = isLoadingSms || isLoadingWhatsApp || isLoadingSocial;
 
   function validateEmail(): boolean {
     const newErrors: { email?: string; password?: string } = {};
@@ -47,13 +51,24 @@ export default function LoginScreen() {
     return Object.keys(newErrors).length === 0;
   }
 
-  function validatePhone(): boolean {
-    const newErrors: { phone?: string } = {};
-    if (!phone.trim()) {
-      newErrors.phone = "Le numéro est requis";
+  function validatePhone(): string | null {
+    const clean = phone.trim();
+    if (!clean) {
+      Alert.alert(
+        "Numéro requis",
+        "Veuillez saisir votre numéro de téléphone.",
+      );
+      return null;
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const normalized = authService.normalizePhoneNumber(clean);
+    if (!normalized) {
+      Alert.alert(
+        "Numéro invalide",
+        "Veuillez saisir un numéro de téléphone mobile valide (ex: 6 00 00 00 00).",
+      );
+      return null;
+    }
+    return normalized;
   }
 
   function redirectByRole() {
@@ -63,45 +78,79 @@ export default function LoginScreen() {
     } else if (role === "delivery") {
       router.replace("/(app)/(delivery)/(tabs)" as any);
     } else {
-      router.replace("/(app)/(client)/(tabs)" as any);
     }
   }
 
-  async function handlePhoneLogin() {
-    if (!validatePhone()) return;
-    setIsLoading(true);
+  async function handleSmsLogin() {
+    const cleanPhone = validatePhone();
+    if (!cleanPhone) return;
+
+    setIsLoadingSms(true);
     try {
-      await authService.signInWithPhone(phone);
-      redirectByRole();
-    } catch {
-      Alert.alert("Erreur", "Impossible de se connecter");
+      await authService.signInWithPhone(cleanPhone);
+      router.push({
+        pathname: "/(auth)/otp" as any,
+        params: { phone: cleanPhone, isWhatsApp: "false" },
+      });
+    } catch (err: any) {
+      Alert.alert(
+        "Envoi SMS",
+        err?.message || "Impossible d'envoyer le code SMS. Veuillez réessayer.",
+      );
     } finally {
-      setIsLoading(false);
+      setIsLoadingSms(false);
+    }
+  }
+
+  async function handleWhatsAppLogin() {
+    const cleanPhone = validatePhone();
+    if (!cleanPhone) return;
+
+    setIsLoadingWhatsApp(true);
+    try {
+      await authService.requestWhatsAppOtp(cleanPhone);
+      router.push({
+        pathname: "/(auth)/otp" as any,
+        params: { phone: cleanPhone, isWhatsApp: "true" },
+      });
+    } catch (err: any) {
+      Alert.alert(
+        "WhatsApp",
+        err?.message ||
+          "La vérification WhatsApp est temporairement indisponible. Veuillez essayer par SMS.",
+      );
+    } finally {
+      setIsLoadingWhatsApp(false);
     }
   }
 
   async function handleSocialLogin(provider: "google" | "apple") {
-    setIsLoading(true);
+    setIsLoadingSocial(true);
     try {
-      await authService.signInWithSocial(provider);
-      redirectByRole();
-    } catch {
-      Alert.alert("Erreur", "Connexion annulée");
+      const session = await authService.signInWithSocial(provider);
+      if (session) {
+        redirectByRole();
+      }
+    } catch (err: any) {
+      Alert.alert(
+        "Connexion Google",
+        err?.message || "Impossible de compléter la connexion Google.",
+      );
     } finally {
-      setIsLoading(false);
+      setIsLoadingSocial(false);
     }
   }
 
   async function handleEmailLogin() {
     if (!validateEmail()) return;
-    setIsLoading(true);
+    setIsLoadingSocial(true);
     try {
       await authService.signIn({ email: email.trim(), password });
       redirectByRole();
     } catch {
       Alert.alert("Erreur de connexion", "Identifiants invalides");
     } finally {
-      setIsLoading(false);
+      setIsLoadingSocial(false);
     }
   }
 
@@ -122,7 +171,7 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Header Background (sky blue header with brand logo) */}
+        {/* Top Header Background (purple header with brand logo) */}
         <View style={styles.topHeader}>
           {/* Logo Brand Title */}
           <View style={styles.brandContainer}>
@@ -135,16 +184,16 @@ export default function LoginScreen() {
 
         {/* White bottom authentication sheet */}
         <View style={styles.sheet}>
-          <Text style={styles.welcomeText}>Welcome</Text>
+          <Text style={styles.welcomeText}>Bienvenue</Text>
           <Text style={styles.subtitleText}>
-            Let's start with your phone number
+            Commençons avec votre numéro de téléphone
           </Text>
 
           {/* Split Phone Fields */}
           <View style={styles.phoneInputRow}>
             {/* Prefix Selector */}
             <View style={styles.prefixCard}>
-              <Text style={styles.prefixLabel}>Prefix</Text>
+              <Text style={styles.prefixLabel}>Préfixe</Text>
               <View style={styles.prefixContent}>
                 <Text style={styles.flagText}>🇲🇦</Text>
                 <Text style={styles.prefixNumber}>+212</Text>
@@ -154,7 +203,7 @@ export default function LoginScreen() {
 
             {/* Phone Input Box */}
             <View style={styles.phoneInputBox}>
-              <Text style={styles.phoneLabel}>Phone number</Text>
+              <Text style={styles.phoneLabel}>Numéro de téléphone</Text>
               <TextInput
                 style={styles.phoneTextInput}
                 placeholder="6 00 00 00 00"
@@ -162,31 +211,54 @@ export default function LoginScreen() {
                 keyboardType="phone-pad"
                 value={phone}
                 onChangeText={setPhone}
+                editable={!isBusy}
               />
             </View>
           </View>
 
-          {/* Primary Blue CTA */}
+          {/* Separate Phone Actions */}
+          {/* Action 1: Continue with SMS */}
           <TouchableOpacity
-            style={[styles.continueButton, isLoading && styles.buttonDisabled]}
-            onPress={handlePhoneLogin}
-            activeOpacity={0.8}
-            disabled={isLoading}
+            style={[styles.smsButton, isBusy && styles.buttonDisabled]}
+            onPress={handleSmsLogin}
+            activeOpacity={0.85}
+            disabled={isBusy}
           >
-            <Text style={styles.continueButtonText}>Continue</Text>
+            <Text style={styles.smsButtonText}>
+              {isLoadingSms ? "Envoi du SMS..." : "Continuer par SMS"}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Action 2: Continue with WhatsApp */}
+          <TouchableOpacity
+            style={[styles.whatsAppButton, isBusy && styles.buttonDisabled]}
+            onPress={handleWhatsAppLogin}
+            activeOpacity={0.85}
+            disabled={isBusy}
+          >
+            <View style={styles.whatsAppContentRow}>
+              <Text style={styles.whatsAppIconText}>💬</Text>
+              <Text style={styles.whatsAppButtonText}>
+                {isLoadingWhatsApp
+                  ? "Envoi du code..."
+                  : "Continuer avec WhatsApp"}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           {/* Or With Divider */}
           <View style={styles.orDividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.orText}>or with</Text>
+            <Text style={styles.orText}>ou avec</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Social Logins */}
+          {/* Social Logins (Google) */}
           <TouchableOpacity
-            style={styles.socialPill}
+            style={[styles.socialPill, isBusy && styles.buttonDisabled]}
             onPress={() => handleSocialLogin("google")}
+            disabled={isBusy}
+            activeOpacity={0.85}
           >
             <Image
               source={require("../../assets/images/google_custom.png")}
@@ -203,7 +275,7 @@ export default function LoginScreen() {
             activeOpacity={0.7}
           >
             <Text style={styles.otherMethodsText}>
-              Other methods {showEmailForm ? "∧" : "∨"}
+              Autres méthodes {showEmailForm ? "∧" : "∨"}
             </Text>
           </TouchableOpacity>
 
@@ -220,7 +292,7 @@ export default function LoginScreen() {
               />
 
               <Input
-                label="Password"
+                label="Mot de passe"
                 placeholder="Saisissez votre mot de passe"
                 value={password}
                 onChangeText={setPassword}
@@ -229,9 +301,9 @@ export default function LoginScreen() {
               />
 
               <Button
-                title="Log In"
+                title="Se connecter"
                 onPress={handleEmailLogin}
-                isLoading={isLoading}
+                isLoading={isLoadingSocial}
                 variant="primary"
                 style={{ backgroundColor: Colors.cta, borderRadius: 25 }}
               />
@@ -251,15 +323,17 @@ export default function LoginScreen() {
 
           {/* Legals Footer */}
           <Text style={styles.footerText}>
-            By continuing, you automatically accept our{" "}
+            En continuant, vous acceptez nos{" "}
             <Link href="/(auth)/legal-terms" asChild>
-              <Text style={styles.footerLink}>Terms & Conditions</Text>
+              <Text style={styles.footerLink}>Conditions Générales</Text>
             </Link>
-            ,{" "}
+            , notre{" "}
             <Link href="/(auth)/legal-terms" asChild>
-              <Text style={styles.footerLink}>Privacy Policy</Text>
+              <Text style={styles.footerLink}>
+                Politique de Confidentialité
+              </Text>
             </Link>{" "}
-            and Cookies policy.
+            et l'utilisation des cookies.
           </Text>
         </View>
       </ScrollView>
@@ -416,7 +490,7 @@ const styles = StyleSheet.create({
     height: 22,
     width: "100%",
   },
-  continueButton: {
+  smsButton: {
     backgroundColor: Colors.cta,
     borderRadius: 28,
     height: 50,
@@ -425,18 +499,48 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: Colors.cta,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 3,
-    marginBottom: 16,
+    marginBottom: 10,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  continueButtonText: {
+  smsButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "800",
+  },
+  whatsAppButton: {
+    backgroundColor: "#F0FDF4",
+    borderWidth: 1.5,
+    borderColor: "#25D366",
+    borderRadius: 28,
+    height: 50,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#25D366",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 16,
+  },
+  whatsAppContentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  whatsAppIconText: {
+    fontSize: 18,
+  },
+  whatsAppButtonText: {
+    color: "#15803D",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   orDividerRow: {
     flexDirection: "row",

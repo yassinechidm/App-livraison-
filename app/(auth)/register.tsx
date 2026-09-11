@@ -1,19 +1,19 @@
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import Logo from "@/components/ui/Logo";
-import Colors from "@/constants/Colors";
-import { authService } from "@/services/auth.service";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Logo from "../../components/ui/Logo";
+import Colors from "../../constants/Colors";
+import { authService } from "../../services/auth.service";
 
 export default function RegisterScreen() {
   const [fullName, setFullName] = useState("");

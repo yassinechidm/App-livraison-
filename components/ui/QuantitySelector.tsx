@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Colors from '@/constants/Colors';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Colors from '../../constants/Colors';
 
 interface QuantitySelectorProps {
   quantity: number;
@@ -98,3 +98,4 @@ const styles = StyleSheet.create({
     minWidth: 14,
   },
 });
+

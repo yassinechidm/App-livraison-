@@ -1,5 +1,5 @@
-import { authService } from "@/services/auth.service";
 import { Redirect } from "expo-router";
+import { authService } from "../services/auth.service";
 
 export default function RootIndex() {
   const role = authService.getUserRole()?.toLowerCase();

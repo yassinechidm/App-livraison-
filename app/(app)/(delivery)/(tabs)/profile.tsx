@@ -15,7 +15,7 @@ import {
     ThumbsUp,
     Trash2,
     User as UserIcon,
-    X
+    X,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {

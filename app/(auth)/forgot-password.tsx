@@ -1,7 +1,3 @@
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import Colors from "@/constants/Colors";
-import { authService } from "@/services/auth.service";
 import { Link } from "expo-router";
 import { useState } from "react";
 import {
@@ -13,6 +9,10 @@ import {
     Text,
     View,
 } from "react-native";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Colors from "../../constants/Colors";
+import { authService } from "../../services/auth.service";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");

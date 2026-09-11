@@ -1,34 +1,60 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Colors from "@/constants/Colors";
-import { authService } from "@/services/auth.service";
+import { useEffect, useState } from "react";
+import {
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import Colors from "../../constants/Colors";
+import { authService } from "../../services/auth.service";
 
 export default function OtpScreen() {
-  const { email, phone } = useLocalSearchParams<{ email?: string; phone?: string }>();
+  const { email, phone, isWhatsApp } = useLocalSearchParams<{
+    email?: string;
+    phone?: string;
+    isWhatsApp?: string;
+  }>();
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [cooldown, setCooldown] = useState(60);
   const router = useRouter();
-  const target = email || phone || "";
+  const target = phone || email || "";
+
+  useEffect(() => {
+    let interval: any;
+    if (cooldown > 0) {
+      interval = setInterval(() => {
+        setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [cooldown]);
 
   async function handleVerify() {
     if (!token.trim()) {
-      Alert.alert("Code manquant", "Veuillez saisir ou coller votre code de confirmation.");
+      Alert.alert(
+        "Code manquant",
+        "Veuillez saisir votre code de confirmation à 6 chiffres.",
+      );
       return;
     }
 
     setIsLoading(true);
     try {
-      await authService.verifyOtp(target, token.trim());
+      if (isWhatsApp === "true") {
+        await authService.verifyWhatsAppOtp(target, token.trim());
+      } else {
+        await authService.verifyOtp(target, token.trim(), "sms");
+      }
+
       const role = authService.getUserRole()?.toLowerCase();
       if (role === "admin") {
         router.replace("/(app)/(admin)/(tabs)" as any);
@@ -38,9 +64,32 @@ export default function OtpScreen() {
         router.replace("/(app)/(client)/(tabs)" as any);
       }
     } catch (err: any) {
-      Alert.alert("Erreur", err?.message || "Code incorrect ou expiré.");
+      Alert.alert(
+        "Vérification échouée",
+        err?.message || "Code incorrect ou expiré.",
+      );
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    if (cooldown > 0 || isResending) return;
+    setIsResending(true);
+    try {
+      if (isWhatsApp === "true") {
+        const res = await authService.requestWhatsAppOtp(target);
+        setCooldown(res.cooldownSeconds || 60);
+        Alert.alert("Code renvoyé", "Un nouveau code WhatsApp a été envoyé.");
+      } else {
+        await authService.signInWithPhone(target);
+        setCooldown(60);
+        Alert.alert("Code renvoyé", "Un nouveau code SMS a été envoyé.");
+      }
+    } catch (err: any) {
+      Alert.alert("Erreur", err?.message || "Impossible de renvoyer le code.");
+    } finally {
+      setIsResending(false);
     }
   }
 
@@ -52,14 +101,19 @@ export default function OtpScreen() {
       <View style={styles.card}>
         <Text style={styles.title}>Vérification du compte</Text>
         <Text style={styles.subtitle}>
-          Saisissez ou collez le code de confirmation envoyé à{"\n"}
-          <Text style={styles.targetText}>{target || "votre adresse"}</Text>
+          {isWhatsApp === "true"
+            ? "Saisissez le code à 6 chiffres envoyé sur votre WhatsApp au"
+            : "Saisissez le code à 6 chiffres envoyé par SMS au"}
+          {"\n"}
+          <Text style={styles.targetText}>{target || "votre numéro"}</Text>
         </Text>
 
         <TextInput
           style={styles.otpInput}
-          placeholder="Code / Jeton de confirmation"
+          placeholder="000000"
           placeholderTextColor="#A5A0DF"
+          keyboardType="number-pad"
+          maxLength={6}
           autoCapitalize="none"
           autoCorrect={false}
           value={token}
@@ -75,6 +129,27 @@ export default function OtpScreen() {
         >
           <Text style={styles.verifyBtnText}>
             {isLoading ? "Vérification..." : "Confirmer et continuer"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Resend with cooldown */}
+        <TouchableOpacity
+          style={styles.resendBtn}
+          onPress={handleResend}
+          disabled={cooldown > 0 || isResending}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.resendBtnText,
+              cooldown > 0 && styles.resendBtnDisabled,
+            ]}
+          >
+            {cooldown > 0
+              ? `Renvoyer le code (${cooldown}s)`
+              : isResending
+                ? "Envoi en cours..."
+                : "Renvoyer le code"}
           </Text>
         </TouchableOpacity>
 
@@ -159,6 +234,18 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "800",
+  },
+  resendBtn: {
+    paddingVertical: 10,
+    marginBottom: 8,
+  },
+  resendBtnText: {
+    color: Colors.cta,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  resendBtnDisabled: {
+    color: "#A5A0DF",
   },
   backBtn: {
     paddingVertical: 8,

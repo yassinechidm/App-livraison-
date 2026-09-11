@@ -1,5 +1,3 @@
-import Colors from "@/constants/Colors";
-import { ORDER_STATUS_CONFIG, OrderStatus } from "@/types/order.types";
 import {
     Bike,
     Check,
@@ -10,6 +8,8 @@ import {
     XCircle,
 } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
+import Colors from "../../constants/Colors";
+import { ORDER_STATUS_CONFIG, OrderStatus } from "../../types/order.types";
 
 interface OrderTimelineProps {
   currentStatus: OrderStatus;

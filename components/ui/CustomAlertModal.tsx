@@ -1,9 +1,3 @@
-import Colors from "@/constants/Colors";
-import {
-    AlertButton,
-    AlertOptions,
-    alertService,
-} from "@/services/alert.service";
 import React, { useEffect, useState } from "react";
 import {
     Dimensions,
@@ -14,6 +8,12 @@ import {
     TouchableWithoutFeedback,
     View,
 } from "react-native";
+import Colors from "../../constants/Colors";
+import {
+    AlertButton,
+    AlertOptions,
+    alertService,
+} from "../../services/alert.service";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
