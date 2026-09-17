@@ -1,3 +1,4 @@
+import { sanitizeEmail, sanitizePhone } from "@/lib/sanitize";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -52,7 +53,7 @@ export default function LoginScreen() {
   }
 
   function validatePhone(): string | null {
-    const clean = phone.trim();
+    const clean = sanitizePhone(phone);
     if (!clean) {
       Alert.alert(
         "Numéro requis",
@@ -145,10 +146,11 @@ export default function LoginScreen() {
     if (!validateEmail()) return;
     setIsLoadingSocial(true);
     try {
-      await authService.signIn({ email: email.trim(), password });
+      const cleanEmail = sanitizeEmail(email);
+      await authService.signIn({ email: cleanEmail, password });
       redirectByRole();
-    } catch {
-      Alert.alert("Erreur de connexion", "Identifiants invalides");
+    } catch (err: any) {
+      Alert.alert("Erreur de connexion", err?.message || "Identifiants invalides");
     } finally {
       setIsLoadingSocial(false);
     }

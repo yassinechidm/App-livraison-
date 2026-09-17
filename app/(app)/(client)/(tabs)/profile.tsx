@@ -1,4 +1,5 @@
 import Colors from "@/constants/Colors";
+import { sanitizeText } from "@/lib/sanitize";
 import { authService } from "@/services/auth.service";
 import { LANGUAGE_OPTIONS, useLanguage } from "@/src/context/LanguageContext";
 import { User } from "@supabase/supabase-js";
@@ -652,7 +653,8 @@ export default function ClientProfileScreen() {
             <TouchableOpacity
               style={styles.darkGreenPillBtn}
               onPress={() => {
-                if (!promoCodeInput.trim()) {
+                const cleanCode = sanitizeText(promoCodeInput, { maxLength: 30 }).toUpperCase();
+                if (!cleanCode) {
                   Alert.alert(
                     "Code promo",
                     "Veuillez saisir un code promotionnel.",
@@ -661,7 +663,7 @@ export default function ClientProfileScreen() {
                 }
                 Alert.alert(
                   "Code Appliqué ! 🎉",
-                  `Le code ${promoCodeInput.toUpperCase()} vous offre -20% sur votre prochaine commande.`,
+                  `Le code ${cleanCode} vous offre -20% sur votre prochaine commande.`,
                 );
                 setIsPromoModalVisible(false);
                 setPromoCodeInput("");

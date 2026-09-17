@@ -47,6 +47,7 @@ export default function AdminProductsScreen() {
   const [showAddDishModal, setShowAddDishModal] = useState(false);
   const [showEditDishModal, setShowEditDishModal] = useState(false);
   const [showAddMarketModal, setShowAddMarketModal] = useState(false);
+  const [showEditMarketModal, setShowEditMarketModal] = useState(false);
 
   // Form State: Restaurant
   const [editingRestoId, setEditingRestoId] = useState<string | null>(null);
@@ -68,6 +69,7 @@ export default function AdminProductsScreen() {
   const [dishIsPopular, setDishIsPopular] = useState(true);
 
   // Form State: Market Product
+  const [editingMarketId, setEditingMarketId] = useState<string | null>(null);
   const [marketName, setMarketName] = useState("");
   const [marketDescription, setMarketDescription] = useState("");
   const [marketPrice, setMarketPrice] = useState("");
@@ -77,10 +79,16 @@ export default function AdminProductsScreen() {
 
   useEffect(() => {
     loadData();
-    const unsub = restaurantService.subscribe(() => {
+    const unsubResto = restaurantService.subscribe(() => {
       loadData();
     });
-    return unsub;
+    const unsubProd = productService.subscribe(() => {
+      loadData();
+    });
+    return () => {
+      unsubResto();
+      unsubProd();
+    };
   }, [searchQuery]);
 
   async function loadData() {
@@ -393,6 +401,52 @@ export default function AdminProductsScreen() {
       await loadData();
     } catch {
       Alert.alert("Erreur", "Impossible de modifier la disponibilité.");
+    }
+  }
+
+  function openEditMarketModal(product: Product) {
+    setEditingMarketId(product.id);
+    setMarketName(product.name);
+    setMarketDescription(product.description || "");
+    setMarketPrice(product.price.toString());
+    setMarketStock((product.stock ?? 50).toString());
+    setMarketCategoryId(product.category_id);
+    setShowEditMarketModal(true);
+  }
+
+  async function handleSaveEditMarketProduct() {
+    if (!editingMarketId) return;
+    if (
+      !marketName.trim() ||
+      !marketPrice.trim() ||
+      isNaN(Number(marketPrice))
+    ) {
+      Alert.alert("Erreur", "Veuillez renseigner un nom et un prix valide.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await productService.updateProduct({
+        id: editingMarketId,
+        name: marketName.trim(),
+        description: marketDescription.trim(),
+        price: Number(marketPrice),
+        stock: Number(marketStock) || 50,
+        category_id: marketCategoryId || categories[0]?.id || "cat-market",
+      });
+
+      setShowEditMarketModal(false);
+      setEditingMarketId(null);
+      setMarketName("");
+      setMarketDescription("");
+      setMarketPrice("");
+      await loadData();
+      Alert.alert("Succès", "Le produit a été mis à jour et synchronisé !");
+    } catch {
+      Alert.alert("Erreur", "Impossible de modifier le produit.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -863,6 +917,14 @@ export default function AdminProductsScreen() {
                           product.is_available ? Colors.secondary : "#94A3B8"
                         }
                       />
+                      <TouchableOpacity
+                        style={[styles.editBtn, { marginTop: 6 }]}
+                        onPress={() => openEditMarketModal(product)}
+                        activeOpacity={0.7}
+                        accessibilityLabel={`Modifier le produit ${product.name}`}
+                      >
+                        <Text style={styles.editBtnText}>✏️</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </Card>
@@ -1209,6 +1271,67 @@ export default function AdminProductsScreen() {
               <Button
                 title="Enregistrer le produit"
                 onPress={handleCreateMarketProduct}
+                isLoading={isSubmitting}
+                style={{ marginTop: 14, marginBottom: 20 }}
+              />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ========================================================= */}
+      {/* MODAL: MODIFIER PRODUIT SUPERMARCHÉ                       */}
+      {/* ========================================================= */}
+      <Modal visible={showEditMarketModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>✏️ Modifier Produit</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowEditMarketModal(false);
+                  setEditingMarketId(null);
+                }}
+              >
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Input
+                label="Nom de l'article"
+                placeholder="Ex: Eau Minérale Ain Ifrane"
+                value={marketName}
+                onChangeText={setMarketName}
+              />
+
+              <Input
+                label="Prix (en DH)"
+                placeholder="Ex: 32.00"
+                value={marketPrice}
+                onChangeText={setMarketPrice}
+                keyboardType="numeric"
+              />
+
+              <Input
+                label="Stock"
+                placeholder="Ex: 50"
+                value={marketStock}
+                onChangeText={setMarketStock}
+                keyboardType="numeric"
+              />
+
+              <Input
+                label="Description"
+                placeholder="Détails du produit..."
+                value={marketDescription}
+                onChangeText={setMarketDescription}
+                multiline
+              />
+
+              <Button
+                title="Enregistrer les modifications"
+                onPress={handleSaveEditMarketProduct}
                 isLoading={isSubmitting}
                 style={{ marginTop: 14, marginBottom: 20 }}
               />

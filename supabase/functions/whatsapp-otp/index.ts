@@ -4,9 +4,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "https://srgzjplfzunkgjqmgtub.supabase.co";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "sb_publishable_ihTjncryndmrkOToVzhJIQ_8v-089sF";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const OPENWA_BASE_URL = Deno.env.get("OPENWA_BASE_URL") ?? "";
 const OPENWA_API_KEY = Deno.env.get("OPENWA_API_KEY") ?? "";
 const OPENWA_SESSION_ID = Deno.env.get("OPENWA_SESSION_ID") ?? "default";
@@ -66,6 +66,50 @@ async function hashOtp(otp: string, salt: string): Promise<string> {
     .join("");
 }
 
+// Client IP resolver
+function getClientIp(req: Request): string {
+  const cfConnectingIp = req.headers.get("cf-connecting-ip");
+  if (cfConnectingIp) return cfConnectingIp.trim();
+  const xRealIp = req.headers.get("x-real-ip");
+  if (xRealIp) return xRealIp.trim();
+  const xForwardedFor = req.headers.get("x-forwarded-for");
+  if (xForwardedFor) return xForwardedFor.split(",")[0].trim();
+  return "unknown";
+}
+
+// In-memory sliding window rate limiter for Edge Function
+interface EdgeRateRecord {
+  timestamps: number[];
+}
+const ipRateMap = new Map<string, EdgeRateRecord>();
+const phoneVerifyRateMap = new Map<string, EdgeRateRecord>();
+
+function checkEdgeRateLimit(
+  map: Map<string, EdgeRateRecord>,
+  key: string,
+  limit: number,
+  windowMs: number
+): { allowed: boolean; remaining: number; resetSec: number } {
+  const now = Date.now();
+  const record = map.get(key) || { timestamps: [] };
+  // Retain only timestamps within the sliding window
+  record.timestamps = record.timestamps.filter((ts) => now - ts < windowMs);
+
+  if (record.timestamps.length >= limit) {
+    const oldest = record.timestamps[0] || now;
+    const resetSec = Math.max(1, Math.ceil((windowMs - (now - oldest)) / 1000));
+    return { allowed: false, remaining: 0, resetSec };
+  }
+
+  record.timestamps.push(now);
+  map.set(key, record);
+  return {
+    allowed: true,
+    remaining: Math.max(0, limit - record.timestamps.length),
+    resetSec: Math.ceil(windowMs / 1000),
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -86,21 +130,46 @@ serve(async (req) => {
     });
 
     const body = await req.json().catch(() => ({}));
-    const { action, phone, otp } = body;
+    const rawAction = typeof body.action === "string" ? body.action.trim().toLowerCase() : "";
+    const rawPhone = typeof body.phone === "string" ? body.phone.trim() : "";
+    const rawOtp = typeof body.otp === "string" ? body.otp.replace(/\D/g, "").slice(0, 6) : "";
 
-    // 2. Strict phone validation
-    const normalized = validateAndNormalizePhone(phone);
+    // 2. Global IP Rate Limiting (15 req/min per IP)
+    const clientIp = getClientIp(req);
+    const ipLimit = checkEdgeRateLimit(ipRateMap, clientIp, 15, 60 * 1000);
+    const rateHeaders = {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": "15",
+      "X-RateLimit-Remaining": String(ipLimit.remaining),
+      "X-RateLimit-Reset": String(ipLimit.resetSec),
+    };
+
+    if (!ipLimit.allowed) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Trop de requêtes depuis votre adresse IP. Veuillez patienter ${ipLimit.resetSec}s avant de réessayer.`,
+        }),
+        { status: 429, headers: rateHeaders }
+      );
+    }
+
+    // 3. Strict phone validation & sanitization
+    const normalized = validateAndNormalizePhone(rawPhone);
     if (!normalized) {
       return new Response(
         JSON.stringify({
           success: false,
           error: "Numéro de téléphone invalide. Veuillez entrer un numéro mobile valide (ex: 06 12 34 56 78).",
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: rateHeaders }
       );
     }
 
     const { e164, chatId } = normalized;
+    const action = rawAction;
+    const otp = rawOtp;
 
     // ==========================================
     // ACTION 1: REQUEST OTP
@@ -241,10 +310,22 @@ serve(async (req) => {
     // ACTION 2: VERIFY OTP
     // ==========================================
     if (action === "verify-otp") {
+      // Rate limit verification attempts per phone (max 5 attempts per 15 minutes)
+      const verifyLimit = checkEdgeRateLimit(phoneVerifyRateMap, e164, 5, 15 * 60 * 1000);
+      if (!verifyLimit.allowed) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Trop de tentatives de vérification pour ce numéro. Veuillez patienter ${verifyLimit.resetSec}s avant de réessayer.`,
+          }),
+          { status: 429, headers: rateHeaders }
+        );
+      }
+
       if (!otp || typeof otp !== "string" || otp.trim().length !== 6) {
         return new Response(
           JSON.stringify({ success: false, error: "Veuillez saisir un code valide à 6 chiffres." }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: rateHeaders }
         );
       }
 

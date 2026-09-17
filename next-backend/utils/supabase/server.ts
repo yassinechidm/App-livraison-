@@ -2,8 +2,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-const SUPABASE_URL = "https://srgzjplfzunkgjqmgtub.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_ihTjncryndmrkOToVzhJIQ_8v-089sF";
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  "https://srgzjplfzunkgjqmgtub.supabase.co";
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  "sb_publishable_ihTjncryndmrkOToVzhJIQ_8v-089sF";
 
 export async function createClient() {
   const cookieStore = await cookies();

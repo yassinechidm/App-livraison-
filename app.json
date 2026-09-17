@@ -60,7 +60,9 @@
         {
           "androidGoogleMapsApiKey": "AIzaSyDWlDCjLf_BL85fhXhdLHOqOvgVKSjVbbw"
         }
-      ]
+      ],
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

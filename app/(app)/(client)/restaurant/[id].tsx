@@ -229,7 +229,13 @@ export default function RestaurantDetailScreen() {
 
           <View style={styles.coverHeaderBar}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/(app)/(client)/restaurants" as any);
+                }
+              }}
               style={styles.headerCircleBtn}
               activeOpacity={0.8}
             >

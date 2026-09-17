@@ -295,18 +295,26 @@ export const HomeScreen: React.FC = () => {
   const [isSubmittingPackage, setIsSubmittingPackage] = useState(false);
 
   useEffect(() => {
-    restaurantService.getRestaurants().then((restos) => {
-      if (restos && restos.length > 0) {
-        setOpenStoresCount(restos.length);
-      }
-    });
+    const refreshStores = () => {
+      restaurantService.getRestaurants().then((restos) => {
+        if (restos && restos.length > 0) {
+          setOpenStoresCount(restos.length);
+        }
+      });
+    };
+
+    refreshStores();
+    const unsubResto = restaurantService.subscribe(refreshStores);
 
     const unsubLoc = locationStore.subscribe((addr) => {
       setSelectedAddress(addr);
       setPickupAddress(addr);
     });
 
-    return () => unsubLoc();
+    return () => {
+      unsubResto();
+      unsubLoc();
+    };
   }, []);
 
   const handleOrderPackageDelivery = async () => {
@@ -430,7 +438,7 @@ export const HomeScreen: React.FC = () => {
                 circleSize={BUBBLE_CIRCLE_SIZE}
                 label={t("home.food", "Food")}
                 onPress={() =>
-                  router.push("/(app)/(client)/(tabs)/catalog" as any)
+                  router.push("/(app)/(client)/restaurants" as any)
                 }
                 icon={
                   <UtensilsCrossed
@@ -500,7 +508,11 @@ export const HomeScreen: React.FC = () => {
           </View>
 
           {/* ── Bottom Store Status Card (Image 2) ── */}
-          <View style={styles.bottomStatusCardWrapper}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => router.push("/(app)/(client)/restaurants" as any)}
+            style={styles.bottomStatusCardWrapper}
+          >
             <View
               style={[
                 styles.storeStatusCard,
@@ -547,7 +559,7 @@ export const HomeScreen: React.FC = () => {
                 </Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </SafeAreaView>
       </View>
 

@@ -34,56 +34,67 @@ export default function ProductDetailScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      setLoading(true);
-      Promise.all([
-        productService.getProductById(id),
-        restaurantService.getMenuItemById(id),
-      ]).then(([prod, menuItem]) => {
-        if (menuItem) {
-          setProduct({
-            id: menuItem.id,
-            name: menuItem.name,
-            description: menuItem.description,
-            price: menuItem.price,
-            image_url: menuItem.image_url,
-            is_available: menuItem.is_available,
-            restaurant_id: menuItem.restaurant_id,
-          });
-
-          if (
-            menuItem.customization_groups &&
-            menuItem.customization_groups.length > 0
-          ) {
-            setCustomizationGroups(menuItem.customization_groups);
-
-            // Pre-select default options
-            const initialSelected: Record<string, string[]> = {};
-            menuItem.customization_groups.forEach((group) => {
-              const defaults = group.options
-                .filter((opt) => opt.is_default)
-                .map((opt) => opt.id);
-              if (defaults.length > 0) {
-                initialSelected[group.id] = defaults;
-              }
+    function loadItem() {
+      if (id) {
+        Promise.all([
+          productService.getProductById(id),
+          restaurantService.getMenuItemById(id),
+        ]).then(([prod, menuItem]) => {
+          if (menuItem) {
+            setProduct({
+              id: menuItem.id,
+              name: menuItem.name,
+              description: menuItem.description,
+              price: menuItem.price,
+              image_url: menuItem.image_url,
+              is_available: menuItem.is_available,
+              restaurant_id: menuItem.restaurant_id,
             });
-            setSelectedOptions(initialSelected);
+
+            if (
+              menuItem.customization_groups &&
+              menuItem.customization_groups.length > 0
+            ) {
+              setCustomizationGroups(menuItem.customization_groups);
+
+              const initialSelected: Record<string, string[]> = {};
+              menuItem.customization_groups.forEach((group) => {
+                const defaults = group.options
+                  .filter((opt) => opt.is_default)
+                  .map((opt) => opt.id);
+                if (defaults.length > 0) {
+                  initialSelected[group.id] = defaults;
+                }
+              });
+              setSelectedOptions((prev) => Object.keys(prev).length > 0 ? prev : initialSelected);
+            }
+          } else if (prod) {
+            setProduct({
+              id: prod.id,
+              name: prod.name,
+              description: prod.description,
+              price: prod.price,
+              image_url: prod.image_url,
+              is_available: prod.is_available,
+              category_id: prod.category_id,
+              stock: prod.stock,
+            });
           }
-        } else if (prod) {
-          setProduct({
-            id: prod.id,
-            name: prod.name,
-            description: prod.description,
-            price: prod.price,
-            image_url: prod.image_url,
-            is_available: prod.is_available,
-            category_id: prod.category_id,
-            stock: prod.stock,
-          });
-        }
-        setLoading(false);
-      });
+          setLoading(false);
+        });
+      }
     }
+
+    setLoading(true);
+    loadItem();
+
+    const unsubResto = restaurantService.subscribe(loadItem);
+    const unsubProduct = productService.subscribe(loadItem);
+
+    return () => {
+      unsubResto();
+      unsubProduct();
+    };
   }, [id]);
 
   function handleToggleOption(group: CustomizationGroup, optionId: string) {
@@ -145,7 +156,11 @@ export default function ProductDetailScreen() {
         formattedSelectedCustomizations,
         specialInstructions.trim() || undefined,
       );
-      router.back();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/(app)/(client)/(tabs)/catalog" as any);
+      }
     }
   }
 
@@ -157,7 +172,13 @@ export default function ProductDetailScreen() {
         </View>
         <Text style={styles.loadingText}>Chargement du plat...</Text>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(app)/(client)/(tabs)/catalog" as any);
+            }
+          }}
           style={styles.cancelBtn}
         >
           <Text style={styles.cancelText}>Retour</Text>
@@ -171,7 +192,13 @@ export default function ProductDetailScreen() {
       {/* Top Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(app)/(client)/(tabs)/catalog" as any);
+            }
+          }}
           style={styles.backBtn}
           activeOpacity={0.8}
         >

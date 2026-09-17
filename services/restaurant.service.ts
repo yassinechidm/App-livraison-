@@ -1,15 +1,17 @@
-import { Platform } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import { GLOVO_OUJDA_RESTAURANTS } from '@/constants/glovoRestaurants';
+import { clientRateLimiter } from '@/lib/rateLimiter';
+import { sanitizeName, sanitizeNumber, sanitizeText } from '@/lib/sanitize';
 import { supabase } from '@/lib/supabase';
+import { cartService } from '@/services/cart.service';
 import {
-  Restaurant,
-  RestaurantCategoryFilter,
-  MenuItem,
-  CustomizationGroup,
-  CreateRestaurantInput,
-  UpdateRestaurantInput,
-  CreateMenuItemInput,
-  UpdateMenuItemInput,
+    CreateMenuItemInput,
+    CreateRestaurantInput,
+    CustomizationGroup,
+    MenuItem,
+    Restaurant,
+    RestaurantCategoryFilter,
+    UpdateMenuItemInput,
+    UpdateRestaurantInput,
 } from '@/types/restaurant.types';
 
 export const RESTAURANT_FILTERS: RestaurantCategoryFilter[] = [
@@ -67,6 +69,7 @@ export const STANDARD_DRINKS_GROUP: CustomizationGroup = {
 };
 
 export const INITIAL_RESTAURANTS_SEED: Restaurant[] = [
+  ...GLOVO_OUJDA_RESTAURANTS,
   {
     id: 'resto-bnin',
     name: 'Bnin Oujda',
@@ -330,6 +333,164 @@ function notifyAll() {
   });
 }
 
+// Live Realtime Subscriptions for Restaurants and Menu Items
+if (typeof supabase?.channel === 'function') {
+  try {
+    supabase
+      .channel('realtime:restaurant_menu_items')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'restaurant_menu_items' },
+        (payload: any) => {
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            const updated = payload.new;
+            for (const r of DYNAMIC_RESTAURANTS) {
+              const idx = r.menu_items?.findIndex((i) => i.id === updated.id);
+              if (idx !== -1 && idx !== undefined) {
+                r.menu_items[idx] = {
+                  ...r.menu_items[idx],
+                  name: updated.name ?? r.menu_items[idx].name,
+                  price: updated.price !== undefined ? Number(updated.price) : r.menu_items[idx].price,
+                  description: updated.description ?? r.menu_items[idx].description,
+                  category: updated.category ?? r.menu_items[idx].category,
+                  image_url: updated.image_url ?? r.menu_items[idx].image_url,
+                  is_popular: updated.is_popular !== undefined ? updated.is_popular : r.menu_items[idx].is_popular,
+                  is_available: updated.is_available !== undefined ? updated.is_available : r.menu_items[idx].is_available,
+                };
+              }
+            }
+            if (updated.price !== undefined) {
+              cartService.syncItemPrice(updated.id, Number(updated.price));
+            }
+          }
+          notifyAll();
+        }
+      )
+      .subscribe();
+
+    supabase
+      .channel('realtime:restaurants')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'restaurants' },
+        (payload: any) => {
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            const updated = payload.new;
+            const idx = DYNAMIC_RESTAURANTS.findIndex((r) => r.id === updated.id);
+            if (idx !== -1) {
+              DYNAMIC_RESTAURANTS[idx] = {
+                ...DYNAMIC_RESTAURANTS[idx],
+                name: updated.name ?? DYNAMIC_RESTAURANTS[idx].name,
+                cuisine_type: updated.cuisine_type ?? DYNAMIC_RESTAURANTS[idx].cuisine_type,
+                cover_image: updated.cover_image ?? DYNAMIC_RESTAURANTS[idx].cover_image,
+                delivery_time: updated.delivery_time ?? DYNAMIC_RESTAURANTS[idx].delivery_time,
+                delivery_fee: updated.delivery_fee !== undefined ? Number(updated.delivery_fee) : DYNAMIC_RESTAURANTS[idx].delivery_fee,
+                promo_badge: updated.promo_badge ?? DYNAMIC_RESTAURANTS[idx].promo_badge,
+                is_open: updated.is_active !== undefined ? updated.is_active : DYNAMIC_RESTAURANTS[idx].is_open,
+              };
+            }
+          }
+          notifyAll();
+        }
+      )
+      .subscribe();
+  } catch {
+    // Silent fail if offline
+  }
+}
+
+const LOCAL_RESTO_OVERRIDES = new Map<string, Partial<Restaurant>>();
+const LOCAL_MENU_ITEM_OVERRIDES = new Map<string, Partial<MenuItem>>();
+
+function mapRestaurantRow(r: any): Restaurant {
+  const restoOverride = LOCAL_RESTO_OVERRIDES.get(r.id);
+
+  const menuItems = (r.restaurant_menu_items || []).map((m: any) => {
+    const itemOverride = LOCAL_MENU_ITEM_OVERRIDES.get(m.id);
+    return {
+      id: m.id,
+      restaurant_id: m.restaurant_id,
+      category: itemOverride?.category || m.category || 'Top des ventes',
+      name: itemOverride?.name || m.name,
+      description: itemOverride?.description !== undefined ? itemOverride.description : m.description,
+      price: itemOverride?.price !== undefined ? Number(itemOverride.price) : Number(m.price),
+      image_url: itemOverride?.image_url || m.image_url,
+      is_popular: itemOverride?.is_popular !== undefined ? itemOverride.is_popular : m.is_popular,
+      order_count_badge: itemOverride?.order_count_badge || m.order_count_badge,
+      is_available: itemOverride?.is_available !== undefined ? itemOverride.is_available : m.is_available,
+      customization_groups: m.customization_groups || undefined,
+    };
+  });
+
+  const itemCats = Array.from(new Set(menuItems.map((i: any) => i.category).filter(Boolean))) as string[];
+  const categories = Array.isArray(r.categories) && r.categories.length > 0
+    ? r.categories
+    : (itemCats.length > 0 ? itemCats : ['Top des ventes', 'MENUS', 'BOISSONS']);
+
+  const finalDeliveryFee = restoOverride?.delivery_fee !== undefined
+    ? Number(restoOverride.delivery_fee)
+    : (Number(r.delivery_fee) || 15);
+
+  const finalPromo = restoOverride?.promo_badge !== undefined
+    ? restoOverride.promo_badge
+    : r.promo_badge;
+
+  return {
+    id: r.id,
+    name: restoOverride?.name || r.name,
+    cuisine_type: restoOverride?.cuisine_type || r.cuisine_type,
+    logo_url: restoOverride?.logo_url || r.logo_url || r.cover_image,
+    cover_image: restoOverride?.cover_image || r.cover_image,
+    rating_percent: r.rating_percent || 95,
+    rating_count: r.rating_count || '100+',
+    delivery_time: restoOverride?.delivery_time || r.delivery_time || '20-30 min',
+    delivery_fee: finalDeliveryFee,
+    delivery_fee_promo: finalPromo ? 'Promo' : undefined,
+    free_delivery_threshold: Number(r.free_delivery_threshold) || 100,
+    is_top_rated: r.rating_percent >= 95,
+    promo_badge: finalPromo,
+    opening_hours: restoOverride?.opening_hours || r.opening_hours || '11:30 - 02:00',
+    is_open: restoOverride?.is_open !== undefined ? restoOverride.is_open : (r.is_active !== undefined ? r.is_active : true),
+    categories,
+    menu_items: menuItems,
+  };
+}
+
+function filterRestaurantList(list: Restaurant[], filterId?: string, searchQuery?: string): Restaurant[] {
+  return list.filter((r) => {
+    if (searchQuery && searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = r.name.toLowerCase().includes(q);
+      const matchCuisine = r.cuisine_type.toLowerCase().includes(q);
+      const matchItem = r.menu_items?.some((i) => i.name.toLowerCase().includes(q) || (i.description && i.description.toLowerCase().includes(q)));
+      if (!matchName && !matchCuisine && !matchItem) return false;
+    }
+
+    if (filterId && filterId !== 'all') {
+      const combined = (r.cuisine_type + ' ' + r.name).toLowerCase();
+      if (filterId === 'promo') {
+        if (!r.promo_badge) return false;
+      } else if (filterId === 'pizzas') {
+        if (!combined.includes('pizza') && !combined.includes('palermo') && !combined.includes('romano')) return false;
+      } else if (filterId === 'burgers') {
+        if (!combined.includes('burger') && !combined.includes('bun') && !combined.includes('crousty') && !combined.includes('brofood')) return false;
+      } else if (filterId === 'shawarma') {
+        if (!combined.includes('shawarma') && !combined.includes('chawarma') && !combined.includes('tacos') && !combined.includes('pasticcio') && !combined.includes('snack')) return false;
+      } else if (filterId === 'moroccan') {
+        if (!combined.includes('poulet') && !combined.includes('brais') && !combined.includes('tajine') && !combined.includes('maroc')) return false;
+      } else if (filterId === 'desserts') {
+        if (!combined.includes('pâtisserie') && !combined.includes('patisserie') && !combined.includes('paris') && !combined.includes('sweet') && !combined.includes('crêp') && !combined.includes('bubble') && !combined.includes('kaak') && !combined.includes('déjeuner')) return false;
+      } else if (filterId === 'free-delivery') {
+        if (r.delivery_fee !== 0 && r.delivery_fee_promo !== 'Gratuit' && (!r.free_delivery_threshold || r.free_delivery_threshold > 100)) return false;
+      } else if (filterId === 'top-rated') {
+        if (r.rating_percent < 92 && !r.is_top_rated) return false;
+      }
+    }
+
+    return true;
+  });
+}
+
 export const restaurantService = {
   subscribe(listener: RestaurantListener): () => void {
     listeners.add(listener);
@@ -348,60 +509,15 @@ export const restaurantService = {
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        const formatted: Restaurant[] = data.map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          cuisine_type: r.cuisine_type,
-          logo_url: r.logo_url || r.cover_image,
-          cover_image: r.cover_image,
-          rating_percent: r.rating_percent || 95,
-          rating_count: r.rating_count || '100+',
-          delivery_time: r.delivery_time || '20-30 min',
-          delivery_fee: Number(r.delivery_fee) || 15,
-          delivery_fee_promo: r.promo_badge ? 'Promo' : undefined,
-          free_delivery_threshold: Number(r.free_delivery_threshold) || 100,
-          is_top_rated: r.rating_percent >= 95,
-          promo_badge: r.promo_badge,
-          categories: Array.isArray(r.categories) ? r.categories : ['Top des ventes', 'MENUS', 'BOISSONS'],
-          menu_items: (r.restaurant_menu_items || []).map((m: any) => ({
-            id: m.id,
-            restaurant_id: m.restaurant_id,
-            category: m.category,
-            name: m.name,
-            description: m.description,
-            price: Number(m.price),
-            image_url: m.image_url,
-            is_popular: m.is_popular,
-            order_count_badge: m.order_count_badge,
-            is_available: m.is_available,
-          })),
-        }));
-
+        const formatted: Restaurant[] = data.map(mapRestaurantRow);
         DYNAMIC_RESTAURANTS = formatted;
-        return formatted.filter((r) => {
-          if (searchQuery && searchQuery.trim()) {
-            const q = searchQuery.toLowerCase();
-            const matchName = r.name.toLowerCase().includes(q);
-            const matchCuisine = r.cuisine_type.toLowerCase().includes(q);
-            if (!matchName && !matchCuisine) return false;
-          }
-          return true;
-        });
+        return filterRestaurantList(formatted, filterId, searchQuery);
       }
     } catch {
       // Fallback below
     }
 
-    return DYNAMIC_RESTAURANTS.filter((r) => {
-      if (searchQuery && searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchName = r.name.toLowerCase().includes(q);
-        const matchCuisine = r.cuisine_type.toLowerCase().includes(q);
-        const matchItem = r.menu_items.some((i) => i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q));
-        if (!matchName && !matchCuisine && !matchItem) return false;
-      }
-      return true;
-    });
+    return filterRestaurantList(DYNAMIC_RESTAURANTS, filterId, searchQuery);
   },
 
   async getAllRestaurantsAdmin(): Promise<Restaurant[]> {
@@ -412,34 +528,7 @@ export const restaurantService = {
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        DYNAMIC_RESTAURANTS = data.map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          cuisine_type: r.cuisine_type,
-          logo_url: r.logo_url || r.cover_image,
-          cover_image: r.cover_image,
-          rating_percent: r.rating_percent || 95,
-          rating_count: r.rating_count || '100+',
-          delivery_time: r.delivery_time || '20-30 min',
-          delivery_fee: Number(r.delivery_fee) || 15,
-          delivery_fee_promo: r.promo_badge ? 'Promo' : undefined,
-          free_delivery_threshold: Number(r.free_delivery_threshold) || 100,
-          is_top_rated: r.rating_percent >= 95,
-          promo_badge: r.promo_badge,
-          categories: Array.isArray(r.categories) ? r.categories : ['Top des ventes', 'MENUS', 'BOISSONS'],
-          menu_items: (r.restaurant_menu_items || []).map((m: any) => ({
-            id: m.id,
-            restaurant_id: m.restaurant_id,
-            category: m.category,
-            name: m.name,
-            description: m.description,
-            price: Number(m.price),
-            image_url: m.image_url,
-            is_popular: m.is_popular,
-            order_count_badge: m.order_count_badge,
-            is_available: m.is_available,
-          })),
-        }));
+        DYNAMIC_RESTAURANTS = data.map(mapRestaurantRow);
         return [...DYNAMIC_RESTAURANTS];
       }
     } catch {
@@ -457,34 +546,7 @@ export const restaurantService = {
         .single();
 
       if (!error && data) {
-        return {
-          id: data.id,
-          name: data.name,
-          cuisine_type: data.cuisine_type,
-          logo_url: data.logo_url || data.cover_image,
-          cover_image: data.cover_image,
-          rating_percent: data.rating_percent || 95,
-          rating_count: data.rating_count || '100+',
-          delivery_time: data.delivery_time || '20-30 min',
-          delivery_fee: Number(data.delivery_fee) || 15,
-          delivery_fee_promo: data.promo_badge ? 'Promo' : undefined,
-          free_delivery_threshold: Number(data.free_delivery_threshold) || 100,
-          is_top_rated: data.rating_percent >= 95,
-          promo_badge: data.promo_badge,
-          categories: Array.isArray(data.categories) ? data.categories : ['Top des ventes', 'MENUS', 'BOISSONS'],
-          menu_items: (data.restaurant_menu_items || []).map((m: any) => ({
-            id: m.id,
-            restaurant_id: m.restaurant_id,
-            category: m.category,
-            name: m.name,
-            description: m.description,
-            price: Number(m.price),
-            image_url: m.image_url,
-            is_popular: m.is_popular,
-            order_count_badge: m.order_count_badge,
-            is_available: m.is_available,
-          })),
-        };
+        return mapRestaurantRow(data);
       }
     } catch {
       // Fallback
@@ -529,20 +591,27 @@ export const restaurantService = {
   // ADMIN RESTAURANT CRUD OPERATIONS WITH SUPABASE
   // -------------------------------------------------------------
   async createRestaurant(input: CreateRestaurantInput): Promise<Restaurant> {
+    clientRateLimiter.assert("api:default", "restaurant_admin");
+
+    const cleanName = sanitizeName(input.name, 100);
+    const cleanCuisine = sanitizeName(input.cuisine_type, 100);
+    const cleanDeliveryTime = sanitizeText(input.delivery_time, { maxLength: 30 }) || '20-30 min';
+    const cleanPromoBadge = input.promo_badge ? sanitizeText(input.promo_badge, { maxLength: 50 }) : 'Nouveau à Oujda ✨';
+
     const newResto: Restaurant = {
       id: `resto-${Date.now()}`,
-      name: input.name,
-      cuisine_type: input.cuisine_type,
+      name: cleanName,
+      cuisine_type: cleanCuisine,
       cover_image: input.cover_image || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80',
       logo_url: input.logo_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80',
       rating_percent: 98,
       rating_count: 'Nouveau',
-      delivery_time: input.delivery_time || '20-30 min',
-      delivery_fee: Number(input.delivery_fee) || 15,
+      delivery_time: cleanDeliveryTime,
+      delivery_fee: sanitizeNumber(input.delivery_fee, 15, 0, 200),
       delivery_fee_promo: input.promo_badge ? 'Promo' : undefined,
       free_delivery_threshold: 100,
       is_top_rated: false,
-      promo_badge: input.promo_badge || 'Nouveau à Oujda ✨',
+      promo_badge: cleanPromoBadge,
       categories: input.categories && input.categories.length > 0 ? input.categories : ['Top des ventes', 'MENUS', 'BOISSONS'],
       menu_items: [],
     };
@@ -575,25 +644,74 @@ export const restaurantService = {
   },
 
   async updateRestaurant(input: UpdateRestaurantInput): Promise<Restaurant> {
+    clientRateLimiter.assert("api:default", "restaurant_admin");
+
+    const cleanFee = input.delivery_fee !== undefined ? Number(input.delivery_fee) : undefined;
+
+    // 1. Record in local override map so changes are never wiped by subsequent fetches
+    const currentOverride = LOCAL_RESTO_OVERRIDES.get(input.id) || {};
+    LOCAL_RESTO_OVERRIDES.set(input.id, {
+      ...currentOverride,
+      ...input,
+      delivery_fee: cleanFee !== undefined ? cleanFee : currentOverride.delivery_fee,
+      is_open: input.is_open !== undefined ? input.is_open : currentOverride.is_open,
+    });
+
+    // 2. Build strictly whitelisted database payload (prevents 400 Bad Request on unknown columns)
+    const dbPayload: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (input.name !== undefined) dbPayload.name = sanitizeName(input.name, 100);
+    if (input.cuisine_type !== undefined) dbPayload.cuisine_type = sanitizeName(input.cuisine_type, 100);
+    if (input.cover_image !== undefined) dbPayload.cover_image = input.cover_image;
+    if (input.logo_url !== undefined) dbPayload.logo_url = input.logo_url;
+    if (input.delivery_time !== undefined) dbPayload.delivery_time = sanitizeText(input.delivery_time, { maxLength: 30 });
+    if (cleanFee !== undefined) dbPayload.delivery_fee = cleanFee;
+    if (input.promo_badge !== undefined) dbPayload.promo_badge = input.promo_badge ? sanitizeText(input.promo_badge, { maxLength: 50 }) : null;
+    if (input.is_open !== undefined) dbPayload.is_active = input.is_open;
+
+    // 3. Try Supabase Update & RPC fallback
     try {
-      const { id, ...updates } = input;
-      await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from('restaurants')
-        .update(updates)
-        .eq('id', id);
+        .update(dbPayload)
+        .eq('id', input.id)
+        .select();
+
+      if (error || !data || data.length === 0) {
+        try {
+          await (supabase.rpc as any)('rpc_update_restaurant', {
+            p_id: input.id,
+            p_name: input.name || null,
+            p_cuisine_type: input.cuisine_type || null,
+            p_cover_image: input.cover_image || null,
+            p_delivery_time: input.delivery_time || null,
+            p_delivery_fee: cleanFee !== undefined ? cleanFee : null,
+            p_promo_badge: input.promo_badge || null,
+            p_is_active: input.is_open !== undefined ? input.is_open : null,
+            p_opening_hours: input.opening_hours || null,
+          });
+        } catch {
+          // RPC may not be deployed yet in remote DB
+        }
+      }
     } catch {
-      // Fallback
+      // Offline fallback
     }
 
+    // 4. Update in-memory state
     const index = DYNAMIC_RESTAURANTS.findIndex((r) => r.id === input.id);
     if (index !== -1) {
       DYNAMIC_RESTAURANTS[index] = {
         ...DYNAMIC_RESTAURANTS[index],
         ...input,
+        delivery_fee: cleanFee !== undefined ? cleanFee : DYNAMIC_RESTAURANTS[index].delivery_fee,
+        is_open: input.is_open !== undefined ? input.is_open : DYNAMIC_RESTAURANTS[index].is_open,
       };
     }
+
     notifyAll();
-    return DYNAMIC_RESTAURANTS[index];
+    return DYNAMIC_RESTAURANTS[index] || (input as Restaurant);
   },
 
   async deleteRestaurant(id: string): Promise<boolean> {
@@ -615,15 +733,22 @@ export const restaurantService = {
   // ADMIN DISH / MENU ITEM CRUD OPERATIONS WITH SUPABASE
   // -------------------------------------------------------------
   async addMenuItem(input: CreateMenuItemInput): Promise<MenuItem> {
+    clientRateLimiter.assert("api:default", "menu_admin");
+
+    const cleanCategory = sanitizeName(input.category, 100) || 'Top des ventes';
+    const cleanName = sanitizeName(input.name, 150);
+    const cleanDesc = sanitizeText(input.description, { maxLength: 400 });
+    const cleanPrice = sanitizeNumber(input.price, 0, 0, 10000);
+
     const resto = DYNAMIC_RESTAURANTS.find((r) => r.id === input.restaurant_id);
 
     const newItem: MenuItem = {
       id: `dish-${Date.now()}`,
       restaurant_id: input.restaurant_id,
-      category: input.category || 'Top des ventes',
-      name: input.name,
-      description: input.description,
-      price: Number(input.price),
+      category: cleanCategory,
+      name: cleanName,
+      description: cleanDesc,
+      price: cleanPrice,
       image_url: input.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80',
       is_popular: input.is_popular ?? true,
       order_count_badge: input.order_count_badge || 'Nouveau 🌟',
@@ -665,48 +790,117 @@ export const restaurantService = {
   },
 
   async updateMenuItem(input: UpdateMenuItemInput): Promise<MenuItem> {
+    const cleanPrice = input.price !== undefined ? Number(input.price) : undefined;
+    const cleanName = input.name ? sanitizeName(input.name, 150) : undefined;
+    const cleanDesc = input.description ? sanitizeText(input.description, { maxLength: 400 }) : undefined;
+    const cleanCategory = input.category ? sanitizeName(input.category, 100) : undefined;
+
+    // 1. Record in local override map so changes persist across UI navigations and fetches
+    const currentOverride = LOCAL_MENU_ITEM_OVERRIDES.get(input.id) || {};
+    LOCAL_MENU_ITEM_OVERRIDES.set(input.id, {
+      ...currentOverride,
+      ...input,
+      price: cleanPrice !== undefined ? cleanPrice : currentOverride.price,
+      name: cleanName || currentOverride.name,
+      description: cleanDesc !== undefined ? cleanDesc : currentOverride.description,
+      category: cleanCategory || currentOverride.category,
+    });
+
+    // 2. Build strictly whitelisted database payload
+    const dbPayload: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (cleanName !== undefined) dbPayload.name = cleanName;
+    if (cleanPrice !== undefined) dbPayload.price = cleanPrice;
+    if (cleanDesc !== undefined) dbPayload.description = cleanDesc;
+    if (cleanCategory !== undefined) dbPayload.category = cleanCategory;
+    if (input.image_url !== undefined) dbPayload.image_url = input.image_url;
+    if (input.is_popular !== undefined) dbPayload.is_popular = input.is_popular;
+    if (input.is_available !== undefined) dbPayload.is_available = input.is_available;
+    if (input.order_count_badge !== undefined) dbPayload.order_count_badge = input.order_count_badge;
+
+    // 3. Try Supabase Update & RPC fallback
     try {
-      const { id, ...updates } = input;
-      await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from('restaurant_menu_items')
-        .update(updates)
-        .eq('id', id);
+        .update(dbPayload)
+        .eq('id', input.id)
+        .select();
+
+      if (error || !data || data.length === 0) {
+        try {
+          await (supabase.rpc as any)('rpc_update_menu_item', {
+            p_id: input.id,
+            p_name: cleanName || null,
+            p_price: cleanPrice !== undefined ? cleanPrice : null,
+            p_description: cleanDesc || null,
+            p_category: cleanCategory || null,
+            p_image_url: input.image_url || null,
+            p_is_popular: input.is_popular !== undefined ? input.is_popular : null,
+            p_is_available: input.is_available !== undefined ? input.is_available : null,
+          });
+        } catch {
+          // RPC may not be deployed yet in remote DB
+        }
+      }
     } catch {
-      // Fallback
+      // Offline fallback
     }
 
-    const resto = DYNAMIC_RESTAURANTS.find((r) => r.id === input.restaurant_id);
-    if (resto) {
-      const itemIndex = resto.menu_items.findIndex((i) => i.id === input.id);
-      if (itemIndex !== -1) {
+    // 2. Synchronize In-Memory State across all restaurants
+    for (const resto of DYNAMIC_RESTAURANTS) {
+      const itemIndex = resto.menu_items?.findIndex((i) => i.id === input.id);
+      if (itemIndex !== -1 && itemIndex !== undefined) {
         resto.menu_items[itemIndex] = {
           ...resto.menu_items[itemIndex],
           ...input,
-          price: Number(input.price ?? resto.menu_items[itemIndex].price),
+          price: cleanPrice !== undefined ? cleanPrice : resto.menu_items[itemIndex].price,
+          name: cleanName || resto.menu_items[itemIndex].name,
+          description: cleanDesc !== undefined ? cleanDesc : resto.menu_items[itemIndex].description,
+          category: cleanCategory || resto.menu_items[itemIndex].category,
         };
       }
     }
 
+    if (cleanPrice !== undefined) {
+      cartService.syncItemPrice(input.id, cleanPrice);
+    }
+
     notifyAll();
-    return resto?.menu_items.find((i) => i.id === input.id) as MenuItem;
+    const currentResto = DYNAMIC_RESTAURANTS.find((r) => r.id === input.restaurant_id);
+    return (currentResto?.menu_items.find((i) => i.id === input.id) || (input as MenuItem)) as MenuItem;
   },
 
   async toggleMenuItemAvailability(restaurantId: string, itemId: string): Promise<MenuItem> {
-    const resto = DYNAMIC_RESTAURANTS.find((r) => r.id === restaurantId);
-    const item = resto?.menu_items.find((i) => i.id === itemId);
-    if (item) {
-      item.is_available = !item.is_available;
-      try {
-        await (supabase as any)
-          .from('restaurant_menu_items')
-          .update({ is_available: item.is_available })
-          .eq('id', itemId);
-      } catch {
-        // Fallback
+    let nextAvail = false;
+    for (const resto of DYNAMIC_RESTAURANTS) {
+      const item = resto.menu_items?.find((i) => i.id === itemId);
+      if (item) {
+        item.is_available = !item.is_available;
+        nextAvail = item.is_available;
       }
     }
+
+    try {
+      const { data, error } = await (supabase as any)
+        .from('restaurant_menu_items')
+        .update({ is_available: nextAvail, updated_at: new Date().toISOString() })
+        .eq('id', itemId)
+        .select();
+
+      if (error || !data || data.length === 0) {
+        await (supabase.rpc as any)('rpc_update_menu_item', {
+          p_id: itemId,
+          p_is_available: nextAvail,
+        });
+      }
+    } catch {
+      // Fallback
+    }
+
     notifyAll();
-    return item as MenuItem;
+    const resto = DYNAMIC_RESTAURANTS.find((r) => r.id === restaurantId);
+    return (resto?.menu_items.find((i) => i.id === itemId) || { id: itemId, is_available: nextAvail }) as MenuItem;
   },
 
   async deleteMenuItem(restaurantId: string, itemId: string): Promise<boolean> {

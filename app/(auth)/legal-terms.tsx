@@ -1,6 +1,5 @@
 import Colors from "@/constants/Colors";
 import { useRouter } from "expo-router";
-import React from "react";
 import {
     ScrollView,
     StyleSheet,
@@ -17,7 +16,13 @@ export default function LegalTermsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Pages Légales</Text>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(auth)/login" as any);
+            }
+          }}
           style={styles.closeButton}
         >
           <Text style={styles.closeButtonText}>Retour</Text>

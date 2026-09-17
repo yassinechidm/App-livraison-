@@ -1,3 +1,4 @@
+import { sanitizeEmail, sanitizeName, sanitizePhone } from "@/lib/sanitize";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -69,12 +70,17 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     try {
+      const cleanEmail = sanitizeEmail(email);
+      const cleanFullName = sanitizeName(fullName);
+      const cleanPhone = sanitizePhone(phone);
+      const cleanCity = sanitizeName(city);
+
       const data = await authService.signUp({
-        email: email.trim(),
+        email: cleanEmail,
         password,
-        fullName: fullName.trim(),
-        phone: phone.trim(),
-        city: city.trim(),
+        fullName: cleanFullName,
+        phone: cleanPhone,
+        city: cleanCity,
       });
 
       if (data.user && !data.session) {

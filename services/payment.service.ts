@@ -1,4 +1,4 @@
-import { PaymentMethod, PaymentStatus, PaymentInfo } from '@/types/payment.types';
+import { PaymentInfo, PaymentMethod, PaymentStatus } from '@/types/payment.types';
 
 // Mock payment service — simulates Stripe and cash payments.
 // Will be replaced with real Stripe integration + Supabase Edge Function later.
@@ -21,29 +21,12 @@ export const paymentService = {
     return { paymentId, clientSecret };
   },
 
-  /**
-   * Confirm a card payment (mock).
-   * In production, this would use the Stripe SDK's confirmPayment.
-   */
   async confirmCardPayment(paymentId: string): Promise<PaymentInfo> {
-    // Simulate Stripe processing time
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Simulate 95% success rate
-    const isSuccess = Math.random() > 0.05;
-
-    if (!isSuccess) {
-      throw new Error('Le paiement a été refusé. Veuillez réessayer ou utiliser une autre carte.');
-    }
-
-    return {
-      method: 'card',
-      status: 'paid',
-      amount: 0, // Will be set by caller
-      shipping_cost: 15,
-      stripe_payment_id: paymentId,
-      paid_at: new Date().toISOString(),
-    };
+    // Security Rule: Client-side card confirmation is strictly disabled in production.
+    // Card payments must be processed via Stripe/CMI backend webhook with HMAC signature verification.
+    throw new Error(
+      'Paiement par carte non disponible directement sur le mobile. Veuillez sélectionner le paiement à la livraison (Cash).'
+    );
   },
 
   /**

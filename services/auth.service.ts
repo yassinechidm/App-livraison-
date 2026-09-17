@@ -1,3 +1,10 @@
+import { clientRateLimiter } from "@/lib/rateLimiter";
+import {
+    sanitizeEmail,
+    sanitizeName,
+    sanitizeOtp,
+    sanitizePhone,
+} from "@/lib/sanitize";
 import { supabase } from "@/lib/supabase";
 import {
     AuthState,
@@ -254,14 +261,21 @@ export const authService = {
   },
 
   async signUp({ email, password, fullName, phone, city }: SignUpCredentials) {
+    const cleanEmail = sanitizeEmail(email);
+    const cleanFullName = sanitizeName(fullName);
+    const cleanPhone = sanitizePhone(phone);
+    const cleanCity = sanitizeName(city);
+
+    clientRateLimiter.assert("auth:register", cleanEmail);
+
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
+      email: cleanEmail,
       password,
       options: {
         data: {
-          full_name: fullName?.trim() || "",
-          phone: phone?.trim() || "",
-          city: city?.trim() || "",
+          full_name: cleanFullName || "",
+          phone: cleanPhone || "",
+          city: cleanCity || "",
           role: "client",
         },
       },
@@ -287,8 +301,11 @@ export const authService = {
   },
 
   async signIn({ email, password }: SignInCredentials) {
+    const cleanEmail = sanitizeEmail(email);
+    clientRateLimiter.assert("auth:login", cleanEmail);
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: cleanEmail,
       password,
     });
 
@@ -297,6 +314,7 @@ export const authService = {
     }
 
     if (data.session) {
+      clientRateLimiter.reset("auth:login", cleanEmail);
       currentSession = data.session;
       currentUser = data.user;
       if (data.user) {
@@ -330,7 +348,9 @@ export const authService = {
   },
 
   async resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    const cleanEmail = sanitizeEmail(email);
+    clientRateLimiter.assert("auth:password-reset", cleanEmail);
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
     if (error) throw new Error(error.message);
   },
 
@@ -517,10 +537,12 @@ export const authService = {
     message: string;
     cooldownSeconds?: number;
   }> {
-    const cleanPhone = this.normalizePhoneNumber(phone);
+    const cleanPhone = sanitizePhone(phone);
     if (!cleanPhone) {
       throw new Error("Veuillez saisir un numéro de téléphone valide.");
     }
+
+    clientRateLimiter.assert("auth:otp-request", cleanPhone);
 
     try {
       const { data, error } = await supabase.functions.invoke("whatsapp-otp", {
@@ -532,10 +554,8 @@ export const authService = {
 
       if (error) {
         const errMsg = error.message || "";
-        if (errMsg.includes("429") || errMsg.includes("Trop de tentatives")) {
-          throw new Error(
-            "Trop de tentatives. Veuillez patienter un instant et réessayer.",
-          );
+        if (errMsg.includes("429") || errMsg.includes("Trop de tentatives") || errMsg.includes("patienter")) {
+          throw new Error(errMsg);
         }
         throw new Error(
           "La vérification WhatsApp est temporairement indisponible. Veuillez essayer par SMS.",
@@ -593,12 +613,14 @@ export const authService = {
     session: Session | null;
     role: UserRole;
   }> {
-    const cleanPhone = this.normalizePhoneNumber(phone);
-    const cleanOtp = otp.trim();
+    const cleanPhone = sanitizePhone(phone);
+    const cleanOtp = sanitizeOtp(otp);
 
     if (!cleanPhone || !cleanOtp) {
       throw new Error("Numéro de téléphone ou code manquant.");
     }
+
+    clientRateLimiter.assert("auth:otp-verify", cleanPhone);
 
     try {
       const { data, error } = await supabase.functions.invoke("whatsapp-otp", {
@@ -627,6 +649,7 @@ export const authService = {
         if (sessionError) throw sessionError;
 
         if (sessionData.session) {
+          clientRateLimiter.reset("auth:otp-verify", cleanPhone);
           currentSession = sessionData.session;
           currentUser = sessionData.user;
           const role = await this.ensureUserProfile(sessionData.user!);

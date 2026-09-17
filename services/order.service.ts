@@ -1,3 +1,10 @@
+import { clientRateLimiter } from "@/lib/rateLimiter";
+import {
+    sanitizeAddress,
+    sanitizeName,
+    sanitizePhone,
+    sanitizeText,
+} from "@/lib/sanitize";
 import { supabase } from "@/lib/supabase";
 import { CreateOrderInput, Order, OrderStatus } from "@/types/order.types";
 import { Platform } from "react-native";
@@ -166,6 +173,17 @@ export const orderService = {
       throw new Error("Vous devez être connecté pour passer une commande.");
     }
 
+    // Rate Limit: prevent spamming or accidental double submits
+    clientRateLimiter.assert("order:create", activeUserId);
+
+    const cleanAddress = sanitizeAddress(input.delivery_address_text);
+    const cleanNotes = sanitizeText(input.notes, { maxLength: 500 });
+    const cleanPromo = input.promo_code
+      ? sanitizeText(input.promo_code, { maxLength: 30 }).toUpperCase()
+      : null;
+    const cleanCustomerName = sanitizeName(user?.name);
+    const cleanCustomerPhone = sanitizePhone(user?.phone);
+
     const rpcPayload: any = {
       p_items: input.items.map((item) => ({
         item_type:
@@ -178,24 +196,28 @@ export const orderService = {
             ? null
             : item.product_id,
         raw_item_id: item.raw_item_id || item.product_id,
-        product_name: item.product_name,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
+        product_name: sanitizeText(item.product_name, { maxLength: 150 }),
+        quantity: Math.max(1, Math.min(Number(item.quantity) || 1, 100)),
+        unit_price: Math.max(0, Number(item.unit_price) || 0),
         selected_customizations: item.selected_customizations || null,
-        selected_customizations_text: item.selected_customizations_text || null,
-        special_instructions: item.special_instructions || null,
+        selected_customizations_text: item.selected_customizations_text
+          ? sanitizeText(item.selected_customizations_text, { maxLength: 200 })
+          : null,
+        special_instructions: item.special_instructions
+          ? sanitizeText(item.special_instructions, { maxLength: 300 })
+          : null,
       })),
-      p_delivery_address_text: input.delivery_address_text,
+      p_delivery_address_text: cleanAddress,
       p_address_id: isValidUUID(input.address_id) ? input.address_id : null,
       p_delivery_mode: input.delivery_mode || "DELIVERY",
       p_payment_method: input.payment_method || "CASH",
-      p_notes: input.notes || null,
+      p_notes: cleanNotes || null,
       p_prescription_storage_path: input.prescription_storage_path || null,
       p_is_package_delivery: input.is_package_delivery || false,
       p_package_details: input.package_details || null,
-      p_promo_code: input.promo_code || null,
-      p_customer_name: user?.name || null,
-      p_customer_phone: user?.phone || null,
+      p_promo_code: cleanPromo || null,
+      p_customer_name: cleanCustomerName || null,
+      p_customer_phone: cleanCustomerPhone || null,
     };
 
     const { data: orderData, error: rpcError } = await (supabase as any).rpc(
@@ -326,6 +348,8 @@ export const orderService = {
     orderId: string,
     newStatus: OrderStatus,
   ): Promise<Order> {
+    clientRateLimiter.assert("order:status-update", orderId);
+
     try {
       const { data, error } = await (supabase.rpc as any)(
         "rpc_update_order_status",
@@ -370,6 +394,8 @@ export const orderService = {
   },
 
   async claimOrder(orderId: string): Promise<Order> {
+    clientRateLimiter.assert("order:status-update", orderId);
+
     const { data, error } = await (supabase.rpc as any)("rpc_claim_order", {
       p_order_id: orderId,
     });
@@ -394,10 +420,13 @@ export const orderService = {
   },
 
   async cancelOrder(orderId: string, reason?: string): Promise<Order> {
+    clientRateLimiter.assert("order:cancel", orderId);
+    const cleanReason = sanitizeText(reason, { maxLength: 300 });
+
     try {
       const { data, error } = await (supabase.rpc as any)("rpc_cancel_order", {
         p_order_id: orderId,
-        p_reason: reason || null,
+        p_reason: cleanReason || null,
       });
       if (!error && data) {
         const cancelled = _mapDbOrder(data, data.order_items || []);

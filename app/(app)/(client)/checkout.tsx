@@ -1,5 +1,6 @@
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
+import { sanitizeAddress, sanitizeText } from "@/lib/sanitize";
 import { addressService } from "@/services/address.service";
 import { authService } from "@/services/auth.service";
 import { cartService } from "@/services/cart.service";
@@ -83,11 +84,11 @@ export default function CheckoutScreen() {
       return;
     }
 
-    let finalAddressText = customAddress.trim();
+    let finalAddressText = sanitizeAddress(customAddress);
     if (selectedAddressId) {
       const addr = addresses.find((a) => a.id === selectedAddressId);
       if (addr) {
-        finalAddressText = `${addr.city} — ${addr.address}`;
+        finalAddressText = sanitizeAddress(`${addr.city} — ${addr.address}`);
       }
     }
 
@@ -99,6 +100,8 @@ export default function CheckoutScreen() {
       return;
     }
 
+    const cleanNotes = sanitizeText(notes, { maxLength: 500 });
+
     setIsSubmitting(true);
     try {
       const order = await orderService.createOrder(
@@ -107,7 +110,7 @@ export default function CheckoutScreen() {
           delivery_address_text: finalAddressText,
           delivery_mode: cartState.deliveryMode,
           payment_method: paymentMethod,
-          notes: notes.trim() || undefined,
+          notes: cleanNotes || undefined,
           items: cartState.items.map((item) => {
             const customText = (item.selected_customizations || [])
               .map(
@@ -166,7 +169,13 @@ export default function CheckoutScreen() {
           style={[styles.header, isRTL && { flexDirection: "row-reverse" }]}
         >
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/(app)/(client)/(tabs)/cart" as any);
+              }
+            }}
             style={styles.backBtn}
           >
             <Text style={styles.backIcon}>{isRTL ? "→" : "←"}</Text>

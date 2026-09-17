@@ -1,3 +1,4 @@
+import { sanitizeEmail } from "@/lib/sanitize";
 import { Link } from "expo-router";
 import { useState } from "react";
 import {
@@ -21,11 +22,12 @@ export default function ForgotPasswordScreen() {
   const [error, setError] = useState("");
 
   function validate(): boolean {
-    if (!email.trim()) {
+    const clean = sanitizeEmail(email);
+    if (!clean) {
       setError("L'email est requis");
       return false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
       setError("Email invalide");
       return false;
     }
@@ -38,7 +40,8 @@ export default function ForgotPasswordScreen() {
 
     setIsLoading(true);
     try {
-      await authService.resetPassword(email.trim());
+      const cleanEmail = sanitizeEmail(email);
+      await authService.resetPassword(cleanEmail);
       setIsSent(true);
     } catch (err) {
       const message =

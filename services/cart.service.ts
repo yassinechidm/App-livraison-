@@ -168,6 +168,24 @@ class CartManager {
       .reduce((sum, i) => sum + i.quantity, 0);
   }
 
+  public syncItemPrice(productId: string, newPrice: number) {
+    let changed = false;
+    this.items.forEach((item) => {
+      if (item.product.id === productId) {
+        item.product.price = newPrice;
+        const customExtra = (item.selected_customizations || []).reduce(
+          (sum, c) => sum + (Number(c.price) || 0),
+          0,
+        );
+        item.unit_total_price = newPrice + customExtra;
+        changed = true;
+      }
+    });
+    if (changed) {
+      this.notify();
+    }
+  }
+
   public clearCart() {
     this.items = [];
     this.notify();

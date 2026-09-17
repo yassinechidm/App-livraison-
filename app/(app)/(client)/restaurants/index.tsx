@@ -90,7 +90,13 @@ export default function RestaurantsListScreen() {
       {/* Top Header Bar */}
       <View style={styles.topHeader}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(app)/(client)/(tabs)" as any);
+            }
+          }}
           style={styles.backBtn}
           activeOpacity={0.7}
         >

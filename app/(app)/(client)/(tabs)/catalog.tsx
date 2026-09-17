@@ -1,6 +1,7 @@
 import CartFloatingButton from "@/components/ui/CartFloatingButton";
 import ProductCard from "@/components/ui/ProductCard";
 import Colors from "@/constants/Colors";
+import { sanitizeSearchQuery } from "@/lib/sanitize";
 import { cartService } from "@/services/cart.service";
 import { locationStore } from "@/services/location.service";
 import { productService } from "@/services/product.service";
@@ -12,15 +13,15 @@ import { useRouter } from "expo-router";
 import { Search, Store, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
-    Dimensions,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -54,6 +55,12 @@ export default function DiscoverCatalogScreen() {
 
   useEffect(() => {
     loadCatalog();
+    const unsubProduct = productService.subscribe(() => {
+      loadCatalog();
+    });
+    return () => {
+      unsubProduct();
+    };
   }, [selectedCategory, searchQuery]);
 
   async function loadCatalog() {
@@ -61,7 +68,8 @@ export default function DiscoverCatalogScreen() {
       const cats = await productService.getCategories();
       setCategories(cats);
       const catId = selectedCategory === "all" ? undefined : selectedCategory;
-      const prods = await productService.getProducts(catId, searchQuery);
+      const cleanQuery = sanitizeSearchQuery(searchQuery);
+      const prods = await productService.getProducts(catId, cleanQuery);
       setProducts(prods);
     } catch {
       // Fallback
@@ -196,6 +204,15 @@ export default function DiscoverCatalogScreen() {
                 "You can still search for something you need to buy or want to try",
               )}
             </Text>
+            <TouchableOpacity
+              style={styles.exploreRestoBtn}
+              onPress={() => router.push("/(app)/(client)/restaurants" as any)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.exploreRestoBtnText}>
+                🍔 Découvrir les Restaurants & Snacks d'Oujda
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -389,6 +406,24 @@ const styles = StyleSheet.create({
     color: "#7F77DD",
     textAlign: "center",
     lineHeight: 20,
+  },
+  exploreRestoBtn: {
+    marginTop: 20,
+    backgroundColor: Colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  exploreRestoBtnText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: "center",
   },
 
   resultsGrid: {

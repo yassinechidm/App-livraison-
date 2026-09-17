@@ -1,3 +1,4 @@
+import { sanitizeOtp } from "@/lib/sanitize";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -39,9 +40,10 @@ export default function OtpScreen() {
   }, [cooldown]);
 
   async function handleVerify() {
-    if (!token.trim()) {
+    const cleanToken = sanitizeOtp(token);
+    if (!cleanToken || cleanToken.length !== 6) {
       Alert.alert(
-        "Code manquant",
+        "Code invalide",
         "Veuillez saisir votre code de confirmation à 6 chiffres.",
       );
       return;
@@ -50,9 +52,9 @@ export default function OtpScreen() {
     setIsLoading(true);
     try {
       if (isWhatsApp === "true") {
-        await authService.verifyWhatsAppOtp(target, token.trim());
+        await authService.verifyWhatsAppOtp(target, cleanToken);
       } else {
-        await authService.verifyOtp(target, token.trim(), "sms");
+        await authService.verifyOtp(target, cleanToken, "sms");
       }
 
       const role = authService.getUserRole()?.toLowerCase();

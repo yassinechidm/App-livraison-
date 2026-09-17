@@ -1,3 +1,5 @@
+import { clientRateLimiter } from "@/lib/rateLimiter";
+import { sanitizeAddress, sanitizeName } from "@/lib/sanitize";
 import { supabase } from "@/lib/supabase";
 import { Address } from "@/types/order.types";
 
@@ -34,6 +36,12 @@ export const addressService = {
       throw new Error("Vous devez être connecté pour ajouter une adresse.");
     }
 
+    clientRateLimiter.assert("address:save", userId);
+
+    const cleanLabel = sanitizeName(input.label, 50) || "Adresse";
+    const cleanStreet = sanitizeAddress(input.address, 250);
+    const cleanCity = sanitizeName(input.city, 100) || "Oujda";
+
     if (input.is_default) {
       // Unset previous defaults for user
       await (supabase as any)
@@ -46,9 +54,9 @@ export const addressService = {
       .from("addresses")
       .insert({
         user_id: userId,
-        label: input.label,
-        street: input.address,
-        city: input.city || "Oujda",
+        label: cleanLabel,
+        street: cleanStreet,
+        city: cleanCity,
         latitude: input.latitude || 34.6867,
         longitude: input.longitude || -1.9114,
         is_default: input.is_default ?? false,

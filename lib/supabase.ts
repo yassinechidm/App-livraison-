@@ -1,45 +1,61 @@
-import 'react-native-url-polyfill/auto';
+import { Database } from '@/types/database.types';
 import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
-import { Database } from '@/types/database.types';
+import 'react-native-url-polyfill/auto';
+import { ENV } from './env';
 
-// TODO: Replace these with your actual Supabase project values
-const SUPABASE_URL = 'https://srgzjplfzunkgjqmgtub.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_ihTjncryndmrkOToVzhJIQ_8v-089sF';
+const SUPABASE_URL = ENV.SUPABASE_URL;
+const SUPABASE_ANON_KEY = ENV.SUPABASE_ANON_KEY;
 
 const ExpoSecureStoreAdapter = {
   getItem: async (key: string): Promise<string | null> => {
     if (Platform.OS === 'web') {
       try {
-        return localStorage.getItem(key);
+        return typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
       } catch {
         return null;
       }
     }
-    return SecureStore.getItemAsync(key);
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch {
+      return null;
+    }
   },
   setItem: async (key: string, value: string): Promise<void> => {
     if (Platform.OS === 'web') {
       try {
-        localStorage.setItem(key, value);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(key, value);
+        }
       } catch {
         // Silently fail on web if localStorage is not available
       }
       return;
     }
-    await SecureStore.setItemAsync(key, value);
+    try {
+      await SecureStore.setItemAsync(key, value);
+    } catch {
+      // Silently fail if keychain/keystore is locked or unavailable
+    }
   },
   removeItem: async (key: string): Promise<void> => {
     if (Platform.OS === 'web') {
       try {
-        localStorage.removeItem(key);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(key);
+        }
       } catch {
         // Silently fail on web if localStorage is not available
       }
       return;
     }
-    await SecureStore.deleteItemAsync(key);
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch {
+      // Silently fail if keychain/keystore is locked or unavailable
+    }
   },
 };
 
