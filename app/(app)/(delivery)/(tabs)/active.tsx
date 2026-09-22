@@ -1,3 +1,4 @@
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
@@ -141,10 +142,20 @@ export default function CourierActiveDeliveriesScreen() {
           />
         }
       >
-        <Text style={styles.countHeader}>
-          {orders.length}{" "}
-          {orders.length > 1 ? "courses actives" : "course active"}
-        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+          }}
+        >
+          <Text style={[styles.countHeader, { marginBottom: 0 }]}>
+            {orders.length}{" "}
+            {orders.length > 1 ? "courses actives" : "course active"}
+          </Text>
+          <NotificationBell />
+        </View>
 
         {orders.length === 0 ? (
           <Card style={styles.emptyCard}>

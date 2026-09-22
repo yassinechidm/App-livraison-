@@ -464,7 +464,7 @@ export const authService = {
   async verifyOtp(
     emailOrPhone: string,
     token: string,
-    type: "signup" | "email" | "sms" = "sms",
+    type: "signup" | "email" | "sms" = "signup",
   ) {
     const cleanTarget = (emailOrPhone || "").trim();
     const isEmail = cleanTarget.includes("@");
@@ -476,43 +476,75 @@ export const authService = {
       );
     }
 
-    let phoneNormalized: string | null = null;
-    if (!isEmail) {
-      phoneNormalized = this.normalizePhoneNumber(cleanTarget);
-      if (!phoneNormalized) {
-        throw new Error("Numéro de téléphone invalide.");
-      }
-    }
-
     try {
-      const verifyParams = isEmail
-        ? {
+      if (isEmail) {
+        const targetType = type === "sms" ? "signup" : type;
+        let res = await supabase.auth.verifyOtp({
+          email: cleanTarget,
+          token: cleanToken,
+          type: targetType as any,
+        });
+
+        // If 'signup' verification returned an error, attempt 'email' as fallback for template compatibility
+        if (res.error && (targetType === "signup" || targetType === "email")) {
+          const fallbackType = targetType === "signup" ? "email" : "signup";
+          const retryRes = await supabase.auth.verifyOtp({
             email: cleanTarget,
             token: cleanToken,
-            type: (type === "sms" ? "signup" : type) as any,
+            type: fallbackType as any,
+          });
+          if (!retryRes.error && retryRes.data) {
+            res = retryRes;
           }
-        : {
-            phone: phoneNormalized!,
-            token: cleanToken,
-            type: "sms" as const,
-          };
-
-      const { data, error } = await supabase.auth.verifyOtp(verifyParams);
-      if (error) {
-        throw new Error(error.message || "Code incorrect ou expiré.");
-      }
-      if (data.session) {
-        currentSession = data.session;
-        currentUser = data.user;
-        if (data.user) {
-          await this.ensureUserProfile(data.user);
-          await this.fetchAndCacheRole(data.user.id);
         }
-        currentStatus = "AUTHENTICATED";
-        lastError = null;
-        notifyListeners();
+
+        if (res.error) {
+          throw new Error(res.error.message || "Code incorrect ou expiré.");
+        }
+
+        const data = res.data;
+        if (data.session) {
+          currentSession = data.session;
+          currentUser = data.user;
+          if (data.user) {
+            await this.ensureUserProfile(data.user);
+            await this.fetchAndCacheRole(data.user.id);
+          }
+          currentStatus = "AUTHENTICATED";
+          lastError = null;
+          notifyListeners();
+        }
+        return data;
+      } else {
+        // Phone SMS verification branch
+        const phoneNormalized = this.normalizePhoneNumber(cleanTarget);
+        if (!phoneNormalized) {
+          throw new Error("Numéro de téléphone invalide.");
+        }
+
+        const { data, error } = await supabase.auth.verifyOtp({
+          phone: phoneNormalized,
+          token: cleanToken,
+          type: "sms" as const,
+        });
+
+        if (error) {
+          throw new Error(error.message || "Code incorrect ou expiré.");
+        }
+
+        if (data.session) {
+          currentSession = data.session;
+          currentUser = data.user;
+          if (data.user) {
+            await this.ensureUserProfile(data.user);
+            await this.fetchAndCacheRole(data.user.id);
+          }
+          currentStatus = "AUTHENTICATED";
+          lastError = null;
+          notifyListeners();
+        }
+        return data;
       }
-      return data;
     } catch (err: any) {
       throw new Error(err?.message || "Code incorrect ou expiré.");
     }
@@ -520,10 +552,12 @@ export const authService = {
 
   async resendOtp({
     target,
+    provider,
     isWhatsApp,
     type = "signup",
   }: {
     target: string;
+    provider?: "email" | "sms" | "whatsapp";
     isWhatsApp?: boolean;
     type?: "signup" | "sms" | "email";
   }): Promise<{ success: boolean; message: string; cooldownSeconds?: number }> {
@@ -534,9 +568,7 @@ export const authService = {
       );
     }
 
-    const isEmail = cleanTarget.includes("@");
-
-    if (isWhatsApp) {
+    if (provider === "whatsapp" || isWhatsApp) {
       const res = await this.requestWhatsAppOtp(cleanTarget);
       return {
         success: true,
@@ -545,7 +577,10 @@ export const authService = {
       };
     }
 
-    if (isEmail) {
+    if (provider === "email" || (!provider && cleanTarget.includes("@"))) {
+      if (!cleanTarget.includes("@")) {
+        throw new Error("Veuillez saisir une adresse email valide.");
+      }
       clientRateLimiter.assert("auth:resend-email", cleanTarget);
       const { error } = await supabase.auth.resend({
         type: type === "signup" ? "signup" : "email_change",
@@ -572,7 +607,10 @@ export const authService = {
     };
   },
 
-  async signInWithPhone(phone: string) {
+  async signInWithPhone(
+    phone: string,
+    metadata?: { full_name?: string; city?: string; role?: string },
+  ) {
     const cleanPhone = this.normalizePhoneNumber(phone);
     if (!cleanPhone) {
       throw new Error("Veuillez saisir un numéro de téléphone valide.");
@@ -581,6 +619,16 @@ export const authService = {
     try {
       const { data, error } = await supabase.auth.signInWithOtp({
         phone: cleanPhone,
+        options: metadata
+          ? {
+              data: {
+                full_name: metadata.full_name || "",
+                city: metadata.city || "",
+                phone: cleanPhone,
+                role: "client",
+              },
+            }
+          : undefined,
       });
       if (error) {
         throw new Error(
@@ -601,7 +649,10 @@ export const authService = {
   /**
    * Request a single-use 6-digit WhatsApp OTP delivered via OpenWA
    */
-  async requestWhatsAppOtp(phone: string): Promise<{
+  async requestWhatsAppOtp(
+    phone: string,
+    metadata?: { full_name?: string; city?: string },
+  ): Promise<{
     success: boolean;
     message: string;
     cooldownSeconds?: number;
@@ -618,6 +669,8 @@ export const authService = {
         body: {
           action: "request-otp",
           phone: cleanPhone,
+          full_name: metadata?.full_name,
+          city: metadata?.city,
         },
       });
 

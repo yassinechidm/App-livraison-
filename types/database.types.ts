@@ -229,6 +229,52 @@ export interface Database {
           Database["public"]["Tables"]["restaurant_menu_items"]["Insert"]
         >;
       };
+      user_push_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          expo_push_token: string;
+          platform: "ios" | "android" | "web" | null;
+          device_name: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["user_push_tokens"]["Row"],
+          "id" | "created_at" | "updated_at"
+        >;
+        Update: Partial<
+          Database["public"]["Tables"]["user_push_tokens"]["Insert"]
+        >;
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          body: string;
+          type:
+            | "NEW_ORDER"
+            | "ORDER_ASSIGNED"
+            | "ORDER_STATUS_CHANGED"
+            | "DELIVERY_CANCELLED"
+            | "SYSTEM_ALERT";
+          order_id: string | null;
+          order_number: string | null;
+          data: any;
+          is_read: boolean;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["notifications"]["Row"],
+          "id" | "created_at"
+        >;
+        Update: Partial<
+          Database["public"]["Tables"]["notifications"]["Insert"]
+        >;
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -236,6 +282,12 @@ export interface Database {
       user_role: UserRole;
       order_status: OrderStatus;
       payment_method: PaymentMethodType;
+      notification_type:
+        | "NEW_ORDER"
+        | "ORDER_ASSIGNED"
+        | "ORDER_STATUS_CHANGED"
+        | "DELIVERY_CANCELLED"
+        | "SYSTEM_ALERT";
     };
   };
 }

@@ -7,6 +7,8 @@ export type AuthStatus =
   | "UNAUTHENTICATED"
   | "AUTH_ERROR";
 
+export type RegistrationProvider = "email" | "sms" | "whatsapp";
+
 export interface AuthState {
   status: AuthStatus;
   session: Session | null;

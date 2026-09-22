@@ -1,3 +1,4 @@
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
 import { AdminDashboardStats, adminService } from "@/services/admin.service";
@@ -159,19 +160,22 @@ export default function AdminDashboardScreen() {
     >
       {/* Header Greeting */}
       <View style={styles.header}>
-        <View>
+        <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={styles.greetingTitle}>Espace Administration</Text>
           <Text style={styles.greetingSub}>
             Supervision globale des opérations à Oujda
           </Text>
         </View>
-        <View style={styles.adminBadge}>
-          <ShieldCheck
-            size={14}
-            color={Colors.primary}
-            style={{ marginRight: 4 }}
-          />
-          <Text style={styles.adminBadgeText}>ADMIN</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <NotificationBell />
+          <View style={styles.adminBadge}>
+            <ShieldCheck
+              size={14}
+              color={Colors.primary}
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.adminBadgeText}>ADMIN</Text>
+          </View>
         </View>
       </View>
 

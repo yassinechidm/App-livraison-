@@ -1,3 +1,4 @@
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Colors from "@/constants/Colors";
@@ -17,7 +18,7 @@ import {
     ShoppingCart,
     Trash2,
     User,
-    X
+    X,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
@@ -227,10 +228,20 @@ export default function AdminOrdersScreen() {
           />
         }
       >
-        <Text style={styles.listHeader}>
-          {orders.length} {orders.length > 1 ? "commandes" : "commande"} •
-          Gestion de cuisine & dispatch
-        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 10,
+          }}
+        >
+          <Text style={[styles.listHeader, { marginBottom: 0 }]}>
+            {orders.length} {orders.length > 1 ? "commandes" : "commande"} •
+            Gestion cuisine
+          </Text>
+          <NotificationBell />
+        </View>
 
         {orders.map((order) => {
           const config = ORDER_STATUS_CONFIG[order.status];

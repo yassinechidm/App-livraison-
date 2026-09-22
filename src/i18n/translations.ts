@@ -281,6 +281,22 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "admin.profile": "Admin",
     "admin.revenue": "Total Revenue",
     "admin.clients": "Registered Clients",
+
+    // Notifications
+    "notifications.title": "Notifications",
+    "notifications.markAllRead": "Mark all read",
+    "notifications.all": "All",
+    "notifications.unread": "Unread",
+    "notifications.empty": "No notifications",
+    "notifications.noUnread": "No unread notifications",
+    "notifications.emptyDesc":
+      "You will receive alerts about your orders and deliveries here.",
+    "notifications.justNow": "Just now",
+    "notifications.newOrderTitle": "New Order",
+    "notifications.orderAssignedTitle": "New Delivery Assigned",
+    "notifications.statusChangedTitle": "Order Status Update",
+    "notifications.cancelledTitle": "Order Cancelled",
+    "notifications.systemAlertTitle": "System Alert",
   },
 
   fr: {
@@ -566,6 +582,22 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "admin.profile": "Admin",
     "admin.revenue": "Chiffre d'affaires",
     "admin.clients": "Clients Inscrits",
+
+    // Notifications
+    "notifications.title": "Notifications",
+    "notifications.markAllRead": "Tout lire",
+    "notifications.all": "Toutes",
+    "notifications.unread": "Non lues",
+    "notifications.empty": "Aucune notification",
+    "notifications.noUnread": "Aucune notification non lue",
+    "notifications.emptyDesc":
+      "Vous recevrez ici les alertes concernant vos commandes et livraisons.",
+    "notifications.justNow": "À l'instant",
+    "notifications.newOrderTitle": "Nouvelle commande",
+    "notifications.orderAssignedTitle": "Nouvelle livraison assignée",
+    "notifications.statusChangedTitle": "Mise à jour de commande",
+    "notifications.cancelledTitle": "Commande annulée",
+    "notifications.systemAlertTitle": "Alerte système",
   },
 
   ar: {
@@ -842,6 +874,22 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "admin.profile": "المسؤول",
     "admin.revenue": "إجمالي المداخيل",
     "admin.clients": "العملاء المسجلين",
+
+    // Notifications
+    "notifications.title": "الإشعارات",
+    "notifications.markAllRead": "تحديد الكل كمقروء",
+    "notifications.all": "الكل",
+    "notifications.unread": "غير مقروءة",
+    "notifications.empty": "لا توجد إشعارات",
+    "notifications.noUnread": "لا توجد إشعارات غير مقروءة",
+    "notifications.emptyDesc":
+      "ستتلقى هنا التنبيهات المتعلقة بطلباتك وعمليات التوصيل.",
+    "notifications.justNow": "الآن",
+    "notifications.newOrderTitle": "طلب جديد",
+    "notifications.orderAssignedTitle": "تم تعيين توصيل جديد لك",
+    "notifications.statusChangedTitle": "تحديث حالة الطلب",
+    "notifications.cancelledTitle": "تم إلغاء الطلب",
+    "notifications.systemAlertTitle": "تنبيه النظام",
   },
 
   es: {
@@ -1124,5 +1172,21 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "admin.profile": "Admin",
     "admin.revenue": "Ingresos Totales",
     "admin.clients": "Clientes Registrados",
+
+    // Notifications
+    "notifications.title": "Notificaciones",
+    "notifications.markAllRead": "Marcar todo leído",
+    "notifications.all": "Todas",
+    "notifications.unread": "No leídas",
+    "notifications.empty": "Sin notificaciones",
+    "notifications.noUnread": "No hay notificaciones sin leer",
+    "notifications.emptyDesc":
+      "Recibirás aquí las alertas sobre tus pedidos y entregas.",
+    "notifications.justNow": "Ahora mismo",
+    "notifications.newOrderTitle": "Nuevo pedido",
+    "notifications.orderAssignedTitle": "Nueva entrega asignada",
+    "notifications.statusChangedTitle": "Actualización de pedido",
+    "notifications.cancelledTitle": "Pedido cancelado",
+    "notifications.systemAlertTitle": "Alerta del sistema",
   },
 };

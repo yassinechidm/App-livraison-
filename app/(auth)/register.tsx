@@ -1,5 +1,12 @@
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Logo from "@/components/ui/Logo";
+import Colors from "@/constants/Colors";
 import { sanitizeEmail, sanitizeName, sanitizePhone } from "@/lib/sanitize";
+import { authService } from "@/services/auth.service";
+import { RegistrationProvider } from "@/types/auth.types";
 import { Link, useRouter } from "expo-router";
+import { Mail, MessageCircle, Phone as PhoneIcon } from "lucide-react-native";
 import { useState } from "react";
 import {
     Alert,
@@ -8,15 +15,12 @@ import {
     ScrollView,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from "react-native";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import Logo from "../../components/ui/Logo";
-import Colors from "../../constants/Colors";
-import { authService } from "../../services/auth.service";
 
 export default function RegisterScreen() {
+  const [provider, setProvider] = useState<RegistrationProvider>("email");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,30 +39,39 @@ export default function RegisterScreen() {
       newErrors.fullName = "Le nom complet est requis";
     }
 
-    if (!email.trim()) {
-      newErrors.email = "L'email est requis";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      newErrors.email = "Email invalide";
-    }
-
-    if (!phone.trim()) {
-      newErrors.phone = "Le téléphone est requis";
-    }
-
     if (!city.trim()) {
       newErrors.city = "La ville/quartier est requis";
     }
 
-    if (!password) {
-      newErrors.password = "Le mot de passe est requis";
-    } else if (password.length < 6) {
-      newErrors.password = "Au moins 6 caractères";
-    }
+    if (provider === "email") {
+      if (!email.trim()) {
+        newErrors.email = "L'email est requis";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        newErrors.email = "Email invalide";
+      }
 
-    if (!confirmPassword) {
-      newErrors.confirmPassword = "La confirmation est requise";
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+      if (!password) {
+        newErrors.password = "Le mot de passe est requis";
+      } else if (password.length < 6) {
+        newErrors.password = "Au moins 6 caractères";
+      }
+
+      if (!confirmPassword) {
+        newErrors.confirmPassword = "La confirmation est requise";
+      } else if (password !== confirmPassword) {
+        newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+      }
+    } else {
+      // SMS or WhatsApp registration requires valid phone number
+      const clean = sanitizePhone(phone);
+      if (!clean) {
+        newErrors.phone = "Le numéro de téléphone est requis";
+      } else {
+        const normalized = authService.normalizePhoneNumber(clean);
+        if (!normalized) {
+          newErrors.phone = "Numéro invalide (ex: 06 12 34 56 78)";
+        }
+      }
     }
 
     setErrors(newErrors);
@@ -70,23 +83,57 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     try {
-      const cleanEmail = sanitizeEmail(email);
       const cleanFullName = sanitizeName(fullName);
-      const cleanPhone = sanitizePhone(phone);
       const cleanCity = sanitizeName(city);
 
-      const data = await authService.signUp({
-        email: cleanEmail,
-        password,
-        fullName: cleanFullName,
-        phone: cleanPhone,
-        city: cleanCity,
-      });
+      if (provider === "email") {
+        const cleanEmail = sanitizeEmail(email);
+        const cleanPhone = sanitizePhone(phone);
 
-      if (data.user && !data.session) {
+        const data = await authService.signUp({
+          email: cleanEmail,
+          password,
+          fullName: cleanFullName,
+          phone: cleanPhone || undefined,
+          city: cleanCity,
+        });
+
+        if (data.user && !data.session) {
+          Alert.alert(
+            "Code de confirmation",
+            "Veuillez saisir le code de confirmation envoyé à votre adresse email pour activer votre compte.",
+            [
+              {
+                text: "Saisir le code",
+                onPress: () =>
+                  router.push({
+                    pathname: "/(auth)/otp" as any,
+                    params: {
+                      provider: "email",
+                      email: cleanEmail,
+                      phone: cleanPhone || undefined,
+                      type: "signup",
+                    },
+                  }),
+              },
+            ],
+          );
+        } else {
+          router.replace("/(app)/(client)/(tabs)" as any);
+        }
+      } else if (provider === "sms") {
+        const normalizedPhone = authService.normalizePhoneNumber(phone);
+        if (!normalizedPhone) throw new Error("Numéro de téléphone invalide.");
+
+        await authService.signInWithPhone(normalizedPhone, {
+          full_name: cleanFullName,
+          city: cleanCity,
+          role: "client",
+        });
+
         Alert.alert(
-          "Code de confirmation",
-          "Veuillez saisir le code de confirmation envoyé à votre adresse email pour activer votre compte.",
+          "Code SMS envoyé",
+          `Un code de confirmation par SMS a été envoyé au ${normalizedPhone}.`,
           [
             {
               text: "Saisir le code",
@@ -94,16 +141,43 @@ export default function RegisterScreen() {
                 router.push({
                   pathname: "/(auth)/otp" as any,
                   params: {
-                    email: cleanEmail,
-                    phone: cleanPhone || undefined,
-                    type: "signup",
+                    provider: "sms",
+                    phone: normalizedPhone,
+                    type: "sms",
                   },
                 }),
             },
           ],
         );
-      } else {
-        router.replace("/(app)/(client)/(tabs)" as any);
+      } else if (provider === "whatsapp") {
+        const normalizedPhone = authService.normalizePhoneNumber(phone);
+        if (!normalizedPhone) throw new Error("Numéro de téléphone invalide.");
+
+        const res = await authService.requestWhatsAppOtp(normalizedPhone, {
+          full_name: cleanFullName,
+          city: cleanCity,
+        });
+
+        Alert.alert(
+          "Code WhatsApp envoyé",
+          res.message ||
+            `Un code de confirmation a été envoyé sur WhatsApp au ${normalizedPhone}.`,
+          [
+            {
+              text: "Saisir le code",
+              onPress: () =>
+                router.push({
+                  pathname: "/(auth)/otp" as any,
+                  params: {
+                    provider: "whatsapp",
+                    phone: normalizedPhone,
+                    isWhatsApp: "true",
+                    type: "whatsapp",
+                  },
+                }),
+            },
+          ],
+        );
       }
     } catch (error) {
       const message =
@@ -141,6 +215,79 @@ export default function RegisterScreen() {
 
         {/* Card containing Registration Form */}
         <View style={styles.card}>
+          {/* Provider Selection Tabs */}
+          <View style={styles.providerTabs}>
+            <TouchableOpacity
+              style={[
+                styles.providerTab,
+                provider === "email" && styles.providerTabActive,
+              ]}
+              onPress={() => setProvider("email")}
+              activeOpacity={0.7}
+            >
+              <Mail
+                size={16}
+                color={provider === "email" ? Colors.primary : Colors.textMuted}
+              />
+              <Text
+                style={[
+                  styles.providerTabText,
+                  provider === "email" && styles.providerTabTextActive,
+                ]}
+              >
+                Email
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.providerTab,
+                provider === "sms" && styles.providerTabActive,
+              ]}
+              onPress={() => setProvider("sms")}
+              activeOpacity={0.7}
+            >
+              <PhoneIcon
+                size={16}
+                color={provider === "sms" ? Colors.primary : Colors.textMuted}
+              />
+              <Text
+                style={[
+                  styles.providerTabText,
+                  provider === "sms" && styles.providerTabTextActive,
+                ]}
+              >
+                SMS
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.providerTab,
+                provider === "whatsapp" && styles.providerTabActive,
+              ]}
+              onPress={() => setProvider("whatsapp")}
+              activeOpacity={0.7}
+            >
+              <MessageCircle
+                size={16}
+                color={provider === "whatsapp" ? "#059669" : Colors.textMuted}
+              />
+              <Text
+                style={[
+                  styles.providerTabText,
+                  provider === "whatsapp" && {
+                    color: "#059669",
+                    fontWeight: "800",
+                  },
+                ]}
+              >
+                WhatsApp
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Common Fields */}
           <Input
             label="Nom complet"
             placeholder="Votre nom complet"
@@ -150,25 +297,47 @@ export default function RegisterScreen() {
             autoComplete="name"
           />
 
-          <Input
-            label="Email"
-            placeholder="votre@email.com"
-            value={email}
-            onChangeText={setEmail}
-            error={errors.email}
-            keyboardType="email-address"
-            autoComplete="email"
-          />
+          {/* Email Provider Fields */}
+          {provider === "email" && (
+            <>
+              <Input
+                label="Email"
+                placeholder="votre@email.com"
+                value={email}
+                onChangeText={setEmail}
+                error={errors.email}
+                keyboardType="email-address"
+                autoComplete="email"
+              />
 
-          <Input
-            label="Téléphone"
-            placeholder="+212 6XX XX XX XX"
-            value={phone}
-            onChangeText={setPhone}
-            error={errors.phone}
-            keyboardType="phone-pad"
-            autoComplete="tel"
-          />
+              <Input
+                label="Téléphone (contact)"
+                placeholder="+212 6XX XX XX XX"
+                value={phone}
+                onChangeText={setPhone}
+                error={errors.phone}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+              />
+            </>
+          )}
+
+          {/* SMS & WhatsApp Provider Fields */}
+          {(provider === "sms" || provider === "whatsapp") && (
+            <Input
+              label={
+                provider === "whatsapp"
+                  ? "Numéro WhatsApp"
+                  : "Numéro de téléphone"
+              }
+              placeholder="06 12 34 56 78"
+              value={phone}
+              onChangeText={setPhone}
+              error={errors.phone}
+              keyboardType="phone-pad"
+              autoComplete="tel"
+            />
+          )}
 
           <Input
             label="Quartier à Oujda"
@@ -185,29 +354,40 @@ export default function RegisterScreen() {
             onChangeText={setBusinessName}
           />
 
-          <Input
-            label="Mot de passe"
-            placeholder="Minimum 6 caractères"
-            value={password}
-            onChangeText={setPassword}
-            error={errors.password}
-            isPassword
-          />
+          {/* Password fields only for Email provider */}
+          {provider === "email" && (
+            <>
+              <Input
+                label="Mot de passe"
+                placeholder="Minimum 6 caractères"
+                value={password}
+                onChangeText={setPassword}
+                error={errors.password}
+                isPassword
+              />
 
-          <Input
-            label="Confirmer le mot de passe"
-            placeholder="Répétez votre mot de passe"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            error={errors.confirmPassword}
-            isPassword
-          />
+              <Input
+                label="Confirmer le mot de passe"
+                placeholder="Répétez votre mot de passe"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                error={errors.confirmPassword}
+                isPassword
+              />
+            </>
+          )}
 
           <Button
-            title="Créer mon compte"
+            title={
+              provider === "whatsapp"
+                ? "S'inscrire avec WhatsApp"
+                : provider === "sms"
+                  ? "S'inscrire par SMS"
+                  : "Créer mon compte"
+            }
             onPress={handleRegister}
             isLoading={isLoading}
-            variant="success"
+            variant={provider === "whatsapp" ? "primary" : "success"}
             style={styles.registerButton}
           />
         </View>
@@ -285,6 +465,40 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
     marginBottom: 16,
+  },
+  providerTabs: {
+    flexDirection: "row",
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 18,
+    gap: 4,
+  },
+  providerTab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  providerTabActive: {
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  providerTabText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.textMuted,
+  },
+  providerTabTextActive: {
+    color: Colors.primary,
+    fontWeight: "800",
   },
   registerButton: {
     marginTop: 10,

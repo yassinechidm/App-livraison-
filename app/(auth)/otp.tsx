@@ -1,4 +1,6 @@
 import { sanitizeOtp } from "@/lib/sanitize";
+import { authService } from "@/services/auth.service";
+import { RegistrationProvider } from "@/types/auth.types";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -12,10 +14,10 @@ import {
     View,
 } from "react-native";
 import Colors from "../../constants/Colors";
-import { authService } from "../../services/auth.service";
 
 export default function OtpScreen() {
-  const { email, phone, isWhatsApp, type } = useLocalSearchParams<{
+  const { provider, email, phone, isWhatsApp, type } = useLocalSearchParams<{
+    provider?: RegistrationProvider;
     email?: string;
     phone?: string;
     isWhatsApp?: string;
@@ -26,8 +28,19 @@ export default function OtpScreen() {
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(60);
   const router = useRouter();
-  const target = (phone || email || "").trim();
-  const isEmail = target.includes("@");
+
+  // Strict explicit provider resolution
+  const activeProvider: RegistrationProvider =
+    provider ||
+    (isWhatsApp === "true" || type === "whatsapp"
+      ? "whatsapp"
+      : type === "sms"
+        ? "sms"
+        : "email");
+
+  const cleanEmail = (email || "").trim();
+  const cleanPhone = (phone || "").trim();
+  const target = activeProvider === "email" ? cleanEmail : cleanPhone;
 
   useEffect(() => {
     let interval: any;
@@ -53,11 +66,12 @@ export default function OtpScreen() {
 
     setIsLoading(true);
     try {
-      if (isWhatsApp === "true") {
+      if (activeProvider === "whatsapp") {
         await authService.verifyWhatsAppOtp(target, cleanToken);
+      } else if (activeProvider === "sms") {
+        await authService.verifyOtp(target, cleanToken, "sms");
       } else {
-        const verifyType = (type as any) || (isEmail ? "signup" : "sms");
-        await authService.verifyOtp(target, cleanToken, verifyType);
+        await authService.verifyOtp(target, cleanToken, "signup");
       }
 
       const role = authService.getUserRole()?.toLowerCase();
@@ -81,15 +95,16 @@ export default function OtpScreen() {
   async function handleResend() {
     if (cooldown > 0 || isResending) return;
     if (!target) {
-      Alert.alert("Erreur", "Numéro de téléphone ou email manquant.");
+      Alert.alert("Erreur", "Identifiant de vérification manquant.");
       return;
     }
     setIsResending(true);
     try {
       const res = await authService.resendOtp({
         target,
-        isWhatsApp: isWhatsApp === "true",
-        type: (type as any) || (isEmail ? "signup" : "sms"),
+        provider: activeProvider,
+        isWhatsApp: activeProvider === "whatsapp",
+        type: activeProvider === "email" ? "signup" : "sms",
       });
       setCooldown(res.cooldownSeconds || 60);
       Alert.alert("Code renvoyé", res.message);
@@ -108,11 +123,11 @@ export default function OtpScreen() {
       <View style={styles.card}>
         <Text style={styles.title}>Vérification du compte</Text>
         <Text style={styles.subtitle}>
-          {isWhatsApp === "true"
+          {activeProvider === "whatsapp"
             ? "Saisissez le code à 6 chiffres envoyé sur votre WhatsApp au"
-            : isEmail
-              ? "Saisissez le code à 6 chiffres envoyé par email à"
-              : "Saisissez le code à 6 chiffres envoyé par SMS au"}
+            : activeProvider === "sms"
+              ? "Saisissez le code à 6 chiffres envoyé par SMS au"
+              : "Saisissez le code à 6 chiffres envoyé par email à"}
           {"\n"}
           <Text style={styles.targetText}>{target || "votre compte"}</Text>
         </Text>

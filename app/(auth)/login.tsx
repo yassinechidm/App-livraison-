@@ -3,17 +3,17 @@ import { Link, useRouter } from "expo-router";
 import { ChevronDown, ChevronUp, MapPin } from "lucide-react-native";
 import { useState } from "react";
 import {
-  Alert,
-  Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -80,6 +80,7 @@ export default function LoginScreen() {
     } else if (role === "delivery") {
       router.replace("/(app)/(delivery)/(tabs)" as any);
     } else {
+      router.replace("/(app)/(client)/(tabs)" as any);
     }
   }
 
