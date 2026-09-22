@@ -167,7 +167,8 @@ export interface Database {
             | "product"
             | "restaurant_menu_item"
             | "prescription"
-            | "parcel";
+            | "parcel"
+            | "grocery";
           product_id: string | null;
           menu_item_id: string | null;
           raw_item_id: string | null;

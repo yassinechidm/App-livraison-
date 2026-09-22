@@ -547,7 +547,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             />
           ) : null}
 
-          {/* Top Bar (Glovo style) */}
+          {/* Top Bar */}
           <SafeAreaView style={styles.topBar}>
             <TouchableOpacity
               style={styles.circleButton}
@@ -560,12 +560,20 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                   onClose();
                 }
               }}
+              accessibilityRole="button"
+              accessibilityLabel={t("common.close", "Fermer")}
               activeOpacity={0.8}
             >
               {viewMode === "map" || isSearchActive ? (
-                <ArrowLeft size={20} color="#3C3489" />
+                <ArrowLeft
+                  size={20}
+                  color={Colors.darkText}
+                  style={
+                    isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                  }
+                />
               ) : (
-                <X size={20} color="#3C3489" />
+                <X size={20} color={Colors.darkText} />
               )}
             </TouchableOpacity>
 
@@ -573,13 +581,22 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             <TouchableOpacity
               style={styles.topSearchPill}
               onPress={() => setIsSearchActive(true)}
+              accessibilityRole="search"
+              accessibilityLabel={t(
+                "nav.search",
+                "Rechercher une rue ou un quartier",
+              )}
               activeOpacity={0.9}
             >
-              <Search size={16} color="#7F77DD" style={{ marginRight: 8 }} />
+              <Search
+                size={16}
+                color={Colors.textSecondary}
+                style={{ marginRight: 8 }}
+              />
               <TextInput
                 style={styles.topSearchInput}
                 placeholder={t("nav.search", "Search")}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={Colors.textMuted}
                 value={searchQuery}
                 onChangeText={(text) => {
                   setSearchQuery(text);
@@ -588,8 +605,12 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 onFocus={() => setIsSearchActive(true)}
               />
               {searchQuery ? (
-                <TouchableOpacity onPress={() => setSearchQuery("")}>
-                  <X size={15} color="#9CA3AF" />
+                <TouchableOpacity
+                  onPress={() => setSearchQuery("")}
+                  accessibilityRole="button"
+                  accessibilityLabel="Effacer la recherche"
+                >
+                  <X size={15} color={Colors.textMuted} />
                 </TouchableOpacity>
               ) : null}
             </TouchableOpacity>
@@ -600,6 +621,11 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             <TouchableOpacity
               style={[styles.recenterFab, { bottom: 170 }]}
               onPress={handleUseCurrentLocation}
+              accessibilityRole="button"
+              accessibilityLabel={t(
+                "location.useCurrentLocation",
+                "Utiliser ma position actuelle",
+              )}
               activeOpacity={0.85}
             >
               {isLocating ? (
@@ -607,7 +633,8 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               ) : (
                 <Navigation
                   size={20}
-                  color="#3C3489"
+                  color={Colors.primary}
+                  strokeWidth={2.2}
                   style={{ transform: [{ rotate: "45deg" }] }}
                 />
               )}
@@ -648,7 +675,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 >
                   <MapPin
                     size={18}
-                    color="#7F77DD"
+                    color={Colors.primary}
                     style={isRTL ? { marginLeft: 12 } : { marginRight: 12 }}
                   />
                   <Text
@@ -682,6 +709,11 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             <TouchableOpacity
               style={styles.recenterInnerBtn}
               onPress={handleUseCurrentLocation}
+              accessibilityRole="button"
+              accessibilityLabel={t(
+                "location.useCurrentLocation",
+                "Utiliser ma position actuelle",
+              )}
               activeOpacity={0.85}
             >
               {isLocating ? (
@@ -689,7 +721,8 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               ) : (
                 <Navigation
                   size={20}
-                  color="#3C3489"
+                  color={Colors.primary}
+                  strokeWidth={2.2}
                   style={{ transform: [{ rotate: "45deg" }] }}
                 />
               )}
@@ -736,9 +769,9 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                         )}
                   </Text>
                   {isCollapsed ? (
-                    <ChevronUp size={16} color="#7F77DD" />
+                    <ChevronUp size={16} color={Colors.textSecondary} />
                   ) : (
-                    <ChevronDown size={14} color="#A5B4FC" />
+                    <ChevronDown size={14} color={Colors.cardBorder} />
                   )}
                 </View>
               </TouchableOpacity>
@@ -760,7 +793,8 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               <View style={styles.addressIconCircle}>
                 <Navigation
                   size={18}
-                  color="#3C3489"
+                  color={Colors.primary}
+                  strokeWidth={2.2}
                   style={{ transform: [{ rotate: "45deg" }] }}
                 />
               </View>
@@ -795,7 +829,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 activeOpacity={0.7}
               >
                 <View style={styles.addressIconCircle}>
-                  <Home size={18} color="#3C3489" />
+                  <Home size={18} color={Colors.primary} strokeWidth={1.8} />
                 </View>
                 <View
                   style={[
@@ -830,8 +864,10 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                     });
                     setViewMode("map");
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Modifier l'adresse"
                 >
-                  <Edit2 size={16} color="#7F77DD" />
+                  <Edit2 size={16} color={Colors.primary} strokeWidth={1.8} />
                 </TouchableOpacity>
               </TouchableOpacity>
             ))}
@@ -962,7 +998,7 @@ const styles = StyleSheet.create({
   topSearchInput: {
     flex: 1,
     fontSize: 15,
-    color: "#3C3489",
+    color: Colors.darkText,
     padding: 0,
   },
   recenterFab: {
@@ -975,12 +1011,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000000",
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
     zIndex: 100,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
 
   // Search overlay
@@ -995,10 +1033,12 @@ const styles = StyleSheet.create({
     padding: 16,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
     zIndex: 300,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
   searchOverlayHeader: {
     flexDirection: "row",
@@ -1006,12 +1046,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: "#F0F9FF",
   },
   searchOverlayTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   searchOverlayCancel: {
     fontSize: 13,
@@ -1026,12 +1066,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#F9FAFB",
+    borderBottomColor: "#F0F9FF",
   },
   searchOverlayItemText: {
     fontSize: 14,
-    color: "#7F77DD",
-    fontWeight: "500",
+    color: Colors.darkText,
+    fontWeight: "600",
   },
 
   // Where should we deliver sheet (Draggable & Reactive)
@@ -1046,9 +1086,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: Platform.OS === "ios" ? 34 : 20,
-    shadowColor: "#3C3489",
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.16,
+    shadowOpacity: 0.12,
     shadowRadius: 18,
     elevation: 16,
     zIndex: 250,
@@ -1067,7 +1107,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#CECBF6",
+    backgroundColor: Colors.cardBorder,
     marginBottom: 6,
   },
   dragHintRow: {
@@ -1078,7 +1118,7 @@ const styles = StyleSheet.create({
   dragHintText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   recenterInnerBtn: {
     width: "100%",
@@ -1089,7 +1129,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginVertical: 16,
   },
   addressRow: {
@@ -1097,7 +1137,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: "#F0F9FF",
   },
   addressIconCircle: {
     width: 36,
@@ -1112,16 +1152,16 @@ const styles = StyleSheet.create({
   addressTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   addressSubtitle: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   recommendedBadge: {
     alignSelf: "flex-start",
-    backgroundColor: "#FFD166",
+    backgroundColor: Colors.badge,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
@@ -1130,21 +1170,21 @@ const styles = StyleSheet.create({
   recommendedBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.badgeText,
   },
   editCircle: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: Colors.mutedTint,
     alignItems: "center",
     justifyContent: "center",
   },
   addAddressButton: {
     marginTop: 18,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 28,
     height: 50,
     alignItems: "center",
@@ -1153,10 +1193,10 @@ const styles = StyleSheet.create({
   addAddressButtonText: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.primary,
   },
 
-  // Pin Confirmation mode (Screenshot #15)
+  // Pin Confirmation mode
   mapPinBottomContainer: {
     position: "absolute",
     bottom: Platform.OS === "ios" ? 34 : 20,
@@ -1168,7 +1208,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginBottom: 12,
@@ -1184,7 +1224,7 @@ const styles = StyleSheet.create({
   pinAddressLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 2,
@@ -1192,7 +1232,7 @@ const styles = StyleSheet.create({
   pinInstructionText: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   confirmAddressButton: {
     backgroundColor: Colors.cta,

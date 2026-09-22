@@ -9,11 +9,14 @@ import { LiveTrackingMap } from "@/src/components/LiveTrackingMap";
 import { Order, ORDER_STATUS_CONFIG } from "@/types/order.types";
 import { useRouter } from "expo-router";
 import {
+    Banknote,
     Bike,
     CheckCircle2,
     ChefHat,
     ChevronRight,
+    CreditCard,
     Flame,
+    MapPin,
     ShieldCheck,
     ShoppingBag,
     Star,
@@ -263,9 +266,11 @@ export default function AdminDashboardScreen() {
 
       <View style={styles.actionButtonsRow}>
         <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: "#EBF2FF" }]}
+          style={[styles.actionBtn, { backgroundColor: "#E0F2FE" }]}
           onPress={() => router.push("/(app)/(admin)/(tabs)/orders" as any)}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Ouvrir la vue cuisine Kanban"
         >
           <ChefHat
             size={20}
@@ -278,9 +283,11 @@ export default function AdminDashboardScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: "#F0FDF4" }]}
+          style={[styles.actionBtn, { backgroundColor: "#E6FFFA" }]}
           onPress={() => router.push("/(app)/(admin)/(tabs)/products" as any)}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Gérer les menus et plats"
         >
           <UtensilsCrossed
             size={20}
@@ -296,6 +303,8 @@ export default function AdminDashboardScreen() {
           style={[styles.actionBtn, { backgroundColor: "#FFFBEB" }]}
           onPress={() => router.push("/(app)/(admin)/(tabs)/categories" as any)}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Gérer les codes promo"
         >
           <Tag size={20} color="#B45309" style={{ marginBottom: 4 }} />
           <Text style={[styles.actionText, { color: "#B45309" }]}>
@@ -312,7 +321,13 @@ export default function AdminDashboardScreen() {
         </Text>
       </View>
 
-      <Card style={{ padding: 12, marginBottom: 20 }}>
+      <Card
+        style={{
+          padding: 12,
+          marginBottom: 20,
+          borderColor: Colors.cardBorder,
+        }}
+      >
         {(() => {
           const activeDelivery =
             orders.find(
@@ -451,7 +466,12 @@ export default function AdminDashboardScreen() {
                     {order.customer_name}
                   </Text>
                 </View>
-                <Text style={styles.reviewStars}>⭐ {order.rating}/5</Text>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
+                >
+                  <Star size={12} color="#F59E0B" fill="#F59E0B" />
+                  <Text style={styles.reviewStars}>{order.rating}/5</Text>
+                </View>
               </View>
               <Text style={styles.reviewComment}>
                 "{order.review_text || "Superbe service de livraison !"}"
@@ -470,6 +490,8 @@ export default function AdminDashboardScreen() {
         <TouchableOpacity
           onPress={() => router.push("/(app)/(admin)/(tabs)/orders" as any)}
           style={{ flexDirection: "row", alignItems: "center" }}
+          accessibilityRole="button"
+          accessibilityLabel="Voir toutes les commandes en vue Kanban"
         >
           <Text style={styles.seeAll}>Vue Kanban</Text>
           <ChevronRight size={14} color={Colors.primary} />
@@ -483,6 +505,8 @@ export default function AdminDashboardScreen() {
             key={order.id}
             onPress={() => router.push("/(app)/(admin)/(tabs)/orders" as any)}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={`Voir les détails de la commande ${order.order_number}`}
           >
             <Card style={styles.orderPreviewCard}>
               <View style={styles.orderPreviewHeader}>
@@ -490,9 +514,19 @@ export default function AdminDashboardScreen() {
                   <Text style={styles.orderPreviewNumber}>
                     {order.order_number}
                   </Text>
-                  <Text style={styles.orderPreviewCustomer}>
-                    👤 {order.customer_name} ({order.customer_phone})
-                  </Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                      marginTop: 2,
+                    }}
+                  >
+                    <User size={12} color={Colors.textSecondary} />
+                    <Text style={styles.orderPreviewCustomer}>
+                      {order.customer_name} ({order.customer_phone})
+                    </Text>
+                  </View>
                 </View>
                 <View
                   style={[
@@ -507,15 +541,38 @@ export default function AdminDashboardScreen() {
                 </View>
               </View>
 
-              <Text style={styles.orderPreviewAddress}>
-                📍 {order.delivery_address_text}
-              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  marginBottom: 8,
+                }}
+              >
+                <MapPin size={12} color={Colors.textMuted} />
+                <Text style={styles.orderPreviewAddress}>
+                  {order.delivery_address_text}
+                </Text>
+              </View>
 
               <View style={styles.orderPreviewFooter}>
-                <Text style={styles.orderPreviewItems}>
-                  {order.items?.length || 1} article(s) •{" "}
-                  {order.payment_method === "CARD" ? "💳 Carte" : "💵 Cash"}
-                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  {order.payment_method === "CARD" ? (
+                    <CreditCard size={12} color={Colors.textSecondary} />
+                  ) : (
+                    <Banknote size={12} color={Colors.textSecondary} />
+                  )}
+                  <Text style={styles.orderPreviewItems}>
+                    {order.items?.length || 1} article(s) •{" "}
+                    {order.payment_method === "CARD" ? "Carte" : "Espèces"}
+                  </Text>
+                </View>
                 <Text style={styles.orderPreviewTotal}>
                   {order.total.toFixed(2)} MAD
                 </Text>
@@ -531,7 +588,7 @@ export default function AdminDashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
   },
   scrollContent: {
     padding: 16,
@@ -554,17 +611,19 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   adminBadge: {
-    backgroundColor: "rgba(92, 91, 219, 0.12)",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.badge,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.primary + "30",
+    borderColor: Colors.cardBorder,
   },
   adminBadgeText: {
     fontSize: 11,
     fontWeight: "900",
-    color: Colors.primary,
+    color: Colors.badgeText,
   },
   kpiGrid: {
     flexDirection: "row",
@@ -578,10 +637,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   kpiCardHighlight: {
-    backgroundColor: "#F8FAFF",
+    backgroundColor: "#F0F9FF",
     borderColor: Colors.primary + "40",
   },
   kpiHeaderRow: {
@@ -618,7 +677,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   metricBox: {
     alignItems: "center",
@@ -677,7 +736,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     gap: 12,
   },
   topSellingRow: {
@@ -701,7 +760,7 @@ const styles = StyleSheet.create({
   },
   topSellingProgressBg: {
     height: 6,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: "#E0F2FE",
     borderRadius: 3,
     overflow: "hidden",
   },
@@ -715,7 +774,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     gap: 10,
   },
   courierRow: {
@@ -748,7 +807,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   reviewHeader: {
     flexDirection: "row",
@@ -763,6 +822,8 @@ const styles = StyleSheet.create({
   },
   reviewStars: {
     fontSize: 12,
+    fontWeight: "700",
+    color: "#B45309",
   },
   reviewComment: {
     fontSize: 12,
@@ -781,7 +842,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   orderPreviewHeader: {
     flexDirection: "row",
@@ -798,7 +859,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     color: Colors.textPrimary,
-    marginTop: 2,
   },
   statusBadge: {
     flexDirection: "row",
@@ -818,7 +878,6 @@ const styles = StyleSheet.create({
   orderPreviewAddress: {
     fontSize: 11,
     color: Colors.textMuted,
-    marginBottom: 8,
   },
   orderPreviewFooter: {
     flexDirection: "row",

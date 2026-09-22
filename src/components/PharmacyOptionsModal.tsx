@@ -15,7 +15,7 @@ import {
     Pill,
     Trash2,
     Upload,
-    X
+    X,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -156,7 +156,15 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
     });
   };
 
+  const isValidUUID = (str?: string): boolean => {
+    if (!str) return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      str,
+    );
+  };
+
   const handleSubmitPrescription = async () => {
+    // 1. Validate Photo
     if (!selectedImage) {
       Alert.alert(
         t("pharmacy.missingPhotoTitle", "Photo manquante"),
@@ -168,14 +176,35 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
       return;
     }
 
+    if (isSubmitting) return;
     setIsSubmitting(true);
+
     try {
+      // 2. Validate Authenticated Session (Never send fake 'guest' IDs)
       const session = await authService.getSession();
-      const user = session?.user || {
-        id: "guest",
-        name: "Client Pharmacie",
-        phone: "+212 6 XX XX XX XX",
-      };
+      const user = session?.user;
+
+      if (!user || !user.id || !isValidUUID(user.id)) {
+        setIsSubmitting(false);
+        Alert.alert(
+          t("pharmacy.authRequiredTitle", "Connexion requise"),
+          t(
+            "pharmacy.authRequiredMsg",
+            "Vous devez être connecté à votre compte pour envoyer une ordonnance médicale sécurisée.",
+          ),
+          [
+            { text: t("common.cancel", "Annuler"), style: "cancel" },
+            {
+              text: t("auth.signIn", "Se connecter"),
+              onPress: () => {
+                handleClose();
+                router.push("/(auth)/login" as any);
+              },
+            },
+          ],
+        );
+        return;
+      }
 
       const address =
         locationStore.getAddress() || "Oujda, Région de l'Oriental";
@@ -184,9 +213,9 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
         ? instructions.trim()
         : "Photo d'ordonnance médicale transmise par le client.";
 
-      // 1. Upload to Supabase Storage private prescriptions bucket
+      // 3. Upload to Supabase Storage private prescriptions bucket
       const fileExt = "jpg";
-      const filePath = `${user.id || "guest"}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const filePath = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
       let storagePath: string | undefined = undefined;
 
       try {
@@ -199,70 +228,130 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
             upsert: false,
           });
 
-        if (!uploadError) {
-          storagePath = filePath;
-        } else {
-          console.warn(
-            "[PharmacyOptionsModal] Storage upload warning:",
-            uploadError,
+        if (uploadError) {
+          console.error(
+            "[PharmacyOptionsModal] Storage upload error:",
+            uploadError.message,
           );
+          setIsSubmitting(false);
+          Alert.alert(
+            t("common.error", "Erreur"),
+            t(
+              "pharmacy.uploadFailed",
+              "Impossible de téléverser la photo de votre ordonnance. Veuillez vérifier votre connexion et réessayer.",
+            ),
+          );
+          return;
         }
-      } catch (uploadErr) {
-        console.warn(
+
+        storagePath = filePath;
+      } catch (uploadErr: any) {
+        console.error(
           "[PharmacyOptionsModal] Storage upload exception:",
-          uploadErr,
+          uploadErr?.message || uploadErr,
         );
+        setIsSubmitting(false);
+        Alert.alert(
+          t("common.error", "Erreur"),
+          t(
+            "pharmacy.uploadFailed",
+            "Impossible de téléverser la photo de votre ordonnance. Veuillez vérifier votre connexion et réessayer.",
+          ),
+        );
+        return;
       }
 
-      // 2. Create authoritative order via RPC
-      await orderService.createOrder(
-        {
-          items: [
-            {
-              item_type: "prescription",
-              product_id: "33333333-3333-3333-3333-333333333333",
-              product_name: t(
-                "pharmacy.orderItemTitle",
-                "Médicaments sur Ordonnance",
-              ),
-              unit_price: 0,
-              quantity: 1,
-              special_instructions: noteText,
-            },
-          ],
-          delivery_mode: "DELIVERY",
-          delivery_address_text: address,
-          payment_method: "CASH",
-          notes: noteText,
-          prescription_storage_path: storagePath,
-          prescription_image_url: selectedImage,
-        },
-        user,
-      );
-
-      handleClose();
-
-      Alert.alert(
-        t("pharmacy.successTitle", "Ordonnance envoyée !"),
-        t(
-          "pharmacy.successMessage",
-          "Votre ordonnance a été transmise avec succès à notre pharmacie partenaire à Oujda. L'administrateur et le coursier préparent votre livraison.",
-        ),
-        [
+      // 4. Create authoritative order via RPC with item_type = 'prescription' and product_id = null
+      try {
+        await orderService.createOrder(
           {
-            text: t("orders.trackYourOrders", "Suivre ma commande"),
-            onPress: () => router.push("/(app)/(client)/(tabs)/orders" as any),
+            items: [
+              {
+                item_type: "prescription",
+                product_name: t(
+                  "pharmacy.orderItemTitle",
+                  "Médicaments sur Ordonnance",
+                ),
+                unit_price: 0,
+                quantity: 1,
+                special_instructions: noteText,
+              },
+            ],
+            delivery_mode: "DELIVERY",
+            delivery_address_text: address,
+            payment_method: "CASH",
+            notes: noteText,
+            prescription_storage_path: storagePath,
+            prescription_image_url: selectedImage,
           },
-          { text: t("common.ok", "OK") },
-        ],
+          user,
+        );
+
+        handleClose();
+
+        Alert.alert(
+          t("pharmacy.successTitle", "Ordonnance envoyée !"),
+          t(
+            "pharmacy.successMessage",
+            "Votre ordonnance a été transmise avec succès à notre pharmacie partenaire à Oujda. L'administrateur et le coursier préparent votre livraison.",
+          ),
+          [
+            {
+              text: t("orders.trackYourOrders", "Suivre ma commande"),
+              onPress: () =>
+                router.push("/(app)/(client)/(tabs)/orders" as any),
+            },
+            { text: t("common.ok", "OK") },
+          ],
+        );
+      } catch (orderErr: any) {
+        console.error(
+          "[PharmacyOptionsModal] Order creation error:",
+          orderErr?.message || orderErr,
+        );
+
+        // Safe Rollback: remove uploaded file from private bucket if order creation failed
+        if (storagePath) {
+          try {
+            await supabase.storage.from("prescriptions").remove([storagePath]);
+          } catch (cleanupErr: any) {
+            console.warn(
+              "[PharmacyOptionsModal] Storage rollback warning:",
+              cleanupErr?.message || cleanupErr,
+            );
+          }
+        }
+
+        const errMsg = (orderErr?.message || "").toLowerCase();
+        const isNetwork =
+          errMsg.includes("network") ||
+          errMsg.includes("failed to fetch") ||
+          errMsg.includes("timeout") ||
+          errMsg.includes("connection");
+
+        Alert.alert(
+          t("common.error", "Erreur"),
+          isNetwork
+            ? t(
+                "pharmacy.networkError",
+                "Problème de connexion. Veuillez vérifier votre connexion internet et réessayer.",
+              )
+            : t(
+                "pharmacy.orderFailed",
+                "Impossible de créer votre commande d'ordonnance. Veuillez réessayer ou nous contacter par téléphone.",
+              ),
+        );
+      }
+    } catch (generalErr: any) {
+      console.error(
+        "[PharmacyOptionsModal] Unexpected submit exception:",
+        generalErr?.message || generalErr,
       );
-    } catch (err) {
-      console.error("[PharmacyOptionsModal] Order submit error:", err);
       Alert.alert(
         t("common.error", "Erreur"),
         t(
-          "pharmacy.submitError",
-          "Impossible d'envoyer votre ordonnance. Veuillez réessayer ou nous contacter par téléphone.",
+          "pharmacy.unknownError",
+          "Une erreur inattendue est survenue. Veuillez réessayer.",
         ),
       );
     } finally {

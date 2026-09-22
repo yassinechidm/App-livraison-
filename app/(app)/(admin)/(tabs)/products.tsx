@@ -12,6 +12,18 @@ import {
     MenuItem,
     Restaurant,
 } from "@/types/restaurant.types";
+import {
+    ArrowLeft,
+    Edit2,
+    Flame,
+    Package,
+    Search,
+    ShoppingCart,
+    Store,
+    Trash2,
+    UtensilsCrossed,
+    X
+} from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Alert,
@@ -464,15 +476,28 @@ export default function AdminProductsScreen() {
             setSelectedRestoForMenu(null);
           }}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Onglet Snacks et Restaurants"
         >
-          <Text
-            style={[
-              styles.topTabText,
-              activeTab === "restaurants" && styles.topTabTextActive,
-            ]}
-          >
-            🍔 Snacks & Restos ({restaurants.length})
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <UtensilsCrossed
+              size={15}
+              color={
+                activeTab === "restaurants"
+                  ? Colors.white
+                  : Colors.textSecondary
+              }
+              strokeWidth={2.0}
+            />
+            <Text
+              style={[
+                styles.topTabText,
+                activeTab === "restaurants" && styles.topTabTextActive,
+              ]}
+            >
+              Snacks & Restos ({restaurants.length})
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -482,15 +507,26 @@ export default function AdminProductsScreen() {
           ]}
           onPress={() => setActiveTab("market")}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Onglet Supermarché"
         >
-          <Text
-            style={[
-              styles.topTabText,
-              activeTab === "market" && styles.topTabTextActive,
-            ]}
-          >
-            🛒 Supermarché ({products.length})
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <ShoppingCart
+              size={15}
+              color={
+                activeTab === "market" ? Colors.white : Colors.textSecondary
+              }
+              strokeWidth={2.0}
+            />
+            <Text
+              style={[
+                styles.topTabText,
+                activeTab === "market" && styles.topTabTextActive,
+              ]}
+            >
+              Supermarché ({products.length})
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -506,13 +542,25 @@ export default function AdminProductsScreen() {
                 style={styles.backBtn}
                 onPress={() => setSelectedRestoForMenu(null)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Retour à tous les snacks"
               >
-                <Text style={styles.backIcon}>‹</Text>
+                <ArrowLeft
+                  size={18}
+                  color={Colors.primary}
+                  strokeWidth={2.0}
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={styles.backText}>Tous les Snacks</Text>
               </TouchableOpacity>
             ) : (
               <View style={styles.searchBar}>
-                <Text style={styles.searchIcon}>🔍</Text>
+                <Search
+                  size={15}
+                  color={Colors.textSecondary}
+                  strokeWidth={1.8}
+                  style={{ marginRight: 6 }}
+                />
                 <TextInput
                   style={styles.searchInput}
                   placeholder="Rechercher un restaurant/snack..."
@@ -528,6 +576,8 @@ export default function AdminProductsScreen() {
                 style={styles.addBtn}
                 onPress={() => setShowAddDishModal(true)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Ajouter un plat"
               >
                 <Text style={styles.addBtnText}>+ Ajouter un Plat</Text>
               </TouchableOpacity>
@@ -536,6 +586,8 @@ export default function AdminProductsScreen() {
                 style={styles.addBtn}
                 onPress={() => setShowAddRestoModal(true)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Ajouter un nouveau restaurant"
               >
                 <Text style={styles.addBtnText}>+ Nouveau Snack</Text>
               </TouchableOpacity>
@@ -572,7 +624,7 @@ export default function AdminProductsScreen() {
                         {selectedRestoForMenu.cuisine_type}
                       </Text>
                       <Text style={styles.restoBannerMeta}>
-                        🕒 {selectedRestoForMenu.delivery_time} • 🛵{" "}
+                        {selectedRestoForMenu.delivery_time} • Frais:{" "}
                         {selectedRestoForMenu.delivery_fee} DH
                       </Text>
                     </View>
@@ -580,8 +632,14 @@ export default function AdminProductsScreen() {
                       style={styles.editBtn}
                       onPress={() => openEditRestoModal(selectedRestoForMenu)}
                       activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel="Modifier le restaurant"
                     >
-                      <Text style={styles.editBtnText}>✏️</Text>
+                      <Edit2
+                        size={13}
+                        color={Colors.primary}
+                        strokeWidth={2.0}
+                      />
                     </TouchableOpacity>
                   </View>
                 </Card>
@@ -592,14 +650,18 @@ export default function AdminProductsScreen() {
                     Plats au Menu ({selectedRestoForMenu.menu_items.length})
                   </Text>
                   <Text style={styles.menuSubTip}>
-                    Cliquez sur ✏️ pour modifier prix/nom
+                    Cliquez sur le crayon pour modifier
                   </Text>
                 </View>
 
                 {/* Dishes List */}
                 {selectedRestoForMenu.menu_items.length === 0 ? (
                   <View style={styles.emptyCard}>
-                    <Text style={styles.emptyEmoji}>🍽️</Text>
+                    <UtensilsCrossed
+                      size={36}
+                      color={Colors.textSecondary}
+                      strokeWidth={1.8}
+                    />
                     <Text style={styles.emptyTitle}>
                       Aucun plat pour le moment
                     </Text>
@@ -627,8 +689,13 @@ export default function AdminProductsScreen() {
                             </View>
                             {dish.is_popular && (
                               <View style={styles.popularBadge}>
+                                <Flame
+                                  size={10}
+                                  color="#E11D48"
+                                  strokeWidth={2.0}
+                                />
                                 <Text style={styles.popularBadgeText}>
-                                  🔥 Top Ventes
+                                  Top Ventes
                                 </Text>
                               </View>
                             )}
@@ -656,10 +723,10 @@ export default function AdminProductsScreen() {
                             }
                             trackColor={{
                               false: "#CBD5E1",
-                              true: Colors.secondary + "60",
+                              true: "rgba(2, 136, 209, 0.35)",
                             }}
                             thumbColor={
-                              dish.is_available ? Colors.secondary : "#94A3B8"
+                              dish.is_available ? Colors.primary : "#94A3B8"
                             }
                           />
                           <Text
@@ -667,7 +734,7 @@ export default function AdminProductsScreen() {
                               styles.availLabel,
                               {
                                 color: dish.is_available
-                                  ? Colors.secondary
+                                  ? Colors.primary
                                   : Colors.error,
                               },
                             ]}
@@ -680,9 +747,14 @@ export default function AdminProductsScreen() {
                               style={styles.editBtn}
                               onPress={() => openEditDishModal(dish)}
                               activeOpacity={0.7}
+                              accessibilityRole="button"
                               accessibilityLabel={`Modifier le plat ${dish.name}`}
                             >
-                              <Text style={styles.editBtnText}>✏️</Text>
+                              <Edit2
+                                size={12}
+                                color={Colors.primary}
+                                strokeWidth={2.0}
+                              />
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -691,9 +763,14 @@ export default function AdminProductsScreen() {
                                 handleDeleteDish(dish.id, dish.name)
                               }
                               activeOpacity={0.7}
+                              accessibilityRole="button"
                               accessibilityLabel={`Supprimer le plat ${dish.name}`}
                             >
-                              <Text style={styles.deleteBtnText}>🗑️</Text>
+                              <Trash2
+                                size={12}
+                                color="#DC2626"
+                                strokeWidth={2.0}
+                              />
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -735,7 +812,7 @@ export default function AdminProductsScreen() {
                         </Text>
 
                         <Text style={styles.restoMetaText}>
-                          👍 {resto.rating_percent}% ({resto.rating_count}) • 🕒{" "}
+                          {resto.rating_percent}% ({resto.rating_count}) •{" "}
                           {resto.delivery_time} •{" "}
                           {resto.opening_hours || "11:30 - 02:00"}
                         </Text>
@@ -754,11 +831,11 @@ export default function AdminProductsScreen() {
                             onValueChange={() => handleToggleRestoOpen(resto)}
                             trackColor={{
                               false: "#CBD5E1",
-                              true: Colors.secondary + "60",
+                              true: "rgba(2, 136, 209, 0.35)",
                             }}
                             thumbColor={
                               resto.is_open !== false
-                                ? Colors.secondary
+                                ? Colors.primary
                                 : "#94A3B8"
                             }
                           />
@@ -768,13 +845,13 @@ export default function AdminProductsScreen() {
                               fontWeight: "800",
                               color:
                                 resto.is_open !== false
-                                  ? Colors.secondary
+                                  ? Colors.primary
                                   : Colors.error,
                             }}
                           >
                             {resto.is_open !== false
-                              ? "🟢 Ouvert aux commandes"
-                              : "🔴 Fermé temporairement"}
+                              ? "Ouvert aux commandes"
+                              : "Fermé temporairement"}
                           </Text>
                         </View>
 
@@ -783,9 +860,11 @@ export default function AdminProductsScreen() {
                             style={styles.manageMenuBtn}
                             onPress={() => setSelectedRestoForMenu(resto)}
                             activeOpacity={0.8}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Gérer le menu de ${resto.name}`}
                           >
                             <Text style={styles.manageMenuBtnText}>
-                              📋 Menu ({resto.menu_items.length}) →
+                              Menu ({resto.menu_items.length}) →
                             </Text>
                           </TouchableOpacity>
 
@@ -800,8 +879,14 @@ export default function AdminProductsScreen() {
                               style={styles.editBtn}
                               onPress={() => openEditRestoModal(resto)}
                               activeOpacity={0.7}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Modifier ${resto.name}`}
                             >
-                              <Text style={styles.editBtnText}>✏️</Text>
+                              <Edit2
+                                size={13}
+                                color={Colors.primary}
+                                strokeWidth={2.0}
+                              />
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -810,8 +895,14 @@ export default function AdminProductsScreen() {
                                 handleDeleteRestaurant(resto.id, resto.name)
                               }
                               activeOpacity={0.7}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Supprimer ${resto.name}`}
                             >
-                              <Text style={{ fontSize: 16 }}>🗑️</Text>
+                              <Trash2
+                                size={14}
+                                color="#DC2626"
+                                strokeWidth={2.0}
+                              />
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -832,7 +923,12 @@ export default function AdminProductsScreen() {
         <>
           <View style={styles.headerBar}>
             <View style={styles.searchBar}>
-              <Text style={styles.searchIcon}>🔍</Text>
+              <Search
+                size={15}
+                color={Colors.textSecondary}
+                strokeWidth={1.8}
+                style={{ marginRight: 6 }}
+              />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Rechercher un produit épicerie..."
@@ -846,6 +942,8 @@ export default function AdminProductsScreen() {
               style={styles.addBtn}
               onPress={() => setShowAddMarketModal(true)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Ajouter un produit supermarché"
             >
               <Text style={styles.addBtnText}>+ Ajouter</Text>
             </TouchableOpacity>
@@ -874,7 +972,7 @@ export default function AdminProductsScreen() {
                     <View style={styles.productInfo}>
                       <View style={styles.categoryBadge}>
                         <Text style={styles.categoryBadgeText}>
-                          {cat?.emoji} {cat?.name || "Catégorie"}
+                          {cat?.name || "Catégorie"}
                         </Text>
                       </View>
                       <Text style={styles.productName}>{product.name}</Text>
@@ -885,9 +983,22 @@ export default function AdminProductsScreen() {
                         <Text style={styles.priceText}>
                           {product.price.toFixed(2)} DH
                         </Text>
-                        <Text style={styles.stockText}>
-                          📦 Stock : {product.stock}
-                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <Package
+                            size={12}
+                            color={Colors.textMuted}
+                            strokeWidth={1.8}
+                          />
+                          <Text style={styles.stockText}>
+                            Stock : {product.stock}
+                          </Text>
+                        </View>
                       </View>
                     </View>
 
@@ -897,7 +1008,7 @@ export default function AdminProductsScreen() {
                           styles.toggleLabel,
                           {
                             color: product.is_available
-                              ? Colors.secondary
+                              ? Colors.primary
                               : Colors.error,
                           },
                         ]}
@@ -911,19 +1022,24 @@ export default function AdminProductsScreen() {
                         }
                         trackColor={{
                           false: "#CBD5E1",
-                          true: Colors.secondary + "60",
+                          true: "rgba(2, 136, 209, 0.35)",
                         }}
                         thumbColor={
-                          product.is_available ? Colors.secondary : "#94A3B8"
+                          product.is_available ? Colors.primary : "#94A3B8"
                         }
                       />
                       <TouchableOpacity
                         style={[styles.editBtn, { marginTop: 6 }]}
                         onPress={() => openEditMarketModal(product)}
                         activeOpacity={0.7}
+                        accessibilityRole="button"
                         accessibilityLabel={`Modifier le produit ${product.name}`}
                       >
-                        <Text style={styles.editBtnText}>✏️</Text>
+                        <Edit2
+                          size={12}
+                          color={Colors.primary}
+                          strokeWidth={2.0}
+                        />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -941,11 +1057,20 @@ export default function AdminProductsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                🍔 Nouveau Snack / Restaurant
-              </Text>
-              <TouchableOpacity onPress={() => setShowAddRestoModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Store size={18} color={Colors.textPrimary} strokeWidth={2.0} />
+                <Text style={styles.modalTitle}>
+                  Nouveau Snack / Restaurant
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowAddRestoModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -988,7 +1113,7 @@ export default function AdminProductsScreen() {
 
               <Input
                 label="Badge Promo (optionnel)"
-                placeholder="Ex: -20% sur les offres / Nouveau ✨"
+                placeholder="Ex: -20% sur les offres / Nouveau"
                 value={restoPromo}
                 onChangeText={setRestoPromo}
               />
@@ -1000,7 +1125,7 @@ export default function AdminProductsScreen() {
               />
 
               <Button
-                title="Enregistrer le Restaurant 🚀"
+                title="Enregistrer le Restaurant"
                 onPress={handleCreateRestaurant}
                 isLoading={isSubmitting}
                 style={{ marginTop: 14, marginBottom: 20 }}
@@ -1017,11 +1142,20 @@ export default function AdminProductsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                ✏️ Modifier le Snack / Restaurant
-              </Text>
-              <TouchableOpacity onPress={() => setShowEditRestoModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Edit2 size={18} color={Colors.textPrimary} strokeWidth={2.0} />
+                <Text style={styles.modalTitle}>
+                  Modifier le Snack / Restaurant
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowEditRestoModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -1071,7 +1205,7 @@ export default function AdminProductsScreen() {
               />
 
               <Button
-                title="Enregistrer les Modifications 💾"
+                title="Enregistrer les Modifications"
                 onPress={handleSaveEditRestaurant}
                 isLoading={isSubmitting}
                 style={{ marginTop: 14, marginBottom: 20 }}
@@ -1088,11 +1222,24 @@ export default function AdminProductsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                🌯 Ajouter un Plat ({selectedRestoForMenu?.name})
-              </Text>
-              <TouchableOpacity onPress={() => setShowAddDishModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <UtensilsCrossed
+                  size={18}
+                  color={Colors.textPrimary}
+                  strokeWidth={2.0}
+                />
+                <Text style={styles.modalTitle}>
+                  Ajouter un Plat ({selectedRestoForMenu?.name})
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowAddDishModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -1134,19 +1281,27 @@ export default function AdminProductsScreen() {
               />
 
               <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>
-                  Mettre en "Top des ventes 🔥"
-                </Text>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+                >
+                  <Flame size={14} color="#E11D48" strokeWidth={2.0} />
+                  <Text style={styles.switchLabel}>
+                    Mettre en Top des ventes
+                  </Text>
+                </View>
                 <Switch
                   value={dishIsPopular}
                   onValueChange={setDishIsPopular}
-                  trackColor={{ false: "#CBD5E1", true: Colors.primary + "60" }}
+                  trackColor={{
+                    false: "#CBD5E1",
+                    true: "rgba(2, 136, 209, 0.35)",
+                  }}
                   thumbColor={dishIsPopular ? Colors.primary : "#94A3B8"}
                 />
               </View>
 
               <Button
-                title="Ajouter le Plat au Menu 🍽️"
+                title="Ajouter le Plat au Menu"
                 onPress={handleCreateDish}
                 isLoading={isSubmitting}
                 style={{ marginTop: 14, marginBottom: 20 }}
@@ -1163,9 +1318,18 @@ export default function AdminProductsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>✏️ Modifier le Plat</Text>
-              <TouchableOpacity onPress={() => setShowEditDishModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Edit2 size={18} color={Colors.textPrimary} strokeWidth={2.0} />
+                <Text style={styles.modalTitle}>Modifier le Plat</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowEditDishModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -1203,11 +1367,19 @@ export default function AdminProductsScreen() {
               />
 
               <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>Top des ventes 🔥</Text>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+                >
+                  <Flame size={14} color="#E11D48" strokeWidth={2.0} />
+                  <Text style={styles.switchLabel}>Top des ventes</Text>
+                </View>
                 <Switch
                   value={dishIsPopular}
                   onValueChange={setDishIsPopular}
-                  trackColor={{ false: "#CBD5E1", true: Colors.primary + "60" }}
+                  trackColor={{
+                    false: "#CBD5E1",
+                    true: "rgba(2, 136, 209, 0.35)",
+                  }}
                   thumbColor={dishIsPopular ? Colors.primary : "#94A3B8"}
                 />
               </View>
@@ -1230,9 +1402,22 @@ export default function AdminProductsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🛒 Produit Supermarché</Text>
-              <TouchableOpacity onPress={() => setShowAddMarketModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <ShoppingCart
+                  size={18}
+                  color={Colors.textPrimary}
+                  strokeWidth={2.0}
+                />
+                <Text style={styles.modalTitle}>Produit Supermarché</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowAddMarketModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -1286,14 +1471,21 @@ export default function AdminProductsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>✏️ Modifier Produit</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Edit2 size={18} color={Colors.textPrimary} strokeWidth={2.0} />
+                <Text style={styles.modalTitle}>Modifier Produit</Text>
+              </View>
               <TouchableOpacity
                 onPress={() => {
                   setShowEditMarketModal(false);
                   setEditingMarketId(null);
                 }}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
               >
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -1346,14 +1538,14 @@ export default function AdminProductsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
   },
   topTabSwitcher: {
     flexDirection: "row",
     backgroundColor: Colors.white,
     padding: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: Colors.cardBorder,
     gap: 8,
   },
   topTabBtn: {
@@ -1361,7 +1553,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.mutedTint,
   },
   topTabBtnActive: {
     backgroundColor: Colors.primary,
@@ -1381,7 +1573,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: Colors.cardBorder,
     gap: 10,
   },
   backBtn: {
@@ -1404,10 +1596,12 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.mutedTint,
     borderRadius: 18,
     paddingHorizontal: 12,
     height: 42,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
   searchIcon: {
     fontSize: 14,
@@ -1446,7 +1640,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     marginBottom: 10,
   },
   restoBannerRow: {
@@ -1458,7 +1652,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 14,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: Colors.mutedTint,
   },
   restoBannerName: {
     fontSize: 17,
@@ -1496,7 +1690,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   dishRow: {
     flexDirection: "row",
@@ -1507,7 +1701,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 12,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.mutedTint,
   },
   dishInfo: {
     flex: 1,
@@ -1518,6 +1712,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   popularBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
     backgroundColor: "#FFF1F2",
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -1560,12 +1757,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.mutedTint,
     justifyContent: "center",
     alignItems: "center",
-  },
-  editBtnText: {
-    fontSize: 12,
   },
   deleteBtn: {
     width: 28,
@@ -1575,15 +1769,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  deleteBtnText: {
-    fontSize: 12,
-  },
   restoCard: {
     backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   restoRow: {
     flexDirection: "row",
@@ -1593,7 +1784,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 14,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: Colors.mutedTint,
   },
   restoDetails: {
     flex: 1,
@@ -1637,7 +1828,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   manageMenuBtn: {
-    backgroundColor: "#EBF2FF",
+    backgroundColor: Colors.mutedTint,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -1656,16 +1847,13 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#CECBF6",
-  },
-  emptyEmoji: {
-    fontSize: 40,
-    marginBottom: 8,
+    borderColor: Colors.cardBorder,
   },
   emptyTitle: {
     fontSize: 15,
     fontWeight: "800",
     color: Colors.textPrimary,
+    marginTop: 8,
   },
   emptySub: {
     fontSize: 12,
@@ -1678,7 +1866,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   productRow: {
     flexDirection: "row",
@@ -1690,7 +1878,7 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   categoryBadge: {
-    backgroundColor: "#EBF2FF",
+    backgroundColor: Colors.badge,
     alignSelf: "flex-start",
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -1700,7 +1888,7 @@ const styles = StyleSheet.create({
   categoryBadgeText: {
     fontSize: 10,
     fontWeight: "700",
-    color: Colors.primary,
+    color: Colors.badgeText,
   },
   productName: {
     fontSize: 14,
@@ -1747,6 +1935,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 20,
     maxHeight: "85%",
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
   modalHeader: {
     flexDirection: "row",
@@ -1758,11 +1948,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "800",
     color: Colors.textPrimary,
-  },
-  modalClose: {
-    fontSize: 18,
-    color: Colors.textMuted,
-    padding: 4,
   },
   switchRow: {
     flexDirection: "row",

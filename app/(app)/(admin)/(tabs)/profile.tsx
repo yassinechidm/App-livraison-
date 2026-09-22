@@ -1,3 +1,4 @@
+import Colors from "@/constants/Colors";
 import {
     AdminClientInfo,
     AdminDashboardStats,
@@ -174,7 +175,7 @@ export default function AdminProfileScreen() {
           <View style={styles.statRow}>
             <Text style={styles.statLabel}>Email superviseur :</Text>
             <Text style={styles.statValue}>
-              {user?.email || "admin@quicklivraison.ma"}
+              {user?.email || "admin@quicklylivraison.ma"}
             </Text>
           </View>
           <View style={[styles.statRow, { borderBottomWidth: 0 }]}>
@@ -185,12 +186,14 @@ export default function AdminProfileScreen() {
           </View>
         </View>
 
-        {/* ── Log Out Row (Generous clearance above tabs) ── */}
+        {/* ── Log Out Row ── */}
         <TouchableOpacity
           style={styles.logoutRow}
           onPress={handleLogout}
           disabled={isLoggingOut}
           activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel="Se déconnecter de l'espace Admin"
         >
           <View style={styles.logoutLeft}>
             <LogOut size={20} color="#FF4D6D" style={{ marginRight: 12 }} />
@@ -209,14 +212,14 @@ export default function AdminProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
   },
   organicHeader: {
-    backgroundColor: "#5C5BDB",
+    backgroundColor: Colors.primary,
     paddingBottom: 24,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    shadowColor: "#3C3489",
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 10,
@@ -290,13 +293,13 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
-    shadowColor: "#3C3489",
+    borderColor: Colors.cardBorder,
+    shadowColor: Colors.shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -311,7 +314,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.textPrimary,
   },
   statRow: {
     flexDirection: "row",
@@ -319,21 +322,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#F7F7FF",
+    borderBottomColor: "#F1F5F9",
   },
   statLabel: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   statValue: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.textPrimary,
   },
   statValueBold: {
     fontSize: 16,
     fontWeight: "900",
-    color: "#5C5BDB",
+    color: Colors.primary,
   },
 
   clientItem: {
@@ -342,54 +345,54 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#F7F7FF",
+    borderBottomColor: "#F1F5F9",
   },
   clientName: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.textPrimary,
   },
   clientDetails: {
     fontSize: 11,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   clientSpent: {
     fontSize: 13,
     fontWeight: "900",
-    color: "#5C5BDB",
+    color: Colors.primary,
   },
   clientOrders: {
     fontSize: 10,
-    color: "#7F77DD",
+    color: Colors.textMuted,
     marginTop: 1,
   },
   emptyClientsText: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textMuted,
     fontStyle: "italic",
     paddingVertical: 8,
   },
 
   adminRolePill: {
-    backgroundColor: "#FFD16630",
+    backgroundColor: "#E0F2FE",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#FFD16680",
+    borderColor: Colors.cardBorder,
   },
   adminRolePillText: {
     fontSize: 11,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.primary,
   },
 
   logoutRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.white,
     borderRadius: 16,
     paddingVertical: 15,
     paddingHorizontal: 16,

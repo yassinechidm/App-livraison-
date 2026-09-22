@@ -3,37 +3,38 @@ import { authService } from "@/services/auth.service";
 import { locationStore } from "@/services/location.service";
 import { orderService } from "@/services/order.service";
 import { restaurantService } from "@/services/restaurant.service";
+import { GroceryRequestModal } from "@/src/components/GroceryRequestModal";
 import { LocationPickerModal } from "@/src/components/LocationPickerModal";
 import { PharmacyOptionsModal } from "@/src/components/PharmacyOptionsModal";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { useRouter } from "expo-router";
 import {
-    Bike,
-    Cross,
-    MapPin,
-    Send,
-    ShoppingBag,
-    ShoppingCart,
-    Store,
-    UtensilsCrossed,
-    X,
+  Bike,
+  MapPin,
+  Package,
+  Pill,
+  Send,
+  ShoppingCart,
+  Store,
+  UtensilsCrossed,
+  X,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Easing,
-    Modal,
-    PanResponder,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Easing,
+  Modal,
+  PanResponder,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -282,6 +283,9 @@ export const HomeScreen: React.FC = () => {
   // Pharmacy modal
   const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
 
+  // Grocery Request modal
+  const [isGroceryModalVisible, setIsGroceryModalVisible] = useState(false);
+
   // Package Delivery modal
   const [isPackageModalVisible, setIsPackageModalVisible] = useState(false);
   const [pickupAddress, setPickupAddress] = useState(
@@ -336,17 +340,32 @@ export const HomeScreen: React.FC = () => {
     setIsSubmittingPackage(true);
     try {
       const session = await authService.getSession();
-      const user = session?.user || {
-        id: "client-id",
-        name: "Client Coursier",
-      };
+      const user = session?.user;
+
+      if (!user || !user.id) {
+        setIsSubmittingPackage(false);
+        Alert.alert(
+          "Connexion requise",
+          "Vous devez être connecté à votre compte pour commander une livraison de colis.",
+          [
+            { text: "Annuler", style: "cancel" },
+            {
+              text: "Se connecter",
+              onPress: () => {
+                setIsPackageModalVisible(false);
+                router.push("/(auth)/login" as any);
+              },
+            },
+          ],
+        );
+        return;
+      }
 
       const order = await orderService.createOrder(
         {
           items: [
             {
               item_type: "parcel",
-              product_id: "55555555-5555-5555-5555-555555555555",
               product_name: "Livraison de Colis Express",
               unit_price: 0,
               quantity: 1,
@@ -442,9 +461,9 @@ export const HomeScreen: React.FC = () => {
                 }
                 icon={
                   <UtensilsCrossed
-                    size={38}
-                    color="#D97706"
-                    strokeWidth={2.2}
+                    size={36}
+                    color={Colors.primary}
+                    strokeWidth={1.8}
                   />
                 }
               />
@@ -457,11 +476,13 @@ export const HomeScreen: React.FC = () => {
                 width={BUBBLE_WIDTH}
                 circleSize={BUBBLE_CIRCLE_SIZE}
                 label={t("home.groceries", "Groceries")}
-                onPress={() =>
-                  router.push("/(app)/(client)/(tabs)/catalog" as any)
-                }
+                onPress={() => setIsGroceryModalVisible(true)}
                 icon={
-                  <ShoppingCart size={38} color="#16A34A" strokeWidth={2.2} />
+                  <ShoppingCart
+                    size={36}
+                    color={Colors.cta}
+                    strokeWidth={1.8}
+                  />
                 }
               />
 
@@ -474,7 +495,9 @@ export const HomeScreen: React.FC = () => {
                 circleSize={BUBBLE_CIRCLE_SIZE}
                 label={t("home.pharmacy", "Pharmacy")}
                 onPress={() => setIsPharmacyModalVisible(true)}
-                icon={<Cross size={34} color="#059669" strokeWidth={2.5} />}
+                icon={
+                  <Pill size={36} color={Colors.success} strokeWidth={1.8} />
+                }
               />
 
               {/* Bubble 4: Shops (Middle-Right) */}
@@ -489,7 +512,7 @@ export const HomeScreen: React.FC = () => {
                   router.push("/(app)/(client)/(tabs)/catalog" as any)
                 }
                 icon={
-                  <ShoppingBag size={38} color="#0284C7" strokeWidth={2.2} />
+                  <Store size={36} color={Colors.primary} strokeWidth={1.8} />
                 }
               />
 
@@ -502,7 +525,13 @@ export const HomeScreen: React.FC = () => {
                 circleSize={BUBBLE_CIRCLE_SIZE}
                 label={t("home.packageDelivery", "Package Delivery")}
                 onPress={() => setIsPackageModalVisible(true)}
-                icon={<Bike size={38} color="#F59E0B" strokeWidth={2.2} />}
+                icon={
+                  <Package
+                    size={36}
+                    color={Colors.secondary}
+                    strokeWidth={1.8}
+                  />
+                }
               />
             </View>
           </View>
@@ -579,6 +608,12 @@ export const HomeScreen: React.FC = () => {
       <PharmacyOptionsModal
         visible={isPharmacyModalVisible}
         onClose={() => setIsPharmacyModalVisible(false)}
+      />
+
+      {/* ── Grocery Request Modal ── */}
+      <GroceryRequestModal
+        visible={isGroceryModalVisible}
+        onClose={() => setIsGroceryModalVisible(false)}
       />
 
       {/* ── Package Delivery Modal (Coursier Express) ── */}

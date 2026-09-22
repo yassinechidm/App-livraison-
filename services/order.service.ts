@@ -169,7 +169,7 @@ export const orderService = {
     const session = await authService.getSession();
     const activeUserId = session?.user?.id || user?.id;
 
-    if (!activeUserId) {
+    if (!activeUserId || !isValidUUID(activeUserId)) {
       throw new Error("Vous devez être connecté pour passer une commande.");
     }
 
@@ -185,28 +185,47 @@ export const orderService = {
     const cleanCustomerPhone = sanitizePhone(user?.phone);
 
     const rpcPayload: any = {
-      p_items: input.items.map((item) => ({
-        item_type:
-          item.item_type ||
-          (isValidUUID(item.product_id) ? "product" : "restaurant_menu_item"),
-        product_id: isValidUUID(item.product_id) ? item.product_id : null,
-        menu_item_id: isValidUUID(item.menu_item_id)
-          ? item.menu_item_id
-          : isValidUUID(item.product_id)
+      p_items: input.items.map((item) => {
+        const isCustom =
+          item.item_type === "prescription" ||
+          item.item_type === "parcel" ||
+          item.item_type === "grocery";
+
+        const validProdId =
+          !isCustom && item.product_id && isValidUUID(item.product_id)
+            ? item.product_id
+            : null;
+
+        const validMenuId =
+          !isCustom && item.menu_item_id && isValidUUID(item.menu_item_id)
+            ? item.menu_item_id
+            : !isCustom && item.product_id && !validProdId
+              ? item.product_id
+              : null;
+
+        return {
+          item_type:
+            item.item_type ||
+            (validProdId ? "product" : "restaurant_menu_item"),
+          product_id: validProdId,
+          menu_item_id: validMenuId,
+          raw_item_id: isCustom
             ? null
-            : item.product_id,
-        raw_item_id: item.raw_item_id || item.product_id,
-        product_name: sanitizeText(item.product_name, { maxLength: 150 }),
-        quantity: Math.max(1, Math.min(Number(item.quantity) || 1, 100)),
-        unit_price: Math.max(0, Number(item.unit_price) || 0),
-        selected_customizations: item.selected_customizations || null,
-        selected_customizations_text: item.selected_customizations_text
-          ? sanitizeText(item.selected_customizations_text, { maxLength: 200 })
-          : null,
-        special_instructions: item.special_instructions
-          ? sanitizeText(item.special_instructions, { maxLength: 300 })
-          : null,
-      })),
+            : item.raw_item_id || item.product_id || null,
+          product_name: sanitizeText(item.product_name, { maxLength: 150 }),
+          quantity: Math.max(1, Math.min(Number(item.quantity) || 1, 100)),
+          unit_price: Math.max(0, Number(item.unit_price) || 0),
+          selected_customizations: item.selected_customizations || null,
+          selected_customizations_text: item.selected_customizations_text
+            ? sanitizeText(item.selected_customizations_text, {
+                maxLength: 200,
+              })
+            : null,
+          special_instructions: item.special_instructions
+            ? sanitizeText(item.special_instructions, { maxLength: 300 })
+            : null,
+        };
+      }),
       p_delivery_address_text: cleanAddress,
       p_address_id: isValidUUID(input.address_id) ? input.address_id : null,
       p_delivery_mode: input.delivery_mode || "DELIVERY",
@@ -268,8 +287,22 @@ export const orderService = {
 
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        const dbOrders = data.map((o: any) =>
-          _mapDbOrder(o, o.order_items || []),
+        const dbOrders = await Promise.all(
+          data.map(async (o: any) => {
+            const mapped = _mapDbOrder(o, o.order_items || []);
+            if (
+              mapped.prescription_storage_path &&
+              !mapped.prescription_image_url
+            ) {
+              try {
+                const signed = await orderService.getPrescriptionSignedUrl(
+                  mapped.prescription_storage_path,
+                );
+                if (signed) mapped.prescription_image_url = signed;
+              } catch {}
+            }
+            return mapped;
+          }),
         );
         // Merge with in-memory orders (avoiding duplicates)
         _mergeOrders(dbOrders);
@@ -305,8 +338,22 @@ export const orderService = {
 
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        const dbOrders = data.map((o: any) =>
-          _mapDbOrder(o, o.order_items || []),
+        const dbOrders = await Promise.all(
+          data.map(async (o: any) => {
+            const mapped = _mapDbOrder(o, o.order_items || []);
+            if (
+              mapped.prescription_storage_path &&
+              !mapped.prescription_image_url
+            ) {
+              try {
+                const signed = await orderService.getPrescriptionSignedUrl(
+                  mapped.prescription_storage_path,
+                );
+                if (signed) mapped.prescription_image_url = signed;
+              } catch {}
+            }
+            return mapped;
+          }),
         );
         _mergeOrders(dbOrders);
       }
@@ -593,6 +640,7 @@ export const orderService = {
   async reorder(order: Order): Promise<void> {
     if (!order.items || order.items.length === 0) return;
     order.items.forEach((item) => {
+      if (!item.product_id) return;
       cartService.addItem(
         {
           id: item.product_id,
@@ -669,6 +717,7 @@ function _mapDbOrder(row: any, items: any[]): Order {
     total: Number(row.total),
     payment_method: row.payment_method,
     notes: cleanNotes,
+    prescription_storage_path: row.prescription_storage_path || undefined,
     prescription_image_url: prescriptionUrl,
     estimated_delivery_minutes: row.estimated_delivery_minutes ?? 25,
     rating: row.rating || undefined,

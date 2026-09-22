@@ -8,7 +8,7 @@ import {
 } from "@/services/restaurant.service";
 import { Restaurant } from "@/types/restaurant.types";
 import { useRouter } from "expo-router";
-import { Heart, Search, X } from "lucide-react-native";
+import { ArrowLeft, Heart, Search, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Image,
@@ -100,7 +100,7 @@ export default function RestaurantsListScreen() {
           style={styles.backBtn}
           activeOpacity={0.7}
         >
-          <Text style={styles.backIcon}>‹</Text>
+          <ArrowLeft size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
 
         <View style={styles.searchBar}>

@@ -779,4 +779,157 @@ export const authService = {
     }
     return null;
   },
+
+  async updatePassword(newPassword: string, currentPassword?: string) {
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error("Le mot de passe doit comporter au moins 6 caractères.");
+    }
+
+    if (currentPassword && currentUser?.email) {
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: currentUser.email,
+        password: currentPassword,
+      });
+      if (verifyError) {
+        throw new Error("L'ancien mot de passe est incorrect.");
+      }
+    }
+
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      throw new Error(
+        error.message || "Impossible de mettre à jour le mot de passe.",
+      );
+    }
+
+    if (data.user) {
+      currentUser = data.user;
+      notifyListeners();
+    }
+
+    return data;
+  },
+
+  async updateEmail(newEmail: string) {
+    const cleanEmail = sanitizeEmail(newEmail);
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      throw new Error("Veuillez saisir une adresse email valide.");
+    }
+
+    const { data, error } = await supabase.auth.updateUser({
+      email: cleanEmail,
+    });
+
+    if (error) {
+      throw new Error(
+        error.message || "Impossible de mettre à jour l'adresse email.",
+      );
+    }
+
+    if (data.user) {
+      currentUser = data.user;
+      notifyListeners();
+    }
+
+    return data;
+  },
+
+  async updatePhone(newPhone: string) {
+    const cleanPhone = this.normalizePhoneNumber(newPhone);
+    if (!cleanPhone) {
+      throw new Error("Veuillez saisir un numéro de téléphone valide.");
+    }
+
+    const { data, error } = await supabase.auth.updateUser({
+      phone: cleanPhone,
+    });
+
+    if (error) {
+      throw new Error(
+        error.message || "Impossible de mettre à jour le numéro de téléphone.",
+      );
+    }
+
+    return data;
+  },
+
+  async verifyPhoneChangeOtp(newPhone: string, token: string) {
+    const cleanPhone = this.normalizePhoneNumber(newPhone);
+    const cleanToken = sanitizeOtp(token);
+
+    if (!cleanPhone || !cleanToken || cleanToken.length !== 6) {
+      throw new Error("Veuillez saisir un code valide à 6 chiffres.");
+    }
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone: cleanPhone,
+      token: cleanToken,
+      type: "phone_change",
+    });
+
+    if (error) {
+      // Retry with sms type
+      const retry = await supabase.auth.verifyOtp({
+        phone: cleanPhone,
+        token: cleanToken,
+        type: "sms",
+      });
+      if (retry.error) {
+        throw new Error(retry.error.message || "Code incorrect ou expiré.");
+      }
+      if (retry.data.session) {
+        currentSession = retry.data.session;
+        currentUser = retry.data.user;
+        notifyListeners();
+      }
+      return retry.data;
+    }
+
+    if (data.session) {
+      currentSession = data.session;
+      currentUser = data.user;
+      notifyListeners();
+    }
+
+    return data;
+  },
+
+  async updateProfile(updates: { full_name?: string; city?: string }) {
+    if (!currentUser?.id) throw new Error("Utilisateur non connecté.");
+    const cleanFullName =
+      updates.full_name !== undefined
+        ? sanitizeName(updates.full_name)
+        : undefined;
+    const cleanCity =
+      updates.city !== undefined ? sanitizeName(updates.city) : undefined;
+
+    const metadataUpdates: Record<string, any> = {};
+    if (cleanFullName !== undefined) metadataUpdates.full_name = cleanFullName;
+    if (cleanCity !== undefined) metadataUpdates.city = cleanCity;
+
+    const { data, error } = await supabase.auth.updateUser({
+      data: metadataUpdates,
+    });
+
+    if (error) throw new Error(error.message);
+
+    const profileUpdates: Record<string, any> = {};
+    if (cleanFullName !== undefined) profileUpdates.full_name = cleanFullName;
+
+    if (Object.keys(profileUpdates).length > 0) {
+      await (supabase.from("profiles") as any)
+        .update(profileUpdates)
+        .eq("id", currentUser.id);
+    }
+
+    if (data.user) {
+      currentUser = data.user;
+      notifyListeners();
+    }
+
+    return data;
+  },
 };

@@ -1,21 +1,28 @@
 import Colors from "@/constants/Colors";
-import { sanitizeText } from "@/lib/sanitize";
+import {
+    sanitizeEmail,
+    sanitizeName,
+    sanitizeOtp,
+    sanitizeText,
+} from "@/lib/sanitize";
 import { authService } from "@/services/auth.service";
 import { LANGUAGE_OPTIONS, useLanguage } from "@/src/context/LanguageContext";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "expo-router";
 import {
+    ArrowLeft,
     Bell,
     Check,
     ChevronDown,
     ChevronRight,
     ChevronUp,
+    Edit3,
     Globe,
     HelpCircle,
-    Info,
     Lock,
     LogOut,
     Mail,
+    Phone,
     Shield,
     ShoppingBag,
     Smartphone,
@@ -24,6 +31,7 @@ import {
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Dimensions,
     Modal,
@@ -38,15 +46,18 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function ClientProfileScreen() {
   const router = useRouter();
-  const { t, selectedLanguageName, setLanguage } = useLanguage();
+  const { t, selectedLanguageName, setLanguage, isRTL } = useLanguage();
   const [user, setUser] = useState<User | any | null>(null);
 
-  // Sub-modal states matching the screenshots
-  const [isFriendsModalVisible, setIsFriendsModalVisible] = useState(false);
+  // Sub-modal states
+  const [isAccountModalVisible, setIsAccountModalVisible] = useState(false);
+  const [isPersonalInfoModalVisible, setIsPersonalInfoModalVisible] =
+    useState(false);
+  const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
   const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
   const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
@@ -56,34 +67,84 @@ export default function ClientProfileScreen() {
     useState(false);
   const [isPrivacyModalVisible, setIsPrivacyModalVisible] = useState(false);
 
-  // Form states
+  // Form states - Personal Data
+  const [fullNameInput, setFullNameInput] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
+
+  // Form states - Email
+  const [emailInput, setEmailInput] = useState("");
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
+
+  // Form states - Phone & OTP
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phonePrefix, setPhonePrefix] = useState("+212");
+  const [phoneOtpStep, setPhoneOtpStep] = useState<"input" | "otp">("input");
+  const [phoneOtpCode, setPhoneOtpCode] = useState("");
+  const [isSendingPhoneOtp, setIsSendingPhoneOtp] = useState(false);
+  const [isVerifyingPhoneOtp, setIsVerifyingPhoneOtp] = useState(false);
+  const [lastDispatchedPhone, setLastDispatchedPhone] = useState("");
+  const [isWhatsAppMethod, setIsWhatsAppMethod] = useState(false);
+
+  // Form states - Password
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [promoCodeInput, setPromoCodeInput] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("English");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
 
-  // Notifications toggles (Screenshot #10)
+  // Form states - Promo
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+
+  // Notifications toggles
   const [orderPushNotif, setOrderPushNotif] = useState(true);
   const [offersPushNotif, setOffersPushNotif] = useState(true);
   const [offersEmailNotif, setOffersEmailNotif] = useState(true);
 
-  // Privacy toggles (Screenshot #9 & #20 & #21)
-  const [personalizedAds, setPersonalizedAds] = useState(true);
+  // Privacy toggles
   const [marketingConsent, setMarketingConsent] = useState(true);
   const [functionalConsent, setFunctionalConsent] = useState(true);
-  const [essentialConsent, setEssentialConsent] = useState(true);
+  const [essentialConsent] = useState(true);
 
   // FAQ accordion active state
   const [expandedFaqIndex, setExpandedFaqIndex] = useState<number | null>(null);
 
   useEffect(() => {
+    const unsub = authService.onAuthStateChange((state) => {
+      if (state.user) {
+        setUser(state.user);
+        const name =
+          state.user.user_metadata?.full_name ||
+          state.user.user_metadata?.name ||
+          "";
+        setFullNameInput(name);
+        setEmailInput(state.user.email || "");
+        if (state.user.phone) {
+          const raw = state.user.phone.replace("+212", "").replace("+", "");
+          setPhoneNumber(raw);
+        }
+      } else {
+        setUser(null);
+      }
+    });
+
     authService.getSession().then((session: any) => {
       if (session?.user) {
         setUser(session.user);
+        const name =
+          session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.name ||
+          "";
+        setFullNameInput(name);
+        setEmailInput(session.user.email || "");
+        if (session.user.phone) {
+          const raw = session.user.phone.replace("+212", "").replace("+", "");
+          setPhoneNumber(raw);
+        }
       }
     });
+
+    return () => {
+      unsub();
+    };
   }, []);
 
   async function handleLogout() {
@@ -107,7 +168,194 @@ export default function ClientProfileScreen() {
     );
   }
 
-  const displayName = user?.email?.split("@")[0] ?? "Client";
+  // ── 1. Update Full Name Handler ──
+  async function handleSaveFullName() {
+    const clean = sanitizeName(fullNameInput);
+    if (!clean) {
+      Alert.alert(
+        t("common.error", "Error"),
+        t("profile.fullName", "Please enter a valid full name"),
+      );
+      return;
+    }
+
+    setIsSavingName(true);
+    try {
+      await authService.updateProfile({ full_name: clean });
+      Alert.alert(
+        t("common.success", "Success"),
+        t("profile.profileUpdated", "Profile information saved!"),
+      );
+      setIsPersonalInfoModalVisible(false);
+    } catch (err: any) {
+      Alert.alert(
+        t("common.error", "Error"),
+        err?.message || "Failed to update profile",
+      );
+    } finally {
+      setIsSavingName(false);
+    }
+  }
+
+  // ── 2. Update Email Handler ──
+  async function handleSaveEmail() {
+    const clean = sanitizeEmail(emailInput);
+    if (!clean || !clean.includes("@")) {
+      Alert.alert(
+        t("common.error", "Error"),
+        t("profile.emailInvalid", "Please enter a valid email address"),
+      );
+      return;
+    }
+
+    setIsSavingEmail(true);
+    try {
+      await authService.updateEmail(clean);
+      Alert.alert(
+        t("common.success", "Success"),
+        t(
+          "profile.emailUpdated",
+          "Email updated! Please check your inbox for confirmation.",
+        ),
+      );
+      setIsEmailModalVisible(false);
+    } catch (err: any) {
+      Alert.alert(
+        t("common.error", "Error"),
+        err?.message || "Failed to update email address",
+      );
+    } finally {
+      setIsSavingEmail(false);
+    }
+  }
+
+  // ── 3. Dispatch Phone OTP Handler ──
+  async function handleSendPhoneOtp(isWhatsApp: boolean = false) {
+    const clean = phoneNumber.replace(/[\s\-\(\)]/g, "").trim();
+    if (!clean) {
+      Alert.alert(
+        t("common.error", "Error"),
+        t("profile.phoneInvalid", "Please enter a valid phone number"),
+      );
+      return;
+    }
+
+    const fullPhone = phonePrefix + clean;
+    setIsWhatsAppMethod(isWhatsApp);
+    setLastDispatchedPhone(fullPhone);
+    setIsSendingPhoneOtp(true);
+
+    try {
+      if (isWhatsApp) {
+        const res = await authService.requestWhatsAppOtp(fullPhone);
+        Alert.alert(
+          "WhatsApp",
+          res.message ||
+            `Code de vérification envoyé sur WhatsApp au ${fullPhone}`,
+        );
+      } else {
+        await authService.updatePhone(fullPhone);
+        Alert.alert(
+          "SMS",
+          `Code de vérification envoyé par SMS au ${fullPhone}`,
+        );
+      }
+      setPhoneOtpStep("otp");
+      setPhoneOtpCode("");
+    } catch (err: any) {
+      Alert.alert(
+        t("common.error", "Error"),
+        err?.message || "Impossible d'envoyer le code de vérification.",
+      );
+    } finally {
+      setIsSendingPhoneOtp(false);
+    }
+  }
+
+  // ── 4. Verify Phone OTP Handler ──
+  async function handleVerifyPhoneOtp() {
+    const cleanOtp = sanitizeOtp(phoneOtpCode);
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      Alert.alert(
+        t("common.error", "Error"),
+        t("profile.enterOtp", "Please enter the 6-digit verification code"),
+      );
+      return;
+    }
+
+    setIsVerifyingPhoneOtp(true);
+    try {
+      if (isWhatsAppMethod) {
+        await authService.verifyWhatsAppOtp(lastDispatchedPhone, cleanOtp);
+      } else {
+        await authService.verifyPhoneChangeOtp(lastDispatchedPhone, cleanOtp);
+      }
+      Alert.alert(
+        t("common.success", "Success"),
+        t("profile.phoneUpdated", "Phone number updated successfully!"),
+      );
+      setIsPhoneModalVisible(false);
+      setPhoneOtpStep("input");
+      setPhoneOtpCode("");
+    } catch (err: any) {
+      Alert.alert(
+        t("common.error", "Error"),
+        err?.message || "Code incorrect ou expiré.",
+      );
+    } finally {
+      setIsVerifyingPhoneOtp(false);
+    }
+  }
+
+  // ── 5. Change Password Handler ──
+  async function handleSavePassword() {
+    if (!newPassword || newPassword.length < 6) {
+      Alert.alert(
+        t("common.error", "Error"),
+        t(
+          "profile.passwordMinLength",
+          "Password must be at least 6 characters",
+        ),
+      );
+      return;
+    }
+    if (confirmPassword && newPassword !== confirmPassword) {
+      Alert.alert(
+        t("common.error", "Error"),
+        t("profile.passwordMismatch", "Passwords do not match"),
+      );
+      return;
+    }
+
+    setIsSavingPassword(true);
+    try {
+      await authService.updatePassword(
+        newPassword,
+        currentPassword || undefined,
+      );
+      Alert.alert(
+        t("common.success", "Success"),
+        t("profile.passwordUpdated", "Password updated successfully!"),
+      );
+      setIsPasswordModalVisible(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      Alert.alert(
+        t("common.error", "Error"),
+        err?.message || "Impossible de modifier le mot de passe.",
+      );
+    } finally {
+      setIsSavingPassword(false);
+    }
+  }
+
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "Client";
   const initial = displayName.charAt(0).toUpperCase();
   const clientId = user?.id
     ? user.id.startsWith("client-user-")
@@ -117,52 +365,58 @@ export default function ClientProfileScreen() {
         : `ID: #${user.id.toUpperCase()}`
     : "ID: #CL-8842";
 
+  const userPhone =
+    user?.phone || user?.user_metadata?.phone || "Non configuré";
+  const userEmail = user?.email || "Non configuré";
+
   const FAQ_ITEMS = [
     {
-      q: "Who are the couriers?",
-      a: "Our couriers are independent delivery partners trained to bring your meals and goods safely and fast in Oujda.",
+      q: t("faq.q1", "Who are the couriers?"),
+      a: t(
+        "faq.a1",
+        "Our couriers are independent delivery partners trained to bring your meals and goods safely and fast in Oujda.",
+      ),
     },
     {
-      q: "How do I place an order?",
-      a: "Select your favorite store, add products to your cart, confirm your exact delivery address on the map, and tap Place Order.",
+      q: t("faq.q2", "How do I place an order?"),
+      a: t(
+        "faq.a2",
+        "Select your favorite store, add products to your cart, confirm your exact delivery address on the map, and tap Place Order.",
+      ),
     },
     {
-      q: "How much does delivery cost?",
-      a: "Delivery fees depend on the store and distance in Oujda, starting from 0 DH on promo partners to 15 DH for express courier service.",
+      q: t("faq.q3", "How much does delivery cost?"),
+      a: t(
+        "faq.a3",
+        "Delivery fees depend on the store and distance in Oujda, starting from 0 DH on promo partners to 15 DH for express courier service.",
+      ),
     },
     {
-      q: "Is Glovo available in my neighborhood?",
-      a: "We deliver across all Oujda neighborhoods: Centre-Ville, Hay Al Qods, Lazaret, Salam, Sidi Yahya, Hay Riad, and surrounding areas.",
+      q: t("faq.q4", "Is Quickly Livraison available in my neighborhood?"),
+      a: t(
+        "faq.a4",
+        "We deliver across all Oujda neighborhoods: Centre-Ville, Hay Al Qods, Lazaret, Salam, Sidi Yahya, Hay Riad, and surrounding areas.",
+      ),
     },
     {
-      q: "When is Glovo open?",
-      a: "Stores are open according to their daily schedules, typically between 07:00 and 01:00. Courier delivery is available whenever partners are active.",
+      q: t("faq.q5", "When is the delivery service open?"),
+      a: t(
+        "faq.a5",
+        "Stores are open according to their daily schedules, typically between 07:00 and 01:00. Courier delivery is available whenever partners are active.",
+      ),
     },
     {
-      q: "How do I schedule an order and change details of my scheduled order?",
-      a: "You can choose a future delivery window during checkout or contact support through the Help button.",
-    },
-    {
-      q: "What can I order?",
-      a: "Meals, burgers, pizzas, groceries, pharmacy items, bakery pastries, or custom courier pickups using Package Delivery.",
-    },
-    {
-      q: "What type of vehicles do couriers use for delivery? How big can my orders be?",
-      a: "Couriers ride motorcycles and scooters equipped with thermal insulated boxes suitable for items up to 10kg.",
-    },
-    {
-      q: "Do you transport animals?",
-      a: "No, courier transport of live animals or pets is prohibited by our safety policies.",
-    },
-    {
-      q: "I want to return a product. What do I do?",
-      a: "Please report any damaged or missing item via the Help & Support button within 24 hours of delivery.",
+      q: t("faq.q6", "What can I order?"),
+      a: t(
+        "faq.a6",
+        "Meals, burgers, pizzas, groceries, pharmacy items, bakery pastries, or custom courier pickups using Package Delivery.",
+      ),
     },
   ];
 
   return (
     <View style={styles.container}>
-      {/* ── Top Yellow Header (Screenshot #8) ── */}
+      {/* ── Top Header Bar ── */}
       <View style={styles.organicHeader}>
         <SafeAreaView edges={["top"]} style={styles.headerSafe}>
           {/* Top Right Help Pill Button */}
@@ -179,12 +433,22 @@ export default function ClientProfileScreen() {
           </View>
 
           {/* User Avatar + Client ID */}
-          <View style={styles.userProfileHero}>
+          <View
+            style={[
+              styles.userProfileHero,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarLetter}>{initial}</Text>
             </View>
 
-            <View style={styles.profileInfoCol}>
+            <View
+              style={[
+                styles.profileInfoCol,
+                isRTL && { alignItems: "flex-end" },
+              ]}
+            >
               <Text style={styles.userNameText}>{displayName}</Text>
               <View style={styles.clientIdBadge}>
                 <Text style={styles.clientIdText}>{clientId}</Text>
@@ -194,24 +458,31 @@ export default function ClientProfileScreen() {
         </SafeAreaView>
       </View>
 
-      {/* ── White Sheet Menu List (Screenshot #8) ── */}
+      {/* ── Menu List ── */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.sectionTitle}>Profile</Text>
+        <Text style={[styles.sectionTitle, isRTL && { textAlign: "right" }]}>
+          {t("profile.title", "Profile")}
+        </Text>
 
         {/* 1. Order History */}
         <TouchableOpacity
-          style={styles.menuRow}
+          style={[styles.menuRow, isRTL && { flexDirection: "row-reverse" }]}
           onPress={() => router.push("/(app)/(client)/(tabs)/orders" as any)}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <ShoppingBag
               size={20}
               color="#3C3489"
-              style={{ marginRight: 14 }}
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
             />
             <Text style={styles.menuRowTitle}>
               {t("profile.orderHistory", "Order history")}
@@ -226,336 +497,801 @@ export default function ClientProfileScreen() {
 
         {/* 2. Account */}
         <TouchableOpacity
-          style={styles.menuRow}
-          onPress={() => setIsPhoneModalVisible(true)}
+          style={[styles.menuRow, isRTL && { flexDirection: "row-reverse" }]}
+          onPress={() => setIsAccountModalVisible(true)}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
-            <UserIcon size={20} color="#3C3489" style={{ marginRight: 14 }} />
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <UserIcon
+              size={20}
+              color="#3C3489"
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
+            />
             <Text style={styles.menuRowTitle}>
               {t("profile.account", "Account")}
             </Text>
           </View>
-          <ChevronRight size={20} color="#9CA3AF" />
+          <ChevronRight
+            size={20}
+            color="#9CA3AF"
+            style={isRTL ? { transform: [{ rotate: "180deg" }] } : undefined}
+          />
         </TouchableOpacity>
 
         {/* 3. Promo Codes */}
         <TouchableOpacity
-          style={styles.menuRow}
+          style={[styles.menuRow, isRTL && { flexDirection: "row-reverse" }]}
           onPress={() => setIsPromoModalVisible(true)}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
-            <Tag size={20} color="#3C3489" style={{ marginRight: 14 }} />
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <Tag
+              size={20}
+              color="#3C3489"
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
+            />
             <Text style={styles.menuRowTitle}>
               {t("profile.promoCodes", "Promo codes")}
             </Text>
           </View>
-          <ChevronRight size={20} color="#9CA3AF" />
+          <ChevronRight
+            size={20}
+            color="#9CA3AF"
+            style={isRTL ? { transform: [{ rotate: "180deg" }] } : undefined}
+          />
         </TouchableOpacity>
 
         {/* 4. Language */}
         <TouchableOpacity
-          style={styles.menuRow}
+          style={[styles.menuRow, isRTL && { flexDirection: "row-reverse" }]}
           onPress={() => setIsLanguageModalVisible(true)}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
-            <Globe size={20} color="#3C3489" style={{ marginRight: 14 }} />
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <Globe
+              size={20}
+              color="#3C3489"
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
+            />
             <Text style={styles.menuRowTitle}>
               {t("profile.language", "Language")}
             </Text>
           </View>
-          <ChevronRight size={20} color="#9CA3AF" />
+          <ChevronRight
+            size={20}
+            color="#9CA3AF"
+            style={isRTL ? { transform: [{ rotate: "180deg" }] } : undefined}
+          />
         </TouchableOpacity>
 
         {/* 5. FAQ */}
         <TouchableOpacity
-          style={styles.menuRow}
+          style={[styles.menuRow, isRTL && { flexDirection: "row-reverse" }]}
           onPress={() => setIsFaqModalVisible(true)}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
-            <HelpCircle size={20} color="#3C3489" style={{ marginRight: 14 }} />
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <HelpCircle
+              size={20}
+              color="#3C3489"
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
+            />
             <Text style={styles.menuRowTitle}>{t("profile.faq", "FAQ")}</Text>
           </View>
-          <ChevronRight size={20} color="#9CA3AF" />
+          <ChevronRight
+            size={20}
+            color="#9CA3AF"
+            style={isRTL ? { transform: [{ rotate: "180deg" }] } : undefined}
+          />
         </TouchableOpacity>
 
         {/* 6. Notifications */}
         <TouchableOpacity
-          style={styles.menuRow}
+          style={[styles.menuRow, isRTL && { flexDirection: "row-reverse" }]}
           onPress={() => setIsNotificationsModalVisible(true)}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
-            <Bell size={20} color="#3C3489" style={{ marginRight: 14 }} />
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <Bell
+              size={20}
+              color="#3C3489"
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
+            />
             <Text style={styles.menuRowTitle}>
               {t("profile.notifications", "Notifications")}
             </Text>
           </View>
-          <ChevronRight size={20} color="#9CA3AF" />
+          <ChevronRight
+            size={20}
+            color="#9CA3AF"
+            style={isRTL ? { transform: [{ rotate: "180deg" }] } : undefined}
+          />
         </TouchableOpacity>
 
         {/* 7. Manage Privacy */}
         <TouchableOpacity
-          style={styles.menuRow}
+          style={[styles.menuRow, isRTL && { flexDirection: "row-reverse" }]}
           onPress={() => setIsPrivacyModalVisible(true)}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
-            <Shield size={20} color="#3C3489" style={{ marginRight: 14 }} />
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <Shield
+              size={20}
+              color="#3C3489"
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
+            />
             <Text style={styles.menuRowTitle}>
               {t("profile.privacy", "Manage privacy")}
             </Text>
           </View>
-          <ChevronRight size={20} color="#9CA3AF" />
+          <ChevronRight
+            size={20}
+            color="#9CA3AF"
+            style={isRTL ? { transform: [{ rotate: "180deg" }] } : undefined}
+          />
         </TouchableOpacity>
 
         {/* 8. Change Password */}
         <TouchableOpacity
-          style={styles.menuRow}
+          style={[styles.menuRow, isRTL && { flexDirection: "row-reverse" }]}
           onPress={() => setIsPasswordModalVisible(true)}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
-            <Lock size={20} color="#3C3489" style={{ marginRight: 14 }} />
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <Lock
+              size={20}
+              color="#3C3489"
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
+            />
             <Text style={styles.menuRowTitle}>
               {t("profile.changePassword", "Change password")}
             </Text>
           </View>
-          <ChevronRight size={20} color="#9CA3AF" />
+          <ChevronRight
+            size={20}
+            color="#9CA3AF"
+            style={isRTL ? { transform: [{ rotate: "180deg" }] } : undefined}
+          />
         </TouchableOpacity>
 
         {/* 9. Log Out */}
         <TouchableOpacity
           style={[
             styles.menuRow,
+            isRTL && { flexDirection: "row-reverse" },
             { borderBottomWidth: 0, marginTop: 14, marginBottom: 20 },
           ]}
           onPress={handleLogout}
           activeOpacity={0.7}
         >
-          <View style={styles.menuRowLeft}>
-            <LogOut size={20} color="#FF4D6D" style={{ marginRight: 14 }} />
+          <View
+            style={[
+              styles.menuRowLeft,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <LogOut
+              size={20}
+              color="#FF4D6D"
+              style={isRTL ? { marginLeft: 14 } : { marginRight: 14 }}
+            />
             <Text
               style={[
                 styles.menuRowTitle,
                 { color: "#FF4D6D", fontWeight: "700" },
               ]}
             >
-              Log out
+              {t("profile.logout", "Log out")}
             </Text>
           </View>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* ══════════ MODAL: CONNECT WITH FRIENDS (Screenshot #7) ══════════ */}
+      {/* ══════════ MODAL: ACCOUNT OVERVIEW ══════════ */}
       <Modal
-        visible={isFriendsModalVisible}
+        visible={isAccountModalVisible}
         animationType="slide"
-        onRequestClose={() => setIsFriendsModalVisible(false)}
+        onRequestClose={() => setIsAccountModalVisible(false)}
       >
         <SafeAreaView style={styles.subModalContainer}>
-          <View style={styles.subModalHeader}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={styles.circleBackBtn}
-              onPress={() => setIsFriendsModalVisible(false)}
+              onPress={() => setIsAccountModalVisible(false)}
+              activeOpacity={0.7}
             >
-              <ChevronRight
+              <ArrowLeft
                 size={20}
                 color="#3C3489"
-                style={{ transform: [{ rotate: "180deg" }] }}
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
               />
             </TouchableOpacity>
-            <Text style={styles.subModalTitle}>Friends</Text>
-            <TouchableOpacity style={styles.circleBackBtn}>
-              <Info size={18} color="#3C3489" />
-            </TouchableOpacity>
+            <Text style={styles.subModalTitle}>
+              {t("profile.account", "Account")}
+            </Text>
+            <View style={{ width: 38 }} />
           </View>
 
-          <ScrollView
-            contentContainerStyle={styles.friendsModalBody}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Visual Food Card Cards */}
-            <View style={styles.friendsCardsGraphic}>
-              <View style={[styles.graphicCard, styles.graphicCardLeft]}>
-                <View style={styles.foodPlaceholderCircle}>
-                  <Text style={{ fontSize: 36 }}>🍛</Text>
-                </View>
-                <View style={styles.graphicCardStat}>
-                  <Text style={styles.graphicCardStatText}>👍 98% (410)</Text>
-                </View>
-              </View>
-
-              <View style={[styles.graphicCard, styles.graphicCardRight]}>
-                <View style={styles.foodPlaceholderCircle}>
-                  <Text style={{ fontSize: 36 }}>🍔</Text>
-                </View>
-                <View style={styles.graphicCardStat}>
-                  <Text style={styles.graphicCardStatText}>
-                    🛍️ 500+ ordered
+          <ScrollView style={styles.modalBody}>
+            {/* 1. Full Name Card */}
+            <View style={styles.accountCard}>
+              <View
+                style={[
+                  styles.accountCardHeader,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.accountCardIconCol,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
+                >
+                  <UserIcon size={20} color={Colors.primary} />
+                  <Text
+                    style={[
+                      styles.accountCardLabel,
+                      isRTL ? { marginRight: 8 } : { marginLeft: 8 },
+                    ]}
+                  >
+                    {t("profile.fullName", "Full name")}
                   </Text>
                 </View>
+                <TouchableOpacity
+                  style={styles.editPillBtn}
+                  onPress={() => {
+                    setFullNameInput(displayName);
+                    setIsPersonalInfoModalVisible(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Edit3 size={14} color={Colors.primary} />
+                  <Text style={styles.editPillText}>
+                    {t("common.edit", "Modifier")}
+                  </Text>
+                </TouchableOpacity>
               </View>
+              <Text
+                style={[
+                  styles.accountCardValue,
+                  isRTL && { textAlign: "right" },
+                ]}
+              >
+                {displayName}
+              </Text>
             </View>
 
-            <Text style={styles.friendsHeroTitle}>
-              Discover what your friends love to order
-            </Text>
-            <Text style={styles.friendsHeroSubtitle}>
-              Connect and get inspired by your friends' food choices in Oujda
-            </Text>
+            {/* 2. Phone Card */}
+            <View style={styles.accountCard}>
+              <View
+                style={[
+                  styles.accountCardHeader,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.accountCardIconCol,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
+                >
+                  <Phone size={20} color={Colors.primary} />
+                  <Text
+                    style={[
+                      styles.accountCardLabel,
+                      isRTL ? { marginRight: 8 } : { marginLeft: 8 },
+                    ]}
+                  >
+                    {t("profile.changePhone", "Phone number")}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.editPillBtn}
+                  onPress={() => {
+                    setPhoneOtpStep("input");
+                    setIsPhoneModalVisible(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Edit3 size={14} color={Colors.primary} />
+                  <Text style={styles.editPillText}>
+                    {t("common.edit", "Modifier")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text
+                style={[
+                  styles.accountCardValue,
+                  isRTL && { textAlign: "right" },
+                ]}
+              >
+                {userPhone}
+              </Text>
+            </View>
 
-            <TouchableOpacity
-              style={styles.darkGreenPillBtn}
-              onPress={() => {
-                Alert.alert(
-                  "Contacts",
-                  "Would you like to sync contacts to discover friends on QuickDelivery?",
-                  [
-                    { text: t("common.cancel", "Cancel"), style: "cancel" },
-                    {
-                      text: "Allow",
-                      onPress: () =>
-                        Alert.alert("Success", "3 friends found in Oujda!"),
-                    },
-                  ],
-                );
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.darkGreenPillBtnText}>Add friends</Text>
-            </TouchableOpacity>
+            {/* 3. Email Card */}
+            <View style={styles.accountCard}>
+              <View
+                style={[
+                  styles.accountCardHeader,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.accountCardIconCol,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
+                >
+                  <Mail size={20} color={Colors.primary} />
+                  <Text
+                    style={[
+                      styles.accountCardLabel,
+                      isRTL ? { marginRight: 8 } : { marginLeft: 8 },
+                    ]}
+                  >
+                    {t("profile.email", "Email address")}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.editPillBtn}
+                  onPress={() => {
+                    setEmailInput(user?.email || "");
+                    setIsEmailModalVisible(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Edit3 size={14} color={Colors.primary} />
+                  <Text style={styles.editPillText}>
+                    {t("common.edit", "Modifier")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text
+                style={[
+                  styles.accountCardValue,
+                  isRTL && { textAlign: "right" },
+                ]}
+              >
+                {userEmail}
+              </Text>
+            </View>
 
-            <TouchableOpacity
-              style={styles.lightGreyPillBtn}
-              onPress={() => setIsFriendsModalVisible(false)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.lightGreyPillBtnText}>Learn more</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.privacyDisclaimer}>
-              When you tap "Add Friends", the app will ask for access to your
-              contacts to help you connect with friends. Your contacts are
-              processed securely and not shared with third parties.
-            </Text>
+            {/* 4. Password Card */}
+            <View style={styles.accountCard}>
+              <View
+                style={[
+                  styles.accountCardHeader,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.accountCardIconCol,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
+                >
+                  <Lock size={20} color={Colors.primary} />
+                  <Text
+                    style={[
+                      styles.accountCardLabel,
+                      isRTL ? { marginRight: 8 } : { marginLeft: 8 },
+                    ]}
+                  >
+                    {t("profile.changePassword", "Change password")}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.editPillBtn}
+                  onPress={() => {
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setIsPasswordModalVisible(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Edit3 size={14} color={Colors.primary} />
+                  <Text style={styles.editPillText}>
+                    {t("common.edit", "Modifier")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text
+                style={[
+                  styles.accountCardValue,
+                  isRTL && { textAlign: "right" },
+                ]}
+              >
+                ••••••••••••
+              </Text>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </Modal>
 
-      {/* ══════════ MODAL: PHONE NUMBER VERIFICATION (Screenshot #6) ══════════ */}
+      {/* ══════════ MODAL: EDIT PERSONAL DATA (FULL NAME) ══════════ */}
+      <Modal
+        visible={isPersonalInfoModalVisible}
+        animationType="slide"
+        onRequestClose={() => setIsPersonalInfoModalVisible(false)}
+      >
+        <SafeAreaView style={styles.subModalContainer}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.circleBackBtn}
+              onPress={() => setIsPersonalInfoModalVisible(false)}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft
+                size={20}
+                color="#3C3489"
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
+              />
+            </TouchableOpacity>
+            <Text style={styles.subModalTitle}>
+              {t("profile.editPersonalData", "Informations personnelles")}
+            </Text>
+            <View style={{ width: 38 }} />
+          </View>
+
+          <View style={styles.modalBody}>
+            <Text
+              style={[styles.fieldEyebrow, isRTL && { textAlign: "right" }]}
+            >
+              {t("profile.fullName", "Nom complet")}
+            </Text>
+            <TextInput
+              style={[styles.underlinedInput, isRTL && { textAlign: "right" }]}
+              placeholder="Ex: Yassine Chidmi"
+              placeholderTextColor="#9CA3AF"
+              value={fullNameInput}
+              onChangeText={setFullNameInput}
+              autoCapitalize="words"
+            />
+
+            <TouchableOpacity
+              style={[
+                styles.primaryActionBtn,
+                isSavingName && styles.btnDisabled,
+              ]}
+              onPress={handleSaveFullName}
+              disabled={isSavingName}
+              activeOpacity={0.8}
+            >
+              {isSavingName ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.primaryActionBtnText}>
+                  {t("profile.done", "Enregistrer")}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </Modal>
+
+      {/* ══════════ MODAL: EDIT EMAIL ══════════ */}
+      <Modal
+        visible={isEmailModalVisible}
+        animationType="slide"
+        onRequestClose={() => setIsEmailModalVisible(false)}
+      >
+        <SafeAreaView style={styles.subModalContainer}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.circleBackBtn}
+              onPress={() => setIsEmailModalVisible(false)}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft
+                size={20}
+                color="#3C3489"
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
+              />
+            </TouchableOpacity>
+            <Text style={styles.subModalTitle}>
+              {t("profile.changeEmail", "Modifier l'adresse email")}
+            </Text>
+            <View style={{ width: 38 }} />
+          </View>
+
+          <View style={styles.modalBody}>
+            <Text
+              style={[styles.fieldEyebrow, isRTL && { textAlign: "right" }]}
+            >
+              {t("profile.email", "Adresse email")}
+            </Text>
+            <TextInput
+              style={[styles.underlinedInput, isRTL && { textAlign: "right" }]}
+              placeholder="email@example.com"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={emailInput}
+              onChangeText={setEmailInput}
+            />
+
+            <Text
+              style={[styles.helperNotice, isRTL && { textAlign: "right" }]}
+            >
+              Un lien de confirmation sera envoyé à cette nouvelle adresse pour
+              valider le changement.
+            </Text>
+
+            <TouchableOpacity
+              style={[
+                styles.primaryActionBtn,
+                isSavingEmail && styles.btnDisabled,
+              ]}
+              onPress={handleSaveEmail}
+              disabled={isSavingEmail}
+              activeOpacity={0.8}
+            >
+              {isSavingEmail ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.primaryActionBtnText}>
+                  {t("profile.done", "Enregistrer")}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </Modal>
+
+      {/* ══════════ MODAL: PHONE NUMBER VERIFICATION ══════════ */}
       <Modal
         visible={isPhoneModalVisible}
         animationType="slide"
         onRequestClose={() => setIsPhoneModalVisible(false)}
       >
         <SafeAreaView style={styles.subModalContainer}>
-          <View style={styles.subModalHeader}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={styles.circleBackBtn}
-              onPress={() => setIsPhoneModalVisible(false)}
+              onPress={() => {
+                if (phoneOtpStep === "otp") {
+                  setPhoneOtpStep("input");
+                } else {
+                  setIsPhoneModalVisible(false);
+                }
+              }}
+              activeOpacity={0.7}
             >
-              <ChevronRight
+              <ArrowLeft
                 size={20}
                 color="#3C3489"
-                style={{ transform: [{ rotate: "180deg" }] }}
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
               />
             </TouchableOpacity>
-            <Text style={styles.subModalTitle}>Phone number</Text>
+            <Text style={styles.subModalTitle}>
+              {phoneOtpStep === "input"
+                ? t("profile.changePhone", "Numéro de téléphone")
+                : t("profile.verify", "Vérification OTP")}
+            </Text>
             <View style={{ width: 38 }} />
           </View>
 
           <View style={styles.phoneModalBody}>
-            <Text style={styles.phoneHelperText}>
-              We'll send a 4-digit verification code to this number.
-            </Text>
+            {phoneOtpStep === "input" ? (
+              <>
+                <Text
+                  style={[
+                    styles.phoneHelperText,
+                    isRTL && { textAlign: "right" },
+                  ]}
+                >
+                  Nous vous enverrons un code de confirmation à 6 chiffres par
+                  SMS ou WhatsApp.
+                </Text>
 
-            <View style={styles.phoneInputRow}>
-              {/* Prefix */}
-              <View style={styles.prefixBox}>
-                <Text style={styles.flagEmoji}>🇲🇦</Text>
-                <Text style={styles.prefixNumber}>{phonePrefix}</Text>
-                <ChevronDown size={16} color="#7F77DD" />
-              </View>
+                <View
+                  style={[
+                    styles.phoneInputRow,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
+                >
+                  {/* Prefix */}
+                  <View style={styles.prefixBox}>
+                    <Text style={styles.flagEmoji}>🇲🇦</Text>
+                    <Text style={styles.prefixNumber}>{phonePrefix}</Text>
+                    <ChevronDown size={16} color="#7F77DD" />
+                  </View>
 
-              {/* Phone Input */}
-              <TextInput
-                style={styles.phoneField}
-                placeholder="6 00 00 00 00"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="phone-pad"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-              />
-            </View>
+                  {/* Phone Input */}
+                  <TextInput
+                    style={[styles.phoneField, isRTL && { textAlign: "right" }]}
+                    placeholder="6 00 00 00 00"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="phone-pad"
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                  />
+                </View>
 
-            {/* Action Buttons: SMS vs WhatsApp (Screenshot #6) */}
-            <View style={styles.dualDispatchRow}>
-              <TouchableOpacity
-                style={styles.smsOutlineBtn}
-                onPress={() => {
-                  if (!phoneNumber.trim()) {
-                    Alert.alert(
-                      "Numéro requis",
-                      "Veuillez entrer votre numéro de téléphone.",
-                    );
-                    return;
-                  }
-                  Alert.alert(
-                    "Code SMS",
-                    `Code de vérification envoyé par SMS au ${phonePrefix} ${phoneNumber}`,
-                  );
-                  setIsPhoneModalVisible(false);
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.smsOutlineText}>SMS</Text>
-              </TouchableOpacity>
+                {/* Action Buttons: SMS vs WhatsApp */}
+                <View
+                  style={[
+                    styles.dualDispatchRow,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.smsOutlineBtn,
+                      isSendingPhoneOtp && styles.btnDisabled,
+                    ]}
+                    onPress={() => handleSendPhoneOtp(false)}
+                    disabled={isSendingPhoneOtp}
+                    activeOpacity={0.8}
+                  >
+                    {isSendingPhoneOtp && !isWhatsAppMethod ? (
+                      <ActivityIndicator color={Colors.primary} size="small" />
+                    ) : (
+                      <Text style={styles.smsOutlineText}>SMS</Text>
+                    )}
+                  </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.whatsAppFilledBtn}
-                onPress={() => {
-                  if (!phoneNumber.trim()) {
-                    Alert.alert(
-                      "Numéro requis",
-                      "Veuillez entrer votre numéro de téléphone.",
-                    );
-                    return;
-                  }
-                  Alert.alert(
-                    "WhatsApp",
-                    `Code de vérification envoyé sur WhatsApp au ${phonePrefix} ${phoneNumber}`,
-                  );
-                  setIsPhoneModalVisible(false);
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.whatsAppFilledText}>WhatsApp</Text>
-              </TouchableOpacity>
-            </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.whatsAppFilledBtn,
+                      isSendingPhoneOtp && styles.btnDisabled,
+                    ]}
+                    onPress={() => handleSendPhoneOtp(true)}
+                    disabled={isSendingPhoneOtp}
+                    activeOpacity={0.8}
+                  >
+                    {isSendingPhoneOtp && isWhatsAppMethod ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <Text style={styles.whatsAppFilledText}>WhatsApp</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text
+                  style={[
+                    styles.phoneHelperText,
+                    isRTL && { textAlign: "right" },
+                  ]}
+                >
+                  Saisissez le code à 6 chiffres envoyé au {lastDispatchedPhone}
+                </Text>
+
+                <TextInput
+                  style={styles.otpInputField}
+                  placeholder="000000"
+                  placeholderTextColor="#A5A0DF"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  value={phoneOtpCode}
+                  onChangeText={setPhoneOtpCode}
+                  autoFocus
+                />
+
+                <TouchableOpacity
+                  style={[
+                    styles.primaryActionBtn,
+                    isVerifyingPhoneOtp && styles.btnDisabled,
+                  ]}
+                  onPress={handleVerifyPhoneOtp}
+                  disabled={isVerifyingPhoneOtp}
+                  activeOpacity={0.8}
+                >
+                  {isVerifyingPhoneOtp ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.primaryActionBtnText}>
+                      {t("profile.verify", "Vérifier le code")}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.resendTextBtn}
+                  onPress={() => handleSendPhoneOtp(isWhatsAppMethod)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.resendText}>
+                    Renvoyer un nouveau code
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </SafeAreaView>
       </Modal>
 
-      {/* ══════════ MODAL: CHANGE PASSWORD (Screenshot #5) ══════════ */}
+      {/* ══════════ MODAL: CHANGE PASSWORD ══════════ */}
       <Modal
         visible={isPasswordModalVisible}
         animationType="slide"
         onRequestClose={() => setIsPasswordModalVisible(false)}
       >
         <SafeAreaView style={styles.subModalContainer}>
-          <View style={styles.subModalHeader}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={styles.circleBackBtn}
               onPress={() => setIsPasswordModalVisible(false)}
+              activeOpacity={0.7}
             >
-              <ChevronRight
+              <ArrowLeft
                 size={20}
                 color="#3C3489"
-                style={{ transform: [{ rotate: "180deg" }] }}
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
               />
             </TouchableOpacity>
             <Text style={styles.subModalTitle}>
@@ -565,70 +1301,101 @@ export default function ClientProfileScreen() {
           </View>
 
           <View style={styles.passwordModalBody}>
-            <Text style={styles.fieldEyebrow}>CURRENT PASSWORD</Text>
+            <Text
+              style={[styles.fieldEyebrow, isRTL && { textAlign: "right" }]}
+            >
+              {t("profile.currentPassword", "CURRENT PASSWORD")}
+            </Text>
             <TextInput
-              style={styles.underlinedInput}
-              placeholder="Current password"
+              style={[styles.underlinedInput, isRTL && { textAlign: "right" }]}
+              placeholder="••••••••"
               placeholderTextColor="#9CA3AF"
               secureTextEntry
               value={currentPassword}
               onChangeText={setCurrentPassword}
             />
 
-            <Text style={[styles.fieldEyebrow, { marginTop: 28 }]}>
-              NEW PASSWORD
+            <Text
+              style={[
+                styles.fieldEyebrow,
+                { marginTop: 24 },
+                isRTL && { textAlign: "right" },
+              ]}
+            >
+              {t("profile.newPassword", "NEW PASSWORD")}
             </Text>
             <TextInput
-              style={styles.underlinedInput}
-              placeholder="New password"
+              style={[styles.underlinedInput, isRTL && { textAlign: "right" }]}
+              placeholder="••••••••"
               placeholderTextColor="#9CA3AF"
               secureTextEntry
               value={newPassword}
               onChangeText={setNewPassword}
             />
 
-            <TouchableOpacity
-              style={styles.passwordDoneBtn}
-              onPress={() => {
-                if (!newPassword.trim()) {
-                  Alert.alert(
-                    "Erreur",
-                    "Veuillez entrer un nouveau mot de passe.",
-                  );
-                  return;
-                }
-                Alert.alert(
-                  "Mot de passe mis à jour",
-                  "Votre nouveau mot de passe a été enregistré.",
-                );
-                setIsPasswordModalVisible(false);
-                setCurrentPassword("");
-                setNewPassword("");
-              }}
-              activeOpacity={0.7}
+            <Text
+              style={[
+                styles.fieldEyebrow,
+                { marginTop: 24 },
+                isRTL && { textAlign: "right" },
+              ]}
             >
-              <Text style={styles.passwordDoneText}>Done</Text>
+              {t("profile.confirmPassword", "CONFIRM PASSWORD")}
+            </Text>
+            <TextInput
+              style={[styles.underlinedInput, isRTL && { textAlign: "right" }]}
+              placeholder="••••••••"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+
+            <TouchableOpacity
+              style={[
+                styles.primaryActionBtn,
+                isSavingPassword && styles.btnDisabled,
+              ]}
+              onPress={handleSavePassword}
+              disabled={isSavingPassword}
+              activeOpacity={0.8}
+            >
+              {isSavingPassword ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.primaryActionBtnText}>
+                  {t("profile.done", "Enregistrer")}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         </SafeAreaView>
       </Modal>
 
-      {/* ══════════ MODAL: PROMO CODES (Screenshot #16) ══════════ */}
+      {/* ══════════ MODAL: PROMO CODES ══════════ */}
       <Modal
         visible={isPromoModalVisible}
         animationType="slide"
         onRequestClose={() => setIsPromoModalVisible(false)}
       >
         <SafeAreaView style={styles.subModalContainer}>
-          <View style={styles.subModalHeader}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={styles.circleBackBtn}
               onPress={() => setIsPromoModalVisible(false)}
+              activeOpacity={0.7}
             >
-              <ChevronRight
+              <ArrowLeft
                 size={20}
                 color="#3C3489"
-                style={{ transform: [{ rotate: "180deg" }] }}
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
               />
             </TouchableOpacity>
             <Text style={styles.subModalTitle}>
@@ -640,10 +1407,14 @@ export default function ClientProfileScreen() {
           </View>
 
           <View style={styles.promoModalBody}>
-            <Text style={styles.promoInputLabel}>Add promo code</Text>
+            <Text
+              style={[styles.promoInputLabel, isRTL && { textAlign: "right" }]}
+            >
+              {t("profile.addPromoCode", "Ajouter un code promo")}
+            </Text>
             <TextInput
               style={styles.promoInputCard}
-              placeholder="Enter code (ex: QUICKLY20, OUJDAFREE)"
+              placeholder="Ex: QUICKLY20, OUJDAFREE"
               placeholderTextColor="#9CA3AF"
               value={promoCodeInput}
               onChangeText={setPromoCodeInput}
@@ -653,7 +1424,9 @@ export default function ClientProfileScreen() {
             <TouchableOpacity
               style={styles.darkGreenPillBtn}
               onPress={() => {
-                const cleanCode = sanitizeText(promoCodeInput, { maxLength: 30 }).toUpperCase();
+                const cleanCode = sanitizeText(promoCodeInput, {
+                  maxLength: 30,
+                }).toUpperCase();
                 if (!cleanCode) {
                   Alert.alert(
                     "Code promo",
@@ -670,28 +1443,38 @@ export default function ClientProfileScreen() {
               }}
               activeOpacity={0.85}
             >
-              <Text style={styles.darkGreenPillBtnText}>Appliquer</Text>
+              <Text style={styles.darkGreenPillBtnText}>
+                {t("common.apply", "Appliquer")}
+              </Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
       </Modal>
 
-      {/* ══════════ MODAL: LANGUAGE (Screenshot #17 & #18) ══════════ */}
+      {/* ══════════ MODAL: LANGUAGE ══════════ */}
       <Modal
         visible={isLanguageModalVisible}
         animationType="slide"
         onRequestClose={() => setIsLanguageModalVisible(false)}
       >
         <SafeAreaView style={styles.subModalContainer}>
-          <View style={styles.subModalHeader}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={styles.circleBackBtn}
               onPress={() => setIsLanguageModalVisible(false)}
+              activeOpacity={0.7}
             >
-              <ChevronRight
+              <ArrowLeft
                 size={20}
                 color="#3C3489"
-                style={{ transform: [{ rotate: "180deg" }] }}
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
               />
             </TouchableOpacity>
             <Text style={styles.subModalTitle}>
@@ -706,13 +1489,16 @@ export default function ClientProfileScreen() {
               return (
                 <TouchableOpacity
                   key={lang.id}
-                  style={styles.languageRow}
+                  style={[
+                    styles.languageRow,
+                    isRTL && { flexDirection: "row-reverse" },
+                  ]}
                   onPress={async () => {
                     await setLanguage(lang.id);
                     setIsLanguageModalVisible(false);
                   }}
                 >
-                  <View>
+                  <View style={isRTL && { alignItems: "flex-end" }}>
                     <Text style={styles.languageName}>{lang.label}</Text>
                     <Text style={styles.languageSub}>{lang.sub}</Text>
                   </View>
@@ -726,22 +1512,30 @@ export default function ClientProfileScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* ══════════ MODAL: FAQ ACCORDION (Screenshot #19) ══════════ */}
+      {/* ══════════ MODAL: FAQ ACCORDION ══════════ */}
       <Modal
         visible={isFaqModalVisible}
         animationType="slide"
         onRequestClose={() => setIsFaqModalVisible(false)}
       >
         <SafeAreaView style={styles.subModalContainer}>
-          <View style={styles.subModalHeader}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={styles.circleBackBtn}
               onPress={() => setIsFaqModalVisible(false)}
+              activeOpacity={0.7}
             >
-              <ChevronRight
+              <ArrowLeft
                 size={20}
                 color="#3C3489"
-                style={{ transform: [{ rotate: "180deg" }] }}
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
               />
             </TouchableOpacity>
             <Text style={styles.subModalTitle}>{t("profile.faq", "FAQ")}</Text>
@@ -752,18 +1546,35 @@ export default function ClientProfileScreen() {
             style={styles.faqListBody}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.faqCategoryHeading}>Help & support</Text>
+            <Text
+              style={[
+                styles.faqCategoryHeading,
+                isRTL && { textAlign: "right" },
+              ]}
+            >
+              {t("profile.helpSupport", "Aide & Support")}
+            </Text>
 
             {FAQ_ITEMS.map((item, idx) => {
               const isExpanded = expandedFaqIndex === idx;
               return (
                 <View key={idx} style={styles.faqItemCard}>
                   <TouchableOpacity
-                    style={styles.faqQuestionRow}
+                    style={[
+                      styles.faqQuestionRow,
+                      isRTL && { flexDirection: "row-reverse" },
+                    ]}
                     onPress={() => setExpandedFaqIndex(isExpanded ? null : idx)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.faqQuestionText}>{item.q}</Text>
+                    <Text
+                      style={[
+                        styles.faqQuestionText,
+                        isRTL && { textAlign: "right" },
+                      ]}
+                    >
+                      {item.q}
+                    </Text>
                     {isExpanded ? (
                       <ChevronUp size={20} color="#3C3489" />
                     ) : (
@@ -773,7 +1584,14 @@ export default function ClientProfileScreen() {
 
                   {isExpanded && (
                     <View style={styles.faqAnswerBox}>
-                      <Text style={styles.faqAnswerText}>{item.a}</Text>
+                      <Text
+                        style={[
+                          styles.faqAnswerText,
+                          isRTL && { textAlign: "right" },
+                        ]}
+                      >
+                        {item.a}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -783,22 +1601,30 @@ export default function ClientProfileScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* ══════════ MODAL: NOTIFICATIONS (Screenshot #10) ══════════ */}
+      {/* ══════════ MODAL: NOTIFICATIONS ══════════ */}
       <Modal
         visible={isNotificationsModalVisible}
         animationType="slide"
         onRequestClose={() => setIsNotificationsModalVisible(false)}
       >
         <SafeAreaView style={styles.subModalContainer}>
-          <View style={styles.subModalHeader}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={styles.circleBackBtn}
               onPress={() => setIsNotificationsModalVisible(false)}
+              activeOpacity={0.7}
             >
-              <ChevronRight
+              <ArrowLeft
                 size={20}
                 color="#3C3489"
-                style={{ transform: [{ rotate: "180deg" }] }}
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
               />
             </TouchableOpacity>
             <Text style={styles.subModalTitle}>
@@ -808,24 +1634,39 @@ export default function ClientProfileScreen() {
           </View>
 
           <ScrollView style={styles.notificationsBody}>
-            {/* Section 1: Order updates */}
-            <Text style={styles.notifGroupTitle}>Order updates</Text>
-            <Text style={styles.notifGroupDesc}>
-              Key events as they happen and messages from Support and couriers
-              related to your order
+            <Text
+              style={[styles.notifGroupTitle, isRTL && { textAlign: "right" }]}
+            >
+              {t("notif.orderUpdates", "Suivi des commandes")}
+            </Text>
+            <Text
+              style={[styles.notifGroupDesc, isRTL && { textAlign: "right" }]}
+            >
+              Notifications directes sur la préparation et l'arrivée de votre
+              coursier.
             </Text>
 
-            <View style={styles.notifToggleRow}>
-              <View style={styles.notifRowLeft}>
+            <View
+              style={[
+                styles.notifToggleRow,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
+              <View
+                style={[
+                  styles.notifRowLeft,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
                 <Smartphone
                   size={20}
                   color="#3C3489"
-                  style={{ marginRight: 10 }}
+                  style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }}
                 />
-                <View>
-                  <Text style={styles.notifRowTitle}>Push notifications</Text>
+                <View style={isRTL && { alignItems: "flex-end" }}>
+                  <Text style={styles.notifRowTitle}>Notifications Push</Text>
                   <View style={styles.notifBadge}>
-                    <Text style={styles.notifBadgeText}>Recommended</Text>
+                    <Text style={styles.notifBadgeText}>Recommandé</Text>
                   </View>
                 </View>
               </View>
@@ -837,22 +1678,39 @@ export default function ClientProfileScreen() {
               />
             </View>
 
-            {/* Section 2: Offers */}
-            <Text style={[styles.notifGroupTitle, { marginTop: 32 }]}>
-              Offers
+            <Text
+              style={[
+                styles.notifGroupTitle,
+                { marginTop: 32 },
+                isRTL && { textAlign: "right" },
+              ]}
+            >
+              {t("notif.offers", "Offres & Promotions")}
             </Text>
-            <Text style={styles.notifGroupDesc}>
-              Discounts, promotions and vouchers for you
+            <Text
+              style={[styles.notifGroupDesc, isRTL && { textAlign: "right" }]}
+            >
+              Bons de réduction et promotions exclusives à Oujda.
             </Text>
 
-            <View style={styles.notifToggleRow}>
-              <View style={styles.notifRowLeft}>
+            <View
+              style={[
+                styles.notifToggleRow,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
+              <View
+                style={[
+                  styles.notifRowLeft,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
                 <Smartphone
                   size={20}
                   color="#3C3489"
-                  style={{ marginRight: 10 }}
+                  style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }}
                 />
-                <Text style={styles.notifRowTitle}>Push notifications</Text>
+                <Text style={styles.notifRowTitle}>Notifications Push</Text>
               </View>
               <Switch
                 value={offersPushNotif}
@@ -862,10 +1720,24 @@ export default function ClientProfileScreen() {
               />
             </View>
 
-            <View style={styles.notifToggleRow}>
-              <View style={styles.notifRowLeft}>
-                <Mail size={20} color="#3C3489" style={{ marginRight: 10 }} />
-                <Text style={styles.notifRowTitle}>Personalized emails</Text>
+            <View
+              style={[
+                styles.notifToggleRow,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
+              <View
+                style={[
+                  styles.notifRowLeft,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
+                <Mail
+                  size={20}
+                  color="#3C3489"
+                  style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }}
+                />
+                <Text style={styles.notifRowTitle}>Emails personnalisés</Text>
               </View>
               <Switch
                 value={offersEmailNotif}
@@ -878,38 +1750,56 @@ export default function ClientProfileScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* ══════════ MODAL: MANAGE PRIVACY (Screenshot #9 & #20 & #21) ══════════ */}
+      {/* ══════════ MODAL: MANAGE PRIVACY ══════════ */}
       <Modal
         visible={isPrivacyModalVisible}
         animationType="slide"
         onRequestClose={() => setIsPrivacyModalVisible(false)}
       >
         <SafeAreaView style={styles.subModalContainer}>
-          <View style={styles.subModalHeader}>
+          <View
+            style={[
+              styles.subModalHeader,
+              isRTL && { flexDirection: "row-reverse" },
+            ]}
+          >
             <TouchableOpacity
               style={styles.circleBackBtn}
               onPress={() => setIsPrivacyModalVisible(false)}
+              activeOpacity={0.7}
             >
-              <ChevronRight
+              <ArrowLeft
                 size={20}
                 color="#3C3489"
-                style={{ transform: [{ rotate: "180deg" }] }}
+                style={
+                  isRTL ? { transform: [{ rotate: "180deg" }] } : undefined
+                }
               />
             </TouchableOpacity>
-            <Text style={styles.subModalTitle}>Privacy Settings</Text>
+            <Text style={styles.subModalTitle}>
+              {t("profile.privacy", "Manage privacy")}
+            </Text>
             <View style={{ width: 38 }} />
           </View>
 
           <ScrollView style={styles.privacyBody}>
-            <Text style={styles.privacyHeading}>Privacy Settings</Text>
-            <Text style={styles.privacyDesc}>
-              This tool helps you manage consent to technologies collecting and
-              processing personal data for delivery and analytics.
+            <Text
+              style={[styles.privacyHeading, isRTL && { textAlign: "right" }]}
+            >
+              {t("profile.privacy", "Paramètres de confidentialité")}
+            </Text>
+            <Text style={[styles.privacyDesc, isRTL && { textAlign: "right" }]}>
+              Gérez votre consentement quant à l'utilisation des données pour la
+              livraison et l'analyse du service.
             </Text>
 
-            {/* Category Cards (Screenshot #21) */}
             <View style={styles.consentCard}>
-              <View style={styles.consentHeader}>
+              <View
+                style={[
+                  styles.consentHeader,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
                 <Text style={styles.consentTitle}>Marketing</Text>
                 <Switch
                   value={marketingConsent}
@@ -918,15 +1808,22 @@ export default function ClientProfileScreen() {
                   thumbColor={marketingConsent ? Colors.cta : "#F3F4F6"}
                 />
               </View>
-              <Text style={styles.consentSub}>
-                These technologies are used by advertisers to serve ads that are
-                relevant to your interests.
+              <Text
+                style={[styles.consentSub, isRTL && { textAlign: "right" }]}
+              >
+                Permet de vous proposer des offres pertinentes et
+                personnalisées.
               </Text>
             </View>
 
             <View style={styles.consentCard}>
-              <View style={styles.consentHeader}>
-                <Text style={styles.consentTitle}>Functional</Text>
+              <View
+                style={[
+                  styles.consentHeader,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
+                <Text style={styles.consentTitle}>Fonctionnel</Text>
                 <Switch
                   value={functionalConsent}
                   onValueChange={setFunctionalConsent}
@@ -934,15 +1831,22 @@ export default function ClientProfileScreen() {
                   thumbColor={functionalConsent ? Colors.cta : "#F3F4F6"}
                 />
               </View>
-              <Text style={styles.consentSub}>
-                These technologies enable us to analyse usage behavior in order
-                to measure and improve performance.
+              <Text
+                style={[styles.consentSub, isRTL && { textAlign: "right" }]}
+              >
+                Permet d'analyser l'utilisation de l'application afin d'en
+                améliorer les performances.
               </Text>
             </View>
 
             <View style={styles.consentCard}>
-              <View style={styles.consentHeader}>
-                <Text style={styles.consentTitle}>Essential</Text>
+              <View
+                style={[
+                  styles.consentHeader,
+                  isRTL && { flexDirection: "row-reverse" },
+                ]}
+              >
+                <Text style={styles.consentTitle}>Essentiel</Text>
                 <Switch
                   value={essentialConsent}
                   disabled
@@ -950,13 +1854,20 @@ export default function ClientProfileScreen() {
                   thumbColor={Colors.cta}
                 />
               </View>
-              <Text style={styles.consentSub}>
-                These technologies are required to activate the core
-                functionality of our delivery service.
+              <Text
+                style={[styles.consentSub, isRTL && { textAlign: "right" }]}
+              >
+                Requis pour faire fonctionner le service de livraison, le
+                paiement et le suivi de position.
               </Text>
             </View>
 
-            <View style={styles.privacyActionsRow}>
+            <View
+              style={[
+                styles.privacyActionsRow,
+                isRTL && { flexDirection: "row-reverse" },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.denyButton}
                 onPress={() => {
@@ -965,7 +1876,9 @@ export default function ClientProfileScreen() {
                   setIsPrivacyModalVisible(false);
                 }}
               >
-                <Text style={styles.denyText}>Deny</Text>
+                <Text style={styles.denyText}>
+                  {t("common.deny", "Refuser")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -975,12 +1888,14 @@ export default function ClientProfileScreen() {
                   setFunctionalConsent(true);
                   setIsPrivacyModalVisible(false);
                   Alert.alert(
-                    "Preferences Saved",
-                    "Your privacy settings have been updated.",
+                    t("common.success", "Success"),
+                    "Vos préférences ont été enregistrées.",
                   );
                 }}
               >
-                <Text style={styles.acceptAllText}>Accept All</Text>
+                <Text style={styles.acceptAllText}>
+                  {t("common.acceptAll", "Tout accepter")}
+                </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -996,7 +1911,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   organicHeader: {
-    backgroundColor: Colors.primary, // Glovo signature warm yellow
+    backgroundColor: Colors.primary,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
     paddingBottom: 24,
@@ -1015,7 +1930,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   helpPill: {
-    backgroundColor: Colors.cta, // Dark green pill button from Screenshot #8
+    backgroundColor: Colors.cta,
     paddingHorizontal: 16,
     paddingVertical: 7,
     borderRadius: 20,
@@ -1037,7 +1952,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 14,
+    marginHorizontal: 8,
     borderWidth: 2,
     borderColor: "rgba(255, 255, 255, 0.5)",
     shadowColor: "#000000",
@@ -1049,7 +1964,7 @@ const styles = StyleSheet.create({
   avatarLetter: {
     fontSize: 24,
     fontWeight: "900",
-    color: "#5C5BDB",
+    color: Colors.primary,
   },
   profileInfoCol: {
     flex: 1,
@@ -1077,36 +1992,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     letterSpacing: 0.5,
   },
-  friendsHeaderCard: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  friendsCardLeft: {
-    flex: 1,
-  },
-  connectFriendsSubtitle: {
-    fontSize: 13,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginTop: 2,
-  },
-  friendsCardRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  newBadge: {
-    backgroundColor: "#FFD166",
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  newBadgeText: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#3C3489",
-  },
 
   scrollContent: {
     paddingHorizontal: 20,
@@ -1130,6 +2015,7 @@ const styles = StyleSheet.create({
   menuRowLeft: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   menuRowTitle: {
     fontSize: 15,
@@ -1176,107 +2062,55 @@ const styles = StyleSheet.create({
     color: "#3C3489",
   },
 
-  // Friends screen styles (Screenshot #7)
-  friendsModalBody: {
-    alignItems: "center",
+  modalBody: {
     padding: 24,
   },
-  friendsCardsGraphic: {
-    flexDirection: "row",
-    justifyContent: "center",
-    height: 180,
-    width: "100%",
-    marginTop: 20,
-    marginBottom: 24,
-  },
-  graphicCard: {
-    width: 130,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 12,
-    alignItems: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-  },
-  graphicCardLeft: {
-    transform: [{ rotate: "-8deg" }, { translateX: 10 }],
-  },
-  graphicCardRight: {
-    transform: [{ rotate: "8deg" }, { translateX: -10 }],
-  },
-  foodPlaceholderCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+
+  // Account Card Styles
+  accountCard: {
     backgroundColor: "#F9FAFB",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  accountCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  graphicCardStat: {
-    backgroundColor: "#F3F4F6",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  graphicCardStatText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#3C3489",
-  },
-  friendsHeroTitle: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: "#3C3489",
-    textAlign: "center",
     marginBottom: 8,
   },
-  friendsHeroSubtitle: {
-    fontSize: 14,
-    color: "#7F77DD",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 28,
-  },
-  darkGreenPillBtn: {
-    width: "100%",
-    backgroundColor: Colors.cta, // Glovo dark green
-    borderRadius: 26,
-    paddingVertical: 15,
+  accountCardIconCol: {
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
   },
-  darkGreenPillBtnText: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#FFFFFF",
-  },
-  lightGreyPillBtn: {
-    width: "100%",
-    backgroundColor: "#F3F4F6",
-    borderRadius: 26,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  lightGreyPillBtnText: {
-    fontSize: 15,
+  accountCardLabel: {
+    fontSize: 13,
     fontWeight: "700",
-    color: "#3C3489",
+    color: "#7F77DD",
   },
-  privacyDisclaimer: {
+  editPillBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  editPillText: {
     fontSize: 12,
-    color: "#9CA3AF",
-    textAlign: "center",
-    lineHeight: 18,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
+  accountCardValue: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#1F2937",
   },
 
-  // Phone screen styles (Screenshot #6)
+  // Phone screen styles
   phoneModalBody: {
     padding: 20,
   },
@@ -1284,6 +2118,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#7F77DD",
     marginBottom: 20,
+    lineHeight: 20,
   },
   phoneInputRow: {
     flexDirection: "row",
@@ -1324,7 +2159,7 @@ const styles = StyleSheet.create({
   smsOutlineBtn: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: "#CECBF6",
+    borderColor: Colors.primary,
     borderRadius: 26,
     paddingVertical: 15,
     alignItems: "center",
@@ -1332,7 +2167,7 @@ const styles = StyleSheet.create({
   smsOutlineText: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.primary,
   },
   whatsAppFilledBtn: {
     flex: 1,
@@ -1346,8 +2181,30 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#FFFFFF",
   },
+  otpInputField: {
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    borderRadius: 16,
+    paddingVertical: 14,
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#3C3489",
+    textAlign: "center",
+    letterSpacing: 8,
+    marginBottom: 24,
+  },
+  resendTextBtn: {
+    alignItems: "center",
+    marginTop: 16,
+  },
+  resendText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
 
-  // Password screen styles (Screenshot #5)
+  // Password & Inputs styles
   passwordModalBody: {
     padding: 24,
   },
@@ -1362,20 +2219,34 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1.5,
     borderBottomColor: Colors.primary,
     paddingVertical: 8,
-    fontSize: 15,
+    fontSize: 16,
     color: "#3C3489",
+    marginBottom: 16,
   },
-  passwordDoneBtn: {
+  helperNotice: {
+    fontSize: 13,
+    color: "#9CA3AF",
+    lineHeight: 18,
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  primaryActionBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 26,
+    paddingVertical: 15,
     alignItems: "center",
-    marginTop: 40,
+    marginTop: 20,
   },
-  passwordDoneText: {
+  primaryActionBtnText: {
     fontSize: 16,
     fontWeight: "800",
-    color: Colors.primary,
+    color: "#FFFFFF",
+  },
+  btnDisabled: {
+    opacity: 0.6,
   },
 
-  // Promo screen styles (Screenshot #16)
+  // Promo screen styles
   promoModalBody: {
     padding: 20,
   },
@@ -1395,8 +2266,21 @@ const styles = StyleSheet.create({
     color: "#3C3489",
     marginBottom: 24,
   },
+  darkGreenPillBtn: {
+    width: "100%",
+    backgroundColor: Colors.cta,
+    borderRadius: 26,
+    paddingVertical: 15,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  darkGreenPillBtnText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
 
-  // Language screen styles (Screenshot #17 & #18)
+  // Language screen styles
   languageListBody: {
     paddingHorizontal: 20,
     paddingTop: 10,
@@ -1420,7 +2304,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // FAQ accordion styles (Screenshot #19)
+  // FAQ accordion styles
   faqListBody: {
     paddingHorizontal: 20,
   },
@@ -1458,7 +2342,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Notifications screen styles (Screenshot #10)
+  // Notifications screen styles
   notificationsBody: {
     padding: 20,
   },
@@ -1506,7 +2390,7 @@ const styles = StyleSheet.create({
     color: "#3C3489",
   },
 
-  // Privacy screen styles (Screenshot #21)
+  // Privacy screen styles
   privacyBody: {
     padding: 20,
   },

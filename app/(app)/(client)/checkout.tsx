@@ -13,6 +13,7 @@ import { Address, PaymentMethodType } from "@/types/order.types";
 import { BANK_DETAILS } from "@/types/payment.types";
 import { useRouter } from "expo-router";
 import {
+    ArrowLeft,
     Banknote,
     ChevronRight,
     CreditCard,
@@ -104,6 +105,22 @@ export default function CheckoutScreen() {
 
     setIsSubmitting(true);
     try {
+      if (!user || !user.id) {
+        setIsSubmitting(false);
+        Alert.alert(
+          "Connexion requise",
+          "Veuillez vous connecter pour valider votre commande.",
+          [
+            { text: "Annuler", style: "cancel" },
+            {
+              text: "Se connecter",
+              onPress: () => router.push("/(auth)/login" as any),
+            },
+          ],
+        );
+        return;
+      }
+
       const order = await orderService.createOrder(
         {
           address_id: selectedAddressId || undefined,
@@ -132,9 +149,12 @@ export default function CheckoutScreen() {
           }),
         },
         {
-          id: user?.id || "client-id",
-          email: user?.email || "client@quicklivraison.ma",
-          name: user?.email?.split("@")[0] || "Client Oujda",
+          id: user.id,
+          email: user.email || "client@quicklylivraison.ma",
+          name:
+            user.user_metadata?.full_name ||
+            user.email?.split("@")[0] ||
+            "Client Oujda",
         },
       );
 
@@ -177,8 +197,14 @@ export default function CheckoutScreen() {
               }
             }}
             style={styles.backBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Retour au panier"
           >
-            <Text style={styles.backIcon}>{isRTL ? "→" : "←"}</Text>
+            <ArrowLeft
+              size={22}
+              color={Colors.textPrimary}
+              style={isRTL ? { transform: [{ rotate: "180deg" }] } : undefined}
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {t("checkout.title", "Finaliser la Commande")}
@@ -200,6 +226,8 @@ export default function CheckoutScreen() {
             ]}
             onPress={() => setIsMapModalVisible(true)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Choisir l'adresse sur la carte"
           >
             <View
               style={[
@@ -207,7 +235,7 @@ export default function CheckoutScreen() {
                 isRTL && { flexDirection: "row-reverse" },
               ]}
             >
-              <MapPin size={22} color="#5C5BDB" strokeWidth={2} />
+              <MapPin size={22} color={Colors.primary} strokeWidth={2} />
               <View style={[isRTL && { alignItems: "flex-end" }, { flex: 1 }]}>
                 <Text
                   style={[
@@ -227,7 +255,11 @@ export default function CheckoutScreen() {
                 </Text>
               </View>
             </View>
-            <ChevronRight size={18} color="#7F77DD" strokeWidth={2.2} />
+            <ChevronRight
+              size={18}
+              color={Colors.textSecondary}
+              strokeWidth={2.2}
+            />
           </TouchableOpacity>
 
           {addresses.map((addr) => {
@@ -316,7 +348,11 @@ export default function CheckoutScreen() {
               <View style={styles.paymentIconCircle}>
                 <Banknote
                   size={24}
-                  color={paymentMethod === "CASH" ? "#5C5BDB" : "#7F77DD"}
+                  color={
+                    paymentMethod === "CASH"
+                      ? Colors.primary
+                      : Colors.textSecondary
+                  }
                   strokeWidth={1.8}
                 />
               </View>
@@ -339,7 +375,11 @@ export default function CheckoutScreen() {
               <View style={styles.paymentIconCircle}>
                 <CreditCard
                   size={24}
-                  color={paymentMethod === "TRANSFER" ? "#5C5BDB" : "#7F77DD"}
+                  color={
+                    paymentMethod === "TRANSFER"
+                      ? Colors.primary
+                      : Colors.textSecondary
+                  }
                   strokeWidth={1.8}
                 />
               </View>
@@ -355,7 +395,7 @@ export default function CheckoutScreen() {
             <View style={styles.bankDetailsCard}>
               <View style={styles.bankHeaderRow}>
                 <Text style={styles.bankHeaderBadge}>
-                  RIB Officiel QuickLivraison
+                  RIB Officiel Quickly Livraison
                 </Text>
               </View>
               <View style={styles.bankFieldRow}>
@@ -586,9 +626,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 16,
     padding: 14,
     marginBottom: 14,
@@ -602,11 +642,11 @@ const styles = StyleSheet.create({
   mapPickerTitle: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   mapPickerSub: {
     fontSize: 12,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginTop: 2,
     fontWeight: "500",
   },
@@ -620,11 +660,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   backBtnPlaceholder: {
     width: 40,
@@ -632,12 +672,12 @@ const styles = StyleSheet.create({
   backIcon: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   section: {
     marginBottom: 20,
@@ -645,7 +685,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginBottom: 10,
   },
   addressCard: {
@@ -656,19 +696,19 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     gap: 12,
   },
   addressCardSelected: {
-    borderColor: "#5C5BDB",
-    backgroundColor: "#F7F7FF",
+    borderColor: Colors.primary,
+    backgroundColor: "#E0F2FE",
   },
   radio: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -676,7 +716,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#5C5BDB",
+    backgroundColor: Colors.primary,
   },
   addressInfo: {
     flex: 1,
@@ -690,12 +730,12 @@ const styles = StyleSheet.create({
   addressLabel: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   defaultBadge: {
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.badge,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -703,21 +743,21 @@ const styles = StyleSheet.create({
   defaultBadgeText: {
     fontSize: 9,
     fontWeight: "800",
-    color: "#5C5BDB",
+    color: Colors.badgeText,
   },
   addressText: {
     fontSize: 12,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   customAddressInput: {
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 12,
     padding: 10,
     marginTop: 8,
     fontSize: 13,
-    color: "#3C3489",
+    color: Colors.darkText,
     minHeight: 40,
   },
   paymentRow: {
@@ -730,20 +770,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     alignItems: "center",
   },
   paymentOptionSelected: {
-    borderColor: "#5C5BDB",
-    backgroundColor: "#F7F7FF",
+    borderColor: Colors.primary,
+    backgroundColor: "#E0F2FE",
   },
   paymentIconCircle: {
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
@@ -751,23 +791,23 @@ const styles = StyleSheet.create({
   paymentTitle: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginBottom: 2,
     textAlign: "center",
   },
   paymentSub: {
     fontSize: 10,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     textAlign: "center",
   },
   notesInput: {
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     fontSize: 13,
-    color: "#3C3489",
+    color: Colors.darkText,
     minHeight: 50,
   },
   recapCard: {
@@ -776,12 +816,12 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   recapTitle: {
     fontSize: 15,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginBottom: 10,
   },
   recapRow: {
@@ -791,7 +831,7 @@ const styles = StyleSheet.create({
   },
   recapLabel: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   recapValue: {
     fontSize: 13,

@@ -8,29 +8,48 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "pharmacy.modalTitle": "Pharmacy Service",
     "pharmacy.modalSubtitle": "Order your medication with ease",
     "pharmacy.option1Title": "1. Upload a prescription",
-    "pharmacy.option1Desc": "Photograph or choose your medical prescription for fast delivery.",
+    "pharmacy.option1Desc":
+      "Photograph or choose your medical prescription for fast delivery.",
     "pharmacy.option2Title": "2. Call pharmacy service",
-    "pharmacy.option2Desc": "Place an order directly by phone with our Oujda team.",
+    "pharmacy.option2Desc":
+      "Place an order directly by phone with our Oujda team.",
     "pharmacy.takePhoto": "Take photo",
     "pharmacy.chooseGallery": "Choose from gallery",
     "pharmacy.retake": "Retake",
     "pharmacy.removePhoto": "Remove",
     "pharmacy.notesLabel": "Notes or district (optional)",
-    "pharmacy.notesPlaceholder": "E.g. Urgent medication, patient name, address...",
+    "pharmacy.notesPlaceholder":
+      "E.g. Urgent medication, patient name, address...",
     "pharmacy.submitPrescription": "Confirm and send prescription",
     "pharmacy.callNow": "Call",
     "pharmacy.successTitle": "Prescription sent!",
-    "pharmacy.successMessage": "Your prescription was sent to our partner pharmacy in Oujda. A pharmacist and courier are preparing your delivery.",
+    "pharmacy.successMessage":
+      "Your prescription was sent to our partner pharmacy in Oujda. A pharmacist and courier are preparing your delivery.",
     "pharmacy.permDenied": "Permission required",
-    "pharmacy.cameraPermMsg": "Please allow access to your camera to photograph your prescription.",
-    "pharmacy.galleryPermMsg": "Please allow access to your photo gallery to select your prescription.",
+    "pharmacy.cameraPermMsg":
+      "Please allow access to your camera to photograph your prescription.",
+    "pharmacy.galleryPermMsg":
+      "Please allow access to your photo gallery to select your prescription.",
     "pharmacy.missingPhotoTitle": "Photo missing",
-    "pharmacy.missingPhotoMsg": "Please add a photo of your prescription before sending.",
+    "pharmacy.missingPhotoMsg":
+      "Please add a photo of your prescription before sending.",
     "pharmacy.orderItemTitle": "Prescription Medication",
     "pharmacy.errorTitle": "Error",
-    "pharmacy.errorMsg": "Unable to transmit prescription right now. You can call the pharmacy directly.",
+    "pharmacy.errorMsg":
+      "Unable to transmit prescription right now. You can call the pharmacy directly.",
     "pharmacy.callErrorTitle": "Phone Number",
     "pharmacy.callErrorMessage": "Please dial:",
+    "pharmacy.authRequiredTitle": "Sign in required",
+    "pharmacy.authRequiredMsg":
+      "You must sign in to your account to send a secure medical prescription.",
+    "pharmacy.uploadFailed":
+      "We couldn't upload your prescription photo. Please check your internet connection and try again.",
+    "pharmacy.orderFailed":
+      "We couldn't create your prescription order. Please try again or call our pharmacy directly.",
+    "pharmacy.networkError":
+      "Connection problem. Please check your internet connection and try again.",
+    "pharmacy.unknownError": "Something went wrong. Please try again.",
+    "auth.signIn": "Sign in",
     "home.greetingTitle": "What would you like today?",
     "home.storesOpenCount": "stores open right now.",
     "home.noStoresOpen": "There aren't any stores open right now.",
@@ -48,7 +67,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "orders.call": "Call",
     "orders.cancel": "Cancel",
     "orders.noOrdersYet": "No orders yet",
-    "orders.noOrdersYetSub": "You'll be able to review past orders and reorder directly from here",
+    "orders.noOrdersYetSub":
+      "You'll be able to review past orders and reorder directly from here",
     "orders.startFirstOrder": "Start your first order",
     "orders.deliveredOn": "Delivered on",
     "orders.articlesCount": "item(s)",
@@ -57,7 +77,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "cart.article": "item",
     "cart.articles": "items",
     "cart.emptyTitle": "Your cart is empty",
-    "cart.emptySubtitle": "Add delicious meals, sandwiches, or groceries to start your order in Oujda!",
+    "cart.emptySubtitle":
+      "Add delicious meals, sandwiches, or groceries to start your order in Oujda!",
     "cart.browseCatalog": "Discover catalog",
     "cart.freeDeliveryUnlocked": "Free Delivery activated!",
     "cart.freeDelivery": "Free Delivery",
@@ -74,7 +95,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "cart.deliveryFee": "Delivery fee (Oujda Express)",
     "cart.free": "Free (Promo 100 DH)",
     "cart.totalTTC": "Total",
-    "cart.guarantee": "Order prepared fresh in Oujda. Secure payment in cash on delivery or online.",
+    "cart.guarantee":
+      "Order prepared fresh in Oujda. Secure payment in cash on delivery or online.",
     "cart.checkoutBtn": "Place Order",
     "cart.delete": "Delete",
     "location.deliveryAddress": "Delivery address:",
@@ -85,9 +107,11 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "location.oujdaDistricts": "Oujda districts and streets",
     "location.close": "Close",
     "catalog.nothingToDiscover": "Nothing to discover for now",
-    "catalog.nothingToDiscoverSub": "You can still search for something you need to buy or want to try",
+    "catalog.nothingToDiscoverSub":
+      "You can still search for something you need to buy or want to try",
     "catalog.noResultsTitle": "No results found",
-    "catalog.noResultsSub": "Try searching for a different keyword or browse categories.",
+    "catalog.noResultsSub":
+      "Try searching for a different keyword or browse categories.",
     "checkout.title": "Checkout",
     "checkout.address": "Delivery Address",
     "checkout.paymentMethod": "Payment Method",
@@ -130,7 +154,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "package.dropoff": "Delivery destination",
     "package.dropoffPlaceholder": "e.g. Hay Al Qods, Lazaret, Bd Mohammed V",
     "package.desc": "What should we deliver?",
-    "package.descPlaceholder": "e.g. House keys, urgent documents, pharmacy items",
+    "package.descPlaceholder":
+      "e.g. House keys, urgent documents, pharmacy items",
     "package.size": "Package size",
     "package.small": "Small (< 1 kg)",
     "package.medium": "Medium (1-5 kg)",
@@ -156,9 +181,11 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "orders.inProgress": "In progress",
     "orders.history": "History",
     "orders.noActive": "No orders in progress",
-    "orders.noActiveSub": "Browse restaurants, supermarkets, or send a courier.",
+    "orders.noActiveSub":
+      "Browse restaurants, supermarkets, or send a courier.",
     "orders.noHistory": "No order history yet",
-    "orders.noHistorySub": "Your completed and delivered orders will appear here.",
+    "orders.noHistorySub":
+      "Your completed and delivered orders will appear here.",
     "orders.browse": "Browse catalog",
     "orders.track": "Track live",
     "orders.reorder": "Order again",
@@ -180,11 +207,13 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "courierRating.tagCareful": "Careful with package",
     "courierRating.tagFoundEasy": "Found address easily",
     "courierRating.tagCommunicative": "Great communication",
-    "courierRating.commentPlaceholder": "Leave a warm note or feedback (optional)...",
+    "courierRating.commentPlaceholder":
+      "Leave a warm note or feedback (optional)...",
     "courierRating.submit": "Submit Rating",
     "courierRating.submitting": "Submitting...",
     "courierRating.thankYou": "Thank you! ⭐",
-    "courierRating.thankYouMsg": "Your rating helps our courier partner maintain great service in Oujda.",
+    "courierRating.thankYouMsg":
+      "Your rating helps our courier partner maintain great service in Oujda.",
 
     // Profile
     "profile.title": "Profile",
@@ -192,6 +221,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "profile.orderHistory": "Order history",
     "profile.viewInOrders": "View in Orders",
     "profile.account": "Account",
+    "profile.editPersonalData": "Personal information",
+    "profile.changeEmail": "Change email",
+    "profile.changePhone": "Phone number",
     "profile.promoCodes": "Promo codes",
     "profile.language": "Language",
     "profile.faq": "FAQ",
@@ -202,6 +234,27 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "profile.logoutConfirm": "Are you sure you want to log out?",
     "profile.preferredLang": "Preferred language",
     "profile.phoneVerified": "Verified",
+    "profile.fullName": "Full name",
+    "profile.email": "Email address",
+    "profile.currentPassword": "Current password",
+    "profile.newPassword": "New password",
+    "profile.confirmPassword": "Confirm password",
+    "profile.passwordUpdated": "Password updated successfully!",
+    "profile.emailUpdated":
+      "Email updated! Please check your inbox for confirmation.",
+    "profile.phoneUpdated": "Phone number updated successfully!",
+    "profile.profileUpdated": "Profile information saved!",
+    "profile.enterNewEmail": "Enter new email address",
+    "profile.enterNewPhone": "Enter new phone number",
+    "profile.enterOtp": "Enter 6-digit verification code",
+    "profile.verify": "Verify code",
+    "profile.saving": "Saving...",
+    "profile.passwordMismatch": "Passwords do not match",
+    "profile.passwordMinLength": "Password must be at least 6 characters",
+    "profile.emailInvalid": "Please enter a valid email address",
+    "profile.phoneInvalid": "Please enter a valid phone number",
+    "profile.done": "Done",
+    "profile.cancel": "Cancel",
 
     // Discover / Catalog
     "catalog.title": "Discover",
@@ -237,9 +290,11 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "pharmacy.modalTitle": "Service Pharmacie",
     "pharmacy.modalSubtitle": "Commandez vos médicaments en toute simplicité",
     "pharmacy.option1Title": "1. Envoyer une ordonnance",
-    "pharmacy.option1Desc": "Photographiez ou sélectionnez votre ordonnance médicale pour livraison rapide.",
+    "pharmacy.option1Desc":
+      "Photographiez ou sélectionnez votre ordonnance médicale pour livraison rapide.",
     "pharmacy.option2Title": "2. Appeler le service pharmacie",
-    "pharmacy.option2Desc": "Passez commande directement par téléphone avec nos conseillers à Oujda.",
+    "pharmacy.option2Desc":
+      "Passez commande directement par téléphone avec nos conseillers à Oujda.",
     "pharmacy.takePhoto": "Prendre photo",
     "pharmacy.chooseGallery": "Choisir galerie",
     "pharmacy.retake": "Reprendre",
@@ -249,17 +304,34 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "pharmacy.submitPrescription": "Confirmer et envoyer l'ordonnance",
     "pharmacy.callNow": "Appeler le",
     "pharmacy.successTitle": "Ordonnance envoyée !",
-    "pharmacy.successMessage": "Votre ordonnance a été transmise avec succès à notre pharmacie partenaire à Oujda. Un pharmacien et un coursier préparent votre commande.",
+    "pharmacy.successMessage":
+      "Votre ordonnance a été transmise avec succès à notre pharmacie partenaire à Oujda. Un pharmacien et un coursier préparent votre commande.",
     "pharmacy.permDenied": "Permission requise",
-    "pharmacy.cameraPermMsg": "Veuillez autoriser l'accès à l'appareil photo pour photographier votre ordonnance.",
-    "pharmacy.galleryPermMsg": "Veuillez autoriser l'accès à votre galerie photos pour sélectionner votre ordonnance.",
+    "pharmacy.cameraPermMsg":
+      "Veuillez autoriser l'accès à l'appareil photo pour photographier votre ordonnance.",
+    "pharmacy.galleryPermMsg":
+      "Veuillez autoriser l'accès à votre galerie photos pour sélectionner votre ordonnance.",
     "pharmacy.missingPhotoTitle": "Photo manquante",
-    "pharmacy.missingPhotoMsg": "Veuillez ajouter une photo de votre ordonnance avant d'envoyer.",
+    "pharmacy.missingPhotoMsg":
+      "Veuillez ajouter une photo de votre ordonnance avant d'envoyer.",
     "pharmacy.orderItemTitle": "Médicaments sur Ordonnance",
     "pharmacy.errorTitle": "Erreur",
-    "pharmacy.errorMsg": "Impossible de transmettre l'ordonnance pour le moment. Vous pouvez joindre la pharmacie directement par téléphone.",
+    "pharmacy.errorMsg":
+      "Impossible de transmettre l'ordonnance pour le moment. Vous pouvez joindre la pharmacie directement par téléphone.",
     "pharmacy.callErrorTitle": "Numéro de téléphone",
     "pharmacy.callErrorMessage": "Veuillez composer le :",
+    "pharmacy.authRequiredTitle": "Connexion requise",
+    "pharmacy.authRequiredMsg":
+      "Vous devez être connecté à votre compte pour envoyer une ordonnance médicale sécurisée.",
+    "pharmacy.uploadFailed":
+      "Impossible de téléverser la photo de votre ordonnance. Veuillez vérifier votre connexion et réessayer.",
+    "pharmacy.orderFailed":
+      "Impossible de créer votre commande d'ordonnance. Veuillez réessayer ou joindre la pharmacie par téléphone.",
+    "pharmacy.networkError":
+      "Problème de connexion. Veuillez vérifier votre connexion internet et réessayer.",
+    "pharmacy.unknownError":
+      "Une erreur inattendue est survenue. Veuillez réessayer.",
+    "auth.signIn": "Se connecter",
     "home.greetingTitle": "Qu'est-ce qui vous ferait plaisir ?",
     "home.storesOpenCount": "magasins ouverts en ce moment.",
     "home.noStoresOpen": "Aucun magasin n'est ouvert pour le moment.",
@@ -269,7 +341,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "orders.ongoingOrdersListed": "Vos commandes en cours apparaîtront ici",
     "orders.continueOrder": "Continuer votre commande",
     "orders.noCartsYet": "Aucun panier pour le moment",
-    "orders.addItemsStores": "Ajoutez des articles depuis les boutiques pour créer un panier",
+    "orders.addItemsStores":
+      "Ajoutez des articles depuis les boutiques pour créer un panier",
     "orders.orderNumber": "Commande #",
     "orders.hideDetails": "Masquer les détails",
     "orders.viewArticles": "Voir les articles",
@@ -277,7 +350,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "orders.call": "Appeler",
     "orders.cancel": "Annuler",
     "orders.noOrdersYet": "Aucune commande passée",
-    "orders.noOrdersYetSub": "Vous pourrez retrouver vos commandes passées et recommander directement d'ici",
+    "orders.noOrdersYetSub":
+      "Vous pourrez retrouver vos commandes passées et recommander directement d'ici",
     "orders.startFirstOrder": "Passer votre première commande",
     "orders.deliveredOn": "Livrée le",
     "orders.articlesCount": "article(s)",
@@ -286,13 +360,15 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "cart.article": "article",
     "cart.articles": "articles",
     "cart.emptyTitle": "Votre panier est vide",
-    "cart.emptySubtitle": "Ajoutez de délicieux plats, des sandwichs ou des courses pour commencer votre commande à Oujda !",
+    "cart.emptySubtitle":
+      "Ajoutez de délicieux plats, des sandwichs ou des courses pour commencer votre commande à Oujda !",
     "cart.browseCatalog": "Découvrir le catalogue",
     "cart.freeDeliveryUnlocked": "Livraison Gratuite activée !",
     "cart.freeDelivery": "Livraison Gratuite",
     "cart.freeDeliveryOffered": "Frais de livraison offerts",
     "cart.remainingForFree": "Plus que {amount} MAD pour la livraison offerte",
-    "cart.reachThreshold": "Atteignez 100,00 MAD pour bénéficier de la livraison 100% offerte.",
+    "cart.reachThreshold":
+      "Atteignez 100,00 MAD pour bénéficier de la livraison 100% offerte.",
     "cart.selectedItems": "Articles sélectionnés",
     "cart.emptyCart": "Vider le panier",
     "cart.specialNote": "Note :",
@@ -303,7 +379,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "cart.deliveryFee": "Frais de livraison (Oujda Express)",
     "cart.free": "Gratuit (Promo 100 DH)",
     "cart.totalTTC": "Total TTC",
-    "cart.guarantee": "Commande préparée à la minute à Oujda. Paiement sécurisé en espèces à la livraison ou en ligne.",
+    "cart.guarantee":
+      "Commande préparée à la minute à Oujda. Paiement sécurisé en espèces à la livraison ou en ligne.",
     "cart.checkoutBtn": "Passer commande",
     "cart.delete": "Supprimer",
     "location.deliveryAddress": "Adresse de livraison :",
@@ -314,9 +391,11 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "location.oujdaDistricts": "Quartiers et rues d'Oujda",
     "location.close": "Fermer",
     "catalog.nothingToDiscover": "Rien à découvrir pour le moment",
-    "catalog.nothingToDiscoverSub": "Vous pouvez toujours rechercher un produit dont vous avez besoin",
+    "catalog.nothingToDiscoverSub":
+      "Vous pouvez toujours rechercher un produit dont vous avez besoin",
     "catalog.noResultsTitle": "Aucun résultat trouvé",
-    "catalog.noResultsSub": "Essayez un autre mot-clé ou parcourez nos catégories.",
+    "catalog.noResultsSub":
+      "Essayez un autre mot-clé ou parcourez nos catégories.",
     "checkout.title": "Finaliser la commande",
     "checkout.address": "Adresse de livraison",
     "checkout.paymentMethod": "Mode de paiement",
@@ -354,7 +433,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
 
     // Package Delivery Modal
     "package.title": "Livraison de Colis",
-    "package.subtitle": "Un coursier à votre service en ~10 min partout à Oujda",
+    "package.subtitle":
+      "Un coursier à votre service en ~10 min partout à Oujda",
     "package.pickup": "Adresse de récupération",
     "package.dropoff": "Adresse de destination",
     "package.dropoffPlaceholder": "ex. Hay Al Qods, Lazaret, Bd Mohammed V",
@@ -368,7 +448,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "package.submit": "Commander un coursier (15 DH)",
     "package.submitting": "Recherche d'un coursier disponible...",
     "package.courierOnWay": "Coursier en route !",
-    "package.courierMsg": "Un coursier se dirige vers l'adresse de récupération.",
+    "package.courierMsg":
+      "Un coursier se dirige vers l'adresse de récupération.",
     "package.track": "Suivre la course",
 
     // Location Picker
@@ -385,7 +466,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "orders.inProgress": "En cours",
     "orders.history": "Historique",
     "orders.noActive": "Aucune commande en cours",
-    "orders.noActiveSub": "Découvrez des restaurants, magasins ou commandez un coursier.",
+    "orders.noActiveSub":
+      "Découvrez des restaurants, magasins ou commandez un coursier.",
     "orders.noHistory": "Aucun historique de commande",
     "orders.noHistorySub": "Vos commandes livrées et passées apparaîtront ici.",
     "orders.browse": "Parcourir le catalogue",
@@ -409,11 +491,13 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "courierRating.tagCareful": "Soin apporté au colis",
     "courierRating.tagFoundEasy": "Adresse trouvée facilement",
     "courierRating.tagCommunicative": "Excellente communication",
-    "courierRating.commentPlaceholder": "Un mot d'encouragement ou une remarque (optionnel)...",
+    "courierRating.commentPlaceholder":
+      "Un mot d'encouragement ou une remarque (optionnel)...",
     "courierRating.submit": "Envoyer l'évaluation",
     "courierRating.submitting": "Envoi en cours...",
     "courierRating.thankYou": "Merci pour votre avis ! ⭐",
-    "courierRating.thankYouMsg": "Votre évaluation aide nos coursiers partenaires à maintenir un service exemplaire à Oujda.",
+    "courierRating.thankYouMsg":
+      "Votre évaluation aide nos coursiers partenaires à maintenir un service exemplaire à Oujda.",
 
     // Profile
     "profile.title": "Profil",
@@ -421,6 +505,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "profile.orderHistory": "Historique des commandes",
     "profile.viewInOrders": "Voir dans Commandes",
     "profile.account": "Compte",
+    "profile.editPersonalData": "Informations personnelles",
+    "profile.changeEmail": "Modifier l'adresse email",
+    "profile.changePhone": "Numéro de téléphone",
     "profile.promoCodes": "Codes promo",
     "profile.language": "Langue",
     "profile.faq": "FAQ",
@@ -431,6 +518,28 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "profile.logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
     "profile.preferredLang": "Langue préférée",
     "profile.phoneVerified": "Vérifié",
+    "profile.fullName": "Nom complet",
+    "profile.email": "Adresse email",
+    "profile.currentPassword": "Mot de passe actuel",
+    "profile.newPassword": "Nouveau mot de passe",
+    "profile.confirmPassword": "Confirmer le mot de passe",
+    "profile.passwordUpdated": "Mot de passe mis à jour avec succès !",
+    "profile.emailUpdated":
+      "Email mis à jour ! Veuillez vérifier votre boîte de réception pour confirmer.",
+    "profile.phoneUpdated": "Numéro de téléphone mis à jour avec succès !",
+    "profile.profileUpdated": "Informations de profil enregistrées !",
+    "profile.enterNewEmail": "Saisissez la nouvelle adresse email",
+    "profile.enterNewPhone": "Saisissez le nouveau numéro de téléphone",
+    "profile.enterOtp": "Saisissez le code de vérification à 6 chiffres",
+    "profile.verify": "Vérifier le code",
+    "profile.saving": "Enregistrement...",
+    "profile.passwordMismatch": "Les mots de passe ne correspondent pas",
+    "profile.passwordMinLength":
+      "Le mot de passe doit comporter au moins 6 caractères",
+    "profile.emailInvalid": "Veuillez saisir une adresse email valide",
+    "profile.phoneInvalid": "Veuillez saisir un numéro de téléphone valide",
+    "profile.done": "Enregistrer",
+    "profile.cancel": "Annuler",
 
     // Discover / Catalog
     "catalog.title": "Découvrir",
@@ -466,9 +575,11 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "pharmacy.modalTitle": "خدمة الصيدلية",
     "pharmacy.modalSubtitle": "اطلب أدويتك بكل سهولة وأمان في وجدة",
     "pharmacy.option1Title": "1. إرسال وصفة طبية",
-    "pharmacy.option1Desc": "التقط صورة للوصفة الطبية أو اخترها من هاتفك لتوصيلها لك بسرعة.",
+    "pharmacy.option1Desc":
+      "التقط صورة للوصفة الطبية أو اخترها من هاتفك لتوصيلها لك بسرعة.",
     "pharmacy.option2Title": "2. الاتصال بخدمة الصيدلية",
-    "pharmacy.option2Desc": "اطلب أدويتك مباشرة عبر الهاتف مع فريقنا المتاح في وجدة.",
+    "pharmacy.option2Desc":
+      "اطلب أدويتك مباشرة عبر الهاتف مع فريقنا المتاح في وجدة.",
     "pharmacy.takePhoto": "التقاط صورة",
     "pharmacy.chooseGallery": "اختيار من المعرض",
     "pharmacy.retake": "إعادة الالتقاط",
@@ -478,17 +589,32 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "pharmacy.submitPrescription": "تأكيد وإرسال الوصفة الطبية",
     "pharmacy.callNow": "اتصال بالرقم",
     "pharmacy.successTitle": "تم إرسال الوصفة بنجاح!",
-    "pharmacy.successMessage": "تمت إحالة وصفتك الطبية إلى الصيدلية الشريكة في وجدة. يقوم الصيدلي والموزع بتجهيز طلبك حالياً.",
+    "pharmacy.successMessage":
+      "تمت إحالة وصفتك الطبية إلى الصيدلية الشريكة في وجدة. يقوم الصيدلي والموزع بتجهيز طلبك حالياً.",
     "pharmacy.permDenied": "إذن مطلوب",
-    "pharmacy.cameraPermMsg": "يرجى منح الإذن للوصول إلى الكاميرا لالتقاط صورة الوصفة.",
-    "pharmacy.galleryPermMsg": "يرجى منح الإذن للوصول إلى المعرض لاختيار صورة الوصفة.",
+    "pharmacy.cameraPermMsg":
+      "يرجى منح الإذن للوصول إلى الكاميرا لالتقاط صورة الوصفة.",
+    "pharmacy.galleryPermMsg":
+      "يرجى منح الإذن للوصول إلى المعرض لاختيار صورة الوصفة.",
     "pharmacy.missingPhotoTitle": "الصورة مطلوبة",
     "pharmacy.missingPhotoMsg": "يرجى إضافة صورة الوصفة الطبية قبل الإرسال.",
     "pharmacy.orderItemTitle": "أدوية بوصفة طبية",
     "pharmacy.errorTitle": "خطأ",
-    "pharmacy.errorMsg": "تعذر إرسال الوصفة حالياً. يمكنك الاتصال بالصيدلية مباشرة عبر الهاتف.",
+    "pharmacy.errorMsg":
+      "تعذر إرسال الوصفة حالياً. يمكنك الاتصال بالصيدلية مباشرة عبر الهاتف.",
     "pharmacy.callErrorTitle": "رقم الهاتف",
     "pharmacy.callErrorMessage": "يرجى الاتصال على الرقم:",
+    "pharmacy.authRequiredTitle": "تسجيل الدخول مطلوب",
+    "pharmacy.authRequiredMsg":
+      "يجب تسجيل الدخول إلى حسابك لإرسال وصفة طبية مؤمنة.",
+    "pharmacy.uploadFailed":
+      "تعذر رفع صورة الوصفة الطبية. يرجى التحقق من اتصال الإنترنت والمحاولة مجددًا.",
+    "pharmacy.orderFailed":
+      "تعذر إنشاء طلب الوصفة الطبية. يرجى المحاولة مرة أخرى أو الاتصال بنا مباشرة.",
+    "pharmacy.networkError":
+      "مشكلة في الاتصال. يرجى التحقق من اتصال الإنترنت والمحاولة مجددًا.",
+    "pharmacy.unknownError": "حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.",
+    "auth.signIn": "تسجيل الدخول",
     "home.greetingTitle": "ما الذي ترغب به اليوم؟",
     "home.storesOpenCount": "متاجر مفتوحة الآن.",
     "home.noStoresOpen": "لا توجد متاجر مفتوحة في الوقت الحالي.",
@@ -506,7 +632,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "orders.call": "اتصال",
     "orders.cancel": "إلغاء",
     "orders.noOrdersYet": "لا توجد طلبات سابقة",
-    "orders.noOrdersYetSub": "ستتمكن من مراجعة طلباتك السابقة وإعادة الطلب مباشرة من هنا",
+    "orders.noOrdersYetSub":
+      "ستتمكن من مراجعة طلباتك السابقة وإعادة الطلب مباشرة من هنا",
     "orders.startFirstOrder": "ابدأ طلبك الأول",
     "orders.deliveredOn": "تم التسليم في",
     "orders.articlesCount": "عنصر",
@@ -515,13 +642,16 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "cart.article": "عنصر",
     "cart.articles": "عناصر",
     "cart.emptyTitle": "سلتك فارغة",
-    "cart.emptySubtitle": "أضف وجبات شهية، سندويشات أو بقالة لبدء طلبك في وجدة!",
+    "cart.emptySubtitle":
+      "أضف وجبات شهية، سندويشات أو بقالة لبدء طلبك في وجدة!",
     "cart.browseCatalog": "استكشف القائمة",
     "cart.freeDeliveryUnlocked": "التوصيل المجاني مفعل!",
     "cart.freeDelivery": "توصيل مجاني",
     "cart.freeDeliveryOffered": "رسوم التوصيل مجانية",
-    "cart.remainingForFree": "تبقى فقط {amount} درهم للاستفادة من التوصيل المجاني",
-    "cart.reachThreshold": "بلغ 100.00 درهم للاستفادة من التوصيل المجاني بنسبة 100%.",
+    "cart.remainingForFree":
+      "تبقى فقط {amount} درهم للاستفادة من التوصيل المجاني",
+    "cart.reachThreshold":
+      "بلغ 100.00 درهم للاستفادة من التوصيل المجاني بنسبة 100%.",
     "cart.selectedItems": "العناصر المختارة",
     "cart.emptyCart": "إفراغ السلة",
     "cart.specialNote": "ملاحظة:",
@@ -532,7 +662,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "cart.deliveryFee": "رسوم التوصيل (وجدة إكسبريس)",
     "cart.free": "مجاني (عرض 100 درهم)",
     "cart.totalTTC": "المجموع الإجمالي",
-    "cart.guarantee": "يتم إعداد الطلب طازجاً في وجدة. دفع آمن نقدًا عند الاستلام أو عبر الإنترنت.",
+    "cart.guarantee":
+      "يتم إعداد الطلب طازجاً في وجدة. دفع آمن نقدًا عند الاستلام أو عبر الإنترنت.",
     "cart.checkoutBtn": "إتمام الطلب",
     "cart.delete": "حذف",
     "location.deliveryAddress": "عنوان التوصيل:",
@@ -642,7 +773,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "courierRating.submit": "إرسال التقييم",
     "courierRating.submitting": "جاري الإرسال...",
     "courierRating.thankYou": "شكرًا لتقييمك! ⭐",
-    "courierRating.thankYouMsg": "تقييمك يساعد شركاء التوصيل على تقديم أفضل خدمة في وجدة.",
+    "courierRating.thankYouMsg":
+      "تقييمك يساعد شركاء التوصيل على تقديم أفضل خدمة في وجدة.",
 
     // Profile
     "profile.title": "الملف الشخصي",
@@ -650,6 +782,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "profile.orderHistory": "سجل الطلبات",
     "profile.viewInOrders": "عرض في الطلبات",
     "profile.account": "الحساب",
+    "profile.editPersonalData": "البيانات الشخصية",
+    "profile.changeEmail": "تغيير البريد الإلكتروني",
+    "profile.changePhone": "رقم الهاتف",
     "profile.promoCodes": "رموز الخصم",
     "profile.language": "اللغة",
     "profile.faq": "الأسئلة الشائعة",
@@ -660,6 +795,27 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "profile.logoutConfirm": "هل أنت متأكد من رغبتك في تسجيل الخروج؟",
     "profile.preferredLang": "اللغة المفضلة",
     "profile.phoneVerified": "مفعل",
+    "profile.fullName": "الاسم الكامل",
+    "profile.email": "البريد الإلكتروني",
+    "profile.currentPassword": "كلمة المرور الحالية",
+    "profile.newPassword": "كلمة المرور الجديدة",
+    "profile.confirmPassword": "تأكيد كلمة المرور",
+    "profile.passwordUpdated": "تم تحديث كلمة المرور بنجاح!",
+    "profile.emailUpdated":
+      "تم تحديث البريد الإلكتروني! يرجى مراجعة صندوق الوارد للتأكيد.",
+    "profile.phoneUpdated": "تم تحديث رقم الهاتف بنجاح!",
+    "profile.profileUpdated": "تم حفظ بيانات الحساب بنجاح!",
+    "profile.enterNewEmail": "أدخل البريد الإلكتروني الجديد",
+    "profile.enterNewPhone": "أدخل رقم الهاتف الجديد",
+    "profile.enterOtp": "أدخل رمز التحقق المكون من 6 أرقام",
+    "profile.verify": "تأكيد الرمز",
+    "profile.saving": "جاري الحفظ...",
+    "profile.passwordMismatch": "كلمات المرور غير متطابقة",
+    "profile.passwordMinLength": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+    "profile.emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+    "profile.phoneInvalid": "يرجى إدخال رقم هاتف صالح",
+    "profile.done": "حفظ",
+    "profile.cancel": "إلغاء",
 
     // Discover / Catalog
     "catalog.title": "اكتشف",
@@ -695,29 +851,48 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "pharmacy.modalTitle": "Servicio de Farmacia",
     "pharmacy.modalSubtitle": "Pide tus medicamentos fácilmente en Oujda",
     "pharmacy.option1Title": "1. Enviar una receta médica",
-    "pharmacy.option1Desc": "Fotografía o selecciona tu receta médica para entrega rápida.",
+    "pharmacy.option1Desc":
+      "Fotografía o selecciona tu receta médica para entrega rápida.",
     "pharmacy.option2Title": "2. Llamar al servicio de farmacia",
-    "pharmacy.option2Desc": "Haz tu pedido directamente por teléfono con nuestro equipo en Oujda.",
+    "pharmacy.option2Desc":
+      "Haz tu pedido directamente por teléfono con nuestro equipo en Oujda.",
     "pharmacy.takePhoto": "Tomar foto",
     "pharmacy.chooseGallery": "Elegir de galería",
     "pharmacy.retake": "Repetir",
     "pharmacy.removePhoto": "Eliminar",
     "pharmacy.notesLabel": "Notas o barrio (opcional)",
-    "pharmacy.notesPlaceholder": "Ej. Medicamentos urgentes, nombre del paciente...",
+    "pharmacy.notesPlaceholder":
+      "Ej. Medicamentos urgentes, nombre del paciente...",
     "pharmacy.submitPrescription": "Confirmar y enviar receta",
     "pharmacy.callNow": "Llamar al",
     "pharmacy.successTitle": "¡Receta enviada!",
-    "pharmacy.successMessage": "Tu receta ha sido transmitida con éxito a nuestra farmacia colaboradora en Oujda.",
+    "pharmacy.successMessage":
+      "Tu receta ha sido transmitida con éxito a nuestra farmacia colaboradora en Oujda.",
     "pharmacy.permDenied": "Permiso requerido",
-    "pharmacy.cameraPermMsg": "Por favor autoriza el acceso a la cámara para fotografiar tu receta.",
-    "pharmacy.galleryPermMsg": "Por favor autoriza el acceso a la galería para seleccionar tu receta.",
+    "pharmacy.cameraPermMsg":
+      "Por favor autoriza el acceso a la cámara para fotografiar tu receta.",
+    "pharmacy.galleryPermMsg":
+      "Por favor autoriza el acceso a la galería para seleccionar tu receta.",
     "pharmacy.missingPhotoTitle": "Falta la foto",
-    "pharmacy.missingPhotoMsg": "Por favor añade una foto de tu receta antes de enviar.",
+    "pharmacy.missingPhotoMsg":
+      "Por favor añade una foto de tu receta antes de enviar.",
     "pharmacy.orderItemTitle": "Medicamentos con Receta",
     "pharmacy.errorTitle": "Error",
-    "pharmacy.errorMsg": "No se pudo enviar la receta. Puedes contactar a la farmacia por teléfono.",
+    "pharmacy.errorMsg":
+      "No se pudo enviar la receta. Puedes contactar a la farmacia por teléfono.",
     "pharmacy.callErrorTitle": "Número de teléfono",
     "pharmacy.callErrorMessage": "Por favor marque el:",
+    "pharmacy.authRequiredTitle": "Inicio de sesión requerido",
+    "pharmacy.authRequiredMsg":
+      "Debe iniciar sesión en su cuenta para enviar una receta médica segura.",
+    "pharmacy.uploadFailed":
+      "No se pudo subir la foto de su receta. Verifique su conexión a internet e intente nuevamente.",
+    "pharmacy.orderFailed":
+      "No se pudo crear su pedido de receta. Intente nuevamente o llámenos por teléfono.",
+    "pharmacy.networkError":
+      "Problema de conexión. Verifique su conexión a internet e intente nuevamente.",
+    "pharmacy.unknownError": "Ocurrió un error inesperado. Intente nuevamente.",
+    "auth.signIn": "Iniciar sesión",
     "home.greetingTitle": "¿Qué te gustaría hoy?",
     "home.storesOpenCount": "tiendas abiertas ahora mismo.",
     "home.noStoresOpen": "No hay tiendas abiertas en este momento.",
@@ -727,7 +902,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "orders.ongoingOrdersListed": "Tus pedidos en curso aparecerán aquí",
     "orders.continueOrder": "Continuar tu pedido",
     "orders.noCartsYet": "Aún no hay cestas",
-    "orders.addItemsStores": "Añade artículos de tiendas para crear nuevas cestas",
+    "orders.addItemsStores":
+      "Añade artículos de tiendas para crear nuevas cestas",
     "orders.orderNumber": "Pedido #",
     "orders.hideDetails": "Ocultar detalles",
     "orders.viewArticles": "Ver artículos",
@@ -735,7 +911,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "orders.call": "Llamar",
     "orders.cancel": "Cancelar",
     "orders.noOrdersYet": "Aún no tienes pedidos",
-    "orders.noOrdersYetSub": "Podrás consultar tus pedidos pasados y volver a pedir directamente desde aquí",
+    "orders.noOrdersYetSub":
+      "Podrás consultar tus pedidos pasados y volver a pedir directamente desde aquí",
     "orders.startFirstOrder": "Haz tu primer pedido",
     "orders.deliveredOn": "Entregado el",
     "orders.articlesCount": "artículo(s)",
@@ -744,7 +921,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "cart.article": "artículo",
     "cart.articles": "artículos",
     "cart.emptyTitle": "Tu cesta está vacía",
-    "cart.emptySubtitle": "¡Añade deliciosos platos, bocadillos o compras para empezar tu pedido en Oujda!",
+    "cart.emptySubtitle":
+      "¡Añade deliciosos platos, bocadillos o compras para empezar tu pedido en Oujda!",
     "cart.browseCatalog": "Descubrir catálogo",
     "cart.freeDeliveryUnlocked": "¡Envío gratis activado!",
     "cart.freeDelivery": "Envío gratis",
@@ -761,7 +939,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "cart.deliveryFee": "Coste de entrega (Oujda Express)",
     "cart.free": "Gratis (Promo 100 DH)",
     "cart.totalTTC": "Total",
-    "cart.guarantee": "Pedido preparado al momento en Oujda. Pago seguro en efectivo a la entrega o en línea.",
+    "cart.guarantee":
+      "Pedido preparado al momento en Oujda. Pago seguro en efectivo a la entrega o en línea.",
     "cart.checkoutBtn": "Realizar pedido",
     "cart.delete": "Eliminar",
     "location.deliveryAddress": "Dirección de entrega:",
@@ -772,9 +951,11 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "location.oujdaDistricts": "Barrios y calles de Oujda",
     "location.close": "Cerrar",
     "catalog.nothingToDiscover": "Nada que descubrir por ahora",
-    "catalog.nothingToDiscoverSub": "Aún puedes buscar algo que necesites comprar o probar",
+    "catalog.nothingToDiscoverSub":
+      "Aún puedes buscar algo que necesites comprar o probar",
     "catalog.noResultsTitle": "No se encontraron resultados",
-    "catalog.noResultsSub": "Prueba buscando otras palabras o explora categorías.",
+    "catalog.noResultsSub":
+      "Prueba buscando otras palabras o explora categorías.",
     "checkout.title": "Finalizar pedido",
     "checkout.address": "Dirección de entrega",
     "checkout.paymentMethod": "Método de pago",
@@ -817,7 +998,8 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "package.dropoff": "Dirección de entrega",
     "package.dropoffPlaceholder": "ej. Hay Al Qods, Lazaret, Bd Mohammed V",
     "package.desc": "¿Qué enviamos?",
-    "package.descPlaceholder": "ej. Llaves, documentos urgentes, compras de farmacia",
+    "package.descPlaceholder":
+      "ej. Llaves, documentos urgentes, compras de farmacia",
     "package.size": "Tamaño del paquete",
     "package.small": "Pequeño (< 1 kg)",
     "package.medium": "Mediano (1-5 kg)",
@@ -867,11 +1049,13 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "courierRating.tagCareful": "Buen cuidado del paquete",
     "courierRating.tagFoundEasy": "Encontró la dirección rápido",
     "courierRating.tagCommunicative": "Excelente communication",
-    "courierRating.commentPlaceholder": "Deja una nota de agradecimiento (opcional)...",
+    "courierRating.commentPlaceholder":
+      "Deja una nota de agradecimiento (opcional)...",
     "courierRating.submit": "Enviar valoración",
     "courierRating.submitting": "Enviando...",
     "courierRating.thankYou": "¡Gracias por valorar! ⭐",
-    "courierRating.thankYouMsg": "Tu opinión ayuda a mejorar el servicio de entrega en Oujda.",
+    "courierRating.thankYouMsg":
+      "Tu opinión ayuda a mejorar el servicio de entrega en Oujda.",
 
     // Profile
     "profile.title": "Perfil",
@@ -879,6 +1063,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "profile.orderHistory": "Historial de pedidos",
     "profile.viewInOrders": "Ver en Pedidos",
     "profile.account": "Cuenta",
+    "profile.editPersonalData": "Datos personales",
+    "profile.changeEmail": "Cambiar correo",
+    "profile.changePhone": "Número de teléfono",
     "profile.promoCodes": "Códigos promo",
     "profile.language": "Idioma",
     "profile.faq": "Preguntas frecuentes",
@@ -889,6 +1076,28 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     "profile.logoutConfirm": "¿Estás seguro de que deseas cerrar sesión?",
     "profile.preferredLang": "Idioma preferido",
     "profile.phoneVerified": "Verificado",
+    "profile.fullName": "Nombre completo",
+    "profile.email": "Correo electrónico",
+    "profile.currentPassword": "Contraseña actual",
+    "profile.newPassword": "Nueva contraseña",
+    "profile.confirmPassword": "Confirmar contraseña",
+    "profile.passwordUpdated": "¡Contraseña actualizada con éxito!",
+    "profile.emailUpdated":
+      "¡Correo actualizado! Revisa tu bandeja de entrada.",
+    "profile.phoneUpdated": "¡Número de teléfono actualizado con éxito!",
+    "profile.profileUpdated": "¡Información guardada con éxito!",
+    "profile.enterNewEmail": "Introduce el nuevo correo electrónico",
+    "profile.enterNewPhone": "Introduce el nuevo número de teléfono",
+    "profile.enterOtp": "Introduce el código de 6 dígitos",
+    "profile.verify": "Verificar código",
+    "profile.saving": "Guardando...",
+    "profile.passwordMismatch": "Las contraseñas no coinciden",
+    "profile.passwordMinLength":
+      "La contraseña debe tener al menos 6 caracteres",
+    "profile.emailInvalid": "Por favor introduce un correo válido",
+    "profile.phoneInvalid": "Por favor introduce un teléfono válido",
+    "profile.done": "Guardar",
+    "profile.cancel": "Cancelar",
 
     // Discover / Catalog
     "catalog.title": "Descubrir",

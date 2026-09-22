@@ -1,20 +1,21 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { ProgressBar, Surface, Text } from 'react-native-paper';
-import { Bike, Clock, MapPin, Phone } from 'lucide-react-native';
-import { borderRadius, colors, spacing } from '@/src/theme';
-import { ORDER_STATUS_CONFIG } from '@/src/types/order.types';
-import AppButton from '../Button/AppButton';
-import { DeliveryTrackingProps } from './types';
+import { borderRadius, colors, spacing } from "@/src/theme";
+import { ORDER_STATUS_CONFIG } from "@/src/types/order.types";
+import { Bike, Clock, MapPin, Phone } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { ProgressBar, Surface, Text } from "react-native-paper";
+import AppButton from "../Button/AppButton";
+import { DeliveryTrackingProps } from "./types";
 
 export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
   order,
   style,
 }) => {
-  const currentStatusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.PENDING;
+  const currentStatusConfig =
+    ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.PENDING;
   const currentStep = Math.max(0, currentStatusConfig.stepIndex);
   const totalSteps = 5;
-  const progress = order.status === 'CANCELLED' ? 0 : currentStep / totalSteps;
+  const progress = order.status === "CANCELLED" ? 0 : currentStep / totalSteps;
 
   return (
     <Surface elevation={1} style={[styles.card, style]}>
@@ -30,13 +31,15 @@ export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
 
         <View style={styles.timePill}>
           <Clock size={14} color={colors.primary} />
-          <Text style={styles.timeText}>{order.estimated_delivery_minutes || 25} min</Text>
+          <Text style={styles.timeText}>
+            {order.estimated_delivery_minutes || 25} min
+          </Text>
         </View>
       </View>
 
       <ProgressBar
         progress={progress}
-        color={order.status === 'CANCELLED' ? colors.error : colors.primary}
+        color={order.status === "CANCELLED" ? colors.error : colors.primary}
         style={styles.progressBar}
       />
 
@@ -60,7 +63,9 @@ export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
             </View>
             <View>
               <Text style={styles.driverName}>{order.driver_name}</Text>
-              <Text style={styles.driverRole}>Votre livreur Quickly</Text>
+              <Text style={styles.driverRole}>
+                Votre livreur Quickly Livraison
+              </Text>
             </View>
           </View>
 
@@ -87,13 +92,13 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: spacing.md,
   },
   title: {
-    fontWeight: '900',
+    fontWeight: "900",
     color: colors.text,
   },
   description: {
@@ -102,8 +107,8 @@ const styles = StyleSheet.create({
     maxWidth: 240,
   },
   timePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     backgroundColor: colors.primaryLight,
     paddingHorizontal: spacing.sm,
@@ -112,7 +117,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.primaryDark,
   },
   progressBar: {
@@ -122,24 +127,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   stepsLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: spacing.sm,
   },
   stepIndicator: {
     fontSize: 11,
     color: colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   orderRef: {
     fontSize: 11,
     color: colors.textMuted,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   addressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     paddingVertical: spacing.xs,
     borderTopWidth: 1,
@@ -151,17 +156,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   driverSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
   driverInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   driverAvatar: {
@@ -169,11 +174,11 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: borderRadius.full,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   driverName: {
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.text,
     fontSize: 13,
   },

@@ -55,7 +55,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
     longitude: -1.915,
     name: "Snack & Resto",
   },
-  courierName = "Livreur Quickly",
+  courierName = "Livreur Quickly Livraison",
   orderStatus = "OUT_FOR_DELIVERY",
   height = 280,
   showNavigationButton = false,

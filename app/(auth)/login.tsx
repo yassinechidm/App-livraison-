@@ -1,18 +1,19 @@
 import { sanitizeEmail, sanitizePhone } from "@/lib/sanitize";
 import { Link, useRouter } from "expo-router";
+import { ChevronDown, ChevronUp, MapPin } from "lucide-react-native";
 import { useState } from "react";
 import {
-    Alert,
-    Dimensions,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -149,11 +150,10 @@ export default function LoginScreen() {
       const cleanEmail = sanitizeEmail(email);
       await authService.signIn({ email: cleanEmail, password });
       redirectByRole();
-    } catch (err: any) {
-      Alert.alert(
-        "Erreur de connexion",
-        err?.message || "Identifiants invalides",
-      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur de connexion";
+      Alert.alert("Erreur de connexion", message);
     } finally {
       setIsLoadingSocial(false);
     }
@@ -176,13 +176,13 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Header Background (purple header with brand logo) */}
+        {/* Top Header Background */}
         <View style={styles.topHeader}>
           {/* Logo Brand Title */}
           <View style={styles.brandContainer}>
-            <Text style={styles.brandTitle}>QuickL</Text>
+            <Text style={styles.brandTitle}>Quickly Livraison</Text>
             <View style={styles.locationPin}>
-              <Text style={styles.locationPinText}>📍</Text>
+              <MapPin size={28} color="#FFFFFF" strokeWidth={2.4} />
             </View>
           </View>
         </View>
@@ -202,7 +202,7 @@ export default function LoginScreen() {
               <View style={styles.prefixContent}>
                 <Text style={styles.flagText}>🇲🇦</Text>
                 <Text style={styles.prefixNumber}>+212</Text>
-                <Text style={styles.dropdownArrow}>∨</Text>
+                <ChevronDown size={14} color={Colors.textSecondary} />
               </View>
             </View>
 
@@ -212,7 +212,7 @@ export default function LoginScreen() {
               <TextInput
                 style={styles.phoneTextInput}
                 placeholder="6 00 00 00 00"
-                placeholderTextColor="#7F77DD"
+                placeholderTextColor={Colors.textMuted}
                 keyboardType="phone-pad"
                 value={phone}
                 onChangeText={setPhone}
@@ -242,7 +242,11 @@ export default function LoginScreen() {
             disabled={isBusy}
           >
             <View style={styles.whatsAppContentRow}>
-              <Text style={styles.whatsAppIconText}>💬</Text>
+              <Image
+                source={require("@/assets/images/whatsapp_icon.png")}
+                style={styles.whatsAppIconImage}
+                resizeMode="contain"
+              />
               <Text style={styles.whatsAppButtonText}>
                 {isLoadingWhatsApp
                   ? "Envoi du code..."
@@ -279,9 +283,16 @@ export default function LoginScreen() {
             onPress={() => setShowEmailForm(!showEmailForm)}
             activeOpacity={0.7}
           >
-            <Text style={styles.otherMethodsText}>
-              Autres méthodes {showEmailForm ? "∧" : "∨"}
-            </Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+            >
+              <Text style={styles.otherMethodsText}>Autres méthodes</Text>
+              {showEmailForm ? (
+                <ChevronUp size={16} color={Colors.primary} />
+              ) : (
+                <ChevronDown size={16} color={Colors.primary} />
+              )}
+            </View>
           </TouchableOpacity>
 
           {showEmailForm && (
@@ -385,24 +396,23 @@ const styles = StyleSheet.create({
   skipButtonText: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   brandContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 20,
+    gap: 8,
   },
   brandTitle: {
-    fontSize: 46,
+    fontSize: 32,
     fontWeight: "900",
     color: "#FFFFFF",
-    letterSpacing: -1.5,
+    letterSpacing: -0.8,
+    textAlign: "center",
   },
   locationPin: {
-    marginLeft: 6,
-  },
-  locationPinText: {
-    fontSize: 34,
+    marginLeft: 2,
   },
   sheet: {
     backgroundColor: "#FFFFFF",
@@ -418,13 +428,13 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
     textAlign: "center",
     marginBottom: 4,
   },
   subtitleText: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     textAlign: "center",
     marginBottom: 18,
   },
@@ -436,7 +446,7 @@ const styles = StyleSheet.create({
   },
   prefixCard: {
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -447,7 +457,7 @@ const styles = StyleSheet.create({
   },
   prefixLabel: {
     fontSize: 11,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     fontWeight: "600",
     marginBottom: 2,
   },
@@ -462,19 +472,13 @@ const styles = StyleSheet.create({
   prefixNumber: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#3C3489",
-  },
-  dropdownArrow: {
-    fontSize: 10,
-    color: "#7F77DD",
-    fontWeight: "700",
-    marginLeft: 2,
+    color: Colors.darkText,
   },
   phoneInputBox: {
     flex: 1,
     minWidth: 0,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -483,14 +487,14 @@ const styles = StyleSheet.create({
   },
   phoneLabel: {
     fontSize: 11,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     fontWeight: "600",
     marginBottom: 2,
   },
   phoneTextInput: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#3C3489",
+    color: Colors.darkText,
     padding: 0,
     height: 22,
     width: "100%",
@@ -536,8 +540,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-  whatsAppIconText: {
-    fontSize: 18,
+  whatsAppIconImage: {
+    width: 22,
+    height: 22,
   },
   whatsAppButtonText: {
     color: "#15803D",
@@ -557,11 +562,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#CECBF6",
+    backgroundColor: Colors.cardBorder,
   },
   orText: {
     fontSize: 12,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     paddingHorizontal: 14,
     fontWeight: "600",
   },
@@ -570,7 +575,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 28,
     height: 48,
     width: "100%",
@@ -590,7 +595,7 @@ const styles = StyleSheet.create({
   socialText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   otherMethodsBtn: {
     alignItems: "center",
@@ -606,7 +611,7 @@ const styles = StyleSheet.create({
   emailContainer: {
     marginTop: 4,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
@@ -621,7 +626,7 @@ const styles = StyleSheet.create({
   },
   signUpPromptText: {
     fontSize: 14,
-    color: "#5C54A4",
+    color: Colors.textSecondary,
     fontWeight: "500",
   },
   signUpPromptLink: {
@@ -632,7 +637,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 11,
-    color: "#7F77DD",
+    color: Colors.textMuted,
     textAlign: "center",
     lineHeight: 15,
     marginTop: 14,
@@ -641,6 +646,6 @@ const styles = StyleSheet.create({
   footerLink: {
     fontWeight: "600",
     textDecorationLine: "underline",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
 });

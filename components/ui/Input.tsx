@@ -1,4 +1,5 @@
 import Colors from "@/constants/Colors";
+import { Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
 import {
     Platform,
@@ -51,9 +52,25 @@ export default function Input({
           <TouchableOpacity
             onPress={() => setShowPassword(!showPassword)}
             style={styles.eyeButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel={
+              showPassword
+                ? "Masquer le mot de passe"
+                : "Afficher le mot de passe"
+            }
+            accessibilityState={{ selected: showPassword }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            activeOpacity={0.7}
           >
-            <Text style={styles.eyeText}>{showPassword ? "🙈" : "👁️"}</Text>
+            {showPassword ? (
+              <EyeOff
+                size={20}
+                color={Colors.textSecondary}
+                strokeWidth={1.8}
+              />
+            ) : (
+              <Eye size={20} color={Colors.textSecondary} strokeWidth={1.8} />
+            )}
           </TouchableOpacity>
         )}
       </View>

@@ -12,6 +12,7 @@ import {
     PackageSearch,
     Pill,
     ShoppingBag,
+    ShoppingCart,
     User,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
@@ -235,7 +236,28 @@ export default function CourierOrdersFeedScreen() {
                 </View>
               ) : null}
 
-              {order.notes ? (
+              {/* Grocery Request Card for Courier */}
+              {order.notes && order.notes.includes("[GROCERY") ? (
+                <View style={styles.groceryCardWrap}>
+                  <View style={styles.groceryBadgeRow}>
+                    <ShoppingCart
+                      size={14}
+                      color={Colors.primary}
+                      strokeWidth={2.0}
+                    />
+                    <Text style={styles.groceryBadgeText}>
+                      Demande de Courses (Supermarché)
+                    </Text>
+                  </View>
+                  <View style={styles.groceryContentBox}>
+                    <Text style={styles.groceryListText}>
+                      {order.notes.replace(/\[GROCERY[^\]]*\]\s*/i, "")}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+
+              {order.notes && !order.notes.includes("[GROCERY") ? (
                 <Text style={styles.notesText}>Notes : {order.notes}</Text>
               ) : null}
 
@@ -480,5 +502,38 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     color: "#FFFFFF",
+  },
+  groceryCardWrap: {
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: "#F0F9FF",
+    borderWidth: 1,
+    borderColor: "#BAE6FD",
+    borderRadius: 14,
+    padding: 10,
+  },
+  groceryBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+  },
+  groceryBadgeText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: Colors.primary,
+  },
+  groceryContentBox: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+  },
+  groceryListText: {
+    fontSize: 13,
+    color: Colors.textPrimary,
+    lineHeight: 18,
+    fontWeight: "500",
   },
 });

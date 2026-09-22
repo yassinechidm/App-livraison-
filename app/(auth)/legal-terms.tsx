@@ -1,11 +1,11 @@
 import Colors from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function LegalTermsScreen() {
@@ -35,12 +35,12 @@ export default function LegalTermsScreen() {
       >
         <Text style={styles.sectionTitle}>Conditions d'utilisation</Text>
         <Text style={styles.paragraph}>
-          Bienvenue sur Quick Livraison. En utilisant notre service de livraison
-          express à Oujda (وجدة), vous acceptez sans réserve les présentes
-          conditions générales d'utilisation.
+          Bienvenue sur Quickly Livraison. En utilisant notre service de
+          livraison express à Oujda (وجدة), vous acceptez sans réserve les
+          présentes conditions générales d'utilisation.
         </Text>
         <Text style={styles.paragraph}>
-          1. **Description du Service** : Quick Livraison met en relation des
+          1. **Description du Service** : Quickly Livraison met en relation des
           clients, des livreurs et des commerces partenaires pour acheminer
           rapidement des repas, des courses et des colis.
         </Text>

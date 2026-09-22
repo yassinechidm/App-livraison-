@@ -7,7 +7,16 @@ import { restaurantService } from "@/services/restaurant.service";
 import { CartState } from "@/types/cart.types";
 import { Restaurant } from "@/types/restaurant.types";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Bike, Clock, Heart, Search, Star, Tag, X } from "lucide-react-native";
+import {
+    ArrowLeft,
+    Bike,
+    Clock,
+    Heart,
+    Search,
+    Star,
+    Tag,
+    X,
+} from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Dimensions,
@@ -120,7 +129,7 @@ export default function RestaurantDetailScreen() {
             style={styles.categoryBackBtn}
             activeOpacity={0.8}
           >
-            <Text style={styles.categoryBackIcon}>‹</Text>
+            <ArrowLeft size={20} color="#3C3489" />
           </TouchableOpacity>
 
           {isSearchingInCategory ? (
@@ -239,7 +248,7 @@ export default function RestaurantDetailScreen() {
               style={styles.headerCircleBtn}
               activeOpacity={0.8}
             >
-              <Text style={styles.headerBtnIcon}>‹</Text>
+              <ArrowLeft size={20} color="#3C3489" />
             </TouchableOpacity>
 
             <View style={styles.headerActionsRight}>

@@ -427,7 +427,9 @@ export function ClientOrdersView({
                             }
                           : undefined
                       }
-                      courierName={order.driver_name || "Livreur Quickly"}
+                      courierName={
+                        order.driver_name || "Livreur Quickly Livraison"
+                      }
                       lastUpdated={order.updated_at}
                     />
 
@@ -477,6 +479,26 @@ export function ClientOrdersView({
                             </Text>
                           </View>
                         ))}
+
+                        {/* Client Grocery Request Preview */}
+                        {order.notes && order.notes.includes("[GROCERY") ? (
+                          <View style={styles.groceryCardWrap}>
+                            <View style={styles.groceryBadgeRow}>
+                              <ShoppingCart size={14} color={Colors.primary} />
+                              <Text style={styles.groceryBadgeText}>
+                                {t("home.groceries", "Liste de courses")}
+                              </Text>
+                            </View>
+                            <View style={styles.groceryContentBox}>
+                              <Text style={styles.groceryListText}>
+                                {order.notes.replace(
+                                  /\[GROCERY[^\]]*\]\s*/i,
+                                  "",
+                                )}
+                              </Text>
+                            </View>
+                          </View>
+                        ) : null}
 
                         {/* Client Prescription Preview */}
                         {order.prescription_image_url ? (
@@ -716,17 +738,21 @@ export function ClientOrdersView({
                       ]}
                       onPress={() => handleOpenCourierRating(order)}
                       activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Noter le livreur"
                     >
                       <Bike
                         size={15}
-                        color={order.courier_rating ? "#D97706" : "#5C5BDB"}
+                        color={
+                          order.courier_rating ? "#D97706" : Colors.primary
+                        }
                       />
                       <Text
                         style={[
                           styles.ratePillText,
                           order.courier_rating
                             ? { color: "#D97706", fontWeight: "800" }
-                            : { color: "#5C5BDB" },
+                            : { color: Colors.primary },
                         ]}
                       >
                         {order.courier_rating
@@ -765,10 +791,14 @@ export function ClientOrdersView({
                   key={star}
                   onPress={() => setSelectedStars(star)}
                   style={{ padding: 6 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Attribuer ${star} étoile(s)`}
                 >
                   <Star
                     size={32}
-                    color={star <= selectedStars ? "#F59E0B" : "#CECBF6"}
+                    color={
+                      star <= selectedStars ? "#F59E0B" : Colors.cardBorder
+                    }
                     fill={star <= selectedStars ? "#F59E0B" : "transparent"}
                   />
                 </TouchableOpacity>
@@ -797,6 +827,8 @@ export function ClientOrdersView({
               <TouchableOpacity
                 style={styles.modalCancelBtn}
                 onPress={() => setRatingOrder(null)}
+                accessibilityRole="button"
+                accessibilityLabel="Annuler la notation"
               >
                 <Text style={styles.modalCancelText}>
                   {t("common.cancel", "Annuler")}
@@ -806,6 +838,8 @@ export function ClientOrdersView({
                 style={styles.modalSubmitBtn}
                 onPress={handleSubmitRating}
                 disabled={isSubmittingRating}
+                accessibilityRole="button"
+                accessibilityLabel="Envoyer l'avis"
               >
                 <Text style={styles.modalSubmitText}>
                   {isSubmittingRating
@@ -817,6 +851,7 @@ export function ClientOrdersView({
           </View>
         </View>
       </Modal>
+
       {/* ══════════ MODAL: RATE DELIVERY COURIER ══════════ */}
       <Modal
         visible={!!ratingCourierOrder}
@@ -833,15 +868,15 @@ export function ClientOrdersView({
                   width: 58,
                   height: 58,
                   borderRadius: 29,
-                  backgroundColor: "rgba(92, 91, 219, 0.12)",
+                  backgroundColor: Colors.badge,
                   alignItems: "center",
                   justifyContent: "center",
                   borderWidth: 2,
-                  borderColor: "#CECBF6",
+                  borderColor: Colors.cardBorder,
                   marginBottom: 8,
                 }}
               >
-                <Bike size={30} color="#5C5BDB" strokeWidth={2.2} />
+                <Bike size={30} color={Colors.primary} strokeWidth={2.0} />
               </View>
               <Text style={styles.ratingModalTitle}>
                 {t("courierRating.title", "Noter votre livreur")}
@@ -851,7 +886,7 @@ export function ClientOrdersView({
                   "courierRating.sub",
                   "Comment s'est passée votre livraison avec",
                 )}{" "}
-                <Text style={{ fontWeight: "800", color: "#3C3489" }}>
+                <Text style={{ fontWeight: "800", color: Colors.darkText }}>
                   {ratingCourierOrder?.driver_name || "Livreur Oujda Express"}
                 </Text>
               </Text>
@@ -865,11 +900,13 @@ export function ClientOrdersView({
                   onPress={() => setCourierStars(star)}
                   style={{ padding: 6 }}
                   activeOpacity={0.75}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Attribuer ${star} étoile(s) au livreur`}
                 >
                   <Star
                     size={34}
-                    color={star <= courierStars ? "#FFD166" : "#CECBF6"}
-                    fill={star <= courierStars ? "#FFD166" : "transparent"}
+                    color={star <= courierStars ? "#F59E0B" : Colors.cardBorder}
+                    fill={star <= courierStars ? "#F59E0B" : "transparent"}
                   />
                 </TouchableOpacity>
               ))}
@@ -880,7 +917,7 @@ export function ClientOrdersView({
               style={{
                 fontSize: 12,
                 fontWeight: "800",
-                color: "#7F77DD",
+                color: Colors.textSecondary,
                 marginBottom: 8,
                 textAlign: "center",
               }}
@@ -915,17 +952,23 @@ export function ClientOrdersView({
                       paddingHorizontal: 10,
                       paddingVertical: 5,
                       borderRadius: 14,
-                      backgroundColor: isSelected ? "#5C5BDB" : "#F7F7FF",
+                      backgroundColor: isSelected
+                        ? Colors.primary
+                        : Colors.background,
                       borderWidth: 1,
-                      borderColor: isSelected ? "#5C5BDB" : "#CECBF6",
+                      borderColor: isSelected
+                        ? Colors.primary
+                        : Colors.cardBorder,
                     }}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
                   >
                     <Text
                       style={{
                         fontSize: 11,
                         fontWeight: "700",
-                        color: isSelected ? "#FFFFFF" : "#3C3489",
+                        color: isSelected ? "#FFFFFF" : Colors.darkText,
                       }}
                     >
                       {tag}
@@ -945,7 +988,7 @@ export function ClientOrdersView({
                 "courierRating.commentPlaceholder",
                 "Un mot d'encouragement ou une remarque (optionnel)...",
               )}
-              placeholderTextColor="#7F77DD"
+              placeholderTextColor={Colors.textMuted}
               value={courierComment}
               onChangeText={setCourierComment}
               multiline
@@ -957,6 +1000,8 @@ export function ClientOrdersView({
               <TouchableOpacity
                 style={styles.modalCancelBtn}
                 onPress={() => setRatingCourierOrder(null)}
+                accessibilityRole="button"
+                accessibilityLabel="Annuler la notation"
               >
                 <Text style={styles.modalCancelText}>
                   {t("common.cancel", "Annuler")}
@@ -966,6 +1011,8 @@ export function ClientOrdersView({
                 style={styles.modalSubmitBtn}
                 onPress={handleSubmitCourierRating}
                 disabled={isSubmittingCourierRating}
+                accessibilityRole="button"
+                accessibilityLabel="Envoyer l'évaluation du livreur"
               >
                 <Text style={styles.modalSubmitText}>
                   {isSubmittingCourierRating
@@ -1004,16 +1051,16 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 28,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
     textAlign: "center",
     letterSpacing: -0.5,
   },
 
-  // Tabs matching Screenshot #2 & #4
+  // Tabs
   tabsRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#CECBF6",
+    borderBottomColor: Colors.cardBorder,
     marginTop: 8,
   },
   tabButton: {
@@ -1028,7 +1075,7 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
   },
   tabButtonTextActive: {
-    color: "#3C3489",
+    color: Colors.darkText,
     fontWeight: "800",
   },
   tabIndicator: {
@@ -1050,17 +1097,16 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginTop: 24,
     marginBottom: 12,
   },
 
-  // Glovo style Cards (Screenshot #2)
   glovoCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     padding: 24,
     alignItems: "center",
     marginBottom: 12,
@@ -1077,12 +1123,12 @@ const styles = StyleSheet.create({
   glovoCardTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginBottom: 4,
   },
   glovoCardSubtitle: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     textAlign: "center",
   },
 
@@ -1092,7 +1138,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   cardHeader: {
     flexDirection: "row",
@@ -1103,11 +1149,11 @@ const styles = StyleSheet.create({
   orderNumber: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   orderDate: {
     fontSize: 12,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   statusBadge: {
@@ -1130,7 +1176,7 @@ const styles = StyleSheet.create({
   },
   expandText: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     fontWeight: "600",
   },
   itemsList: {
@@ -1159,7 +1205,7 @@ const styles = StyleSheet.create({
   itemPrice: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   cardFooter: {
     flexDirection: "row",
@@ -1172,12 +1218,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 11,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   totalAmount: {
     fontSize: 16,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   actionButtonsRow: {
     flexDirection: "row",
@@ -1213,7 +1259,7 @@ const styles = StyleSheet.create({
     color: "#EF4444",
   },
 
-  // History tab styles (Screenshot #4)
+  // History tab styles
   historyContainer: {
     padding: 16,
   },
@@ -1234,19 +1280,19 @@ const styles = StyleSheet.create({
   emptyHistoryTitle: {
     fontSize: 22,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginBottom: 8,
     textAlign: "center",
   },
   emptyHistorySubtitle: {
     fontSize: 14,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     textAlign: "center",
     lineHeight: 20,
     marginBottom: 32,
   },
   startOrderBtn: {
-    backgroundColor: Colors.cta, // Glovo dark green CTA button
+    backgroundColor: Colors.cta,
     borderRadius: 28,
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -1268,7 +1314,7 @@ const styles = StyleSheet.create({
   },
   historyItemsCount: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   historyActionsRow: {
     flexDirection: "row",
@@ -1291,7 +1337,7 @@ const styles = StyleSheet.create({
   reorderPillText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   ratePillBtn: {
     flexDirection: "row",
@@ -1311,7 +1357,7 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(60, 52, 137, 0.45)",
+    backgroundColor: "rgba(1, 87, 155, 0.45)",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -1320,7 +1366,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
     borderWidth: 1.5,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     padding: 24,
     width: "100%",
     alignItems: "center",
@@ -1328,11 +1374,11 @@ const styles = StyleSheet.create({
   ratingModalTitle: {
     fontSize: 20,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   ratingModalSub: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginTop: 2,
     marginBottom: 16,
     fontWeight: "600",
@@ -1343,13 +1389,13 @@ const styles = StyleSheet.create({
   },
   ratingInput: {
     width: "100%",
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     padding: 12,
     fontSize: 13,
-    color: "#3C3489",
+    color: Colors.darkText,
     textAlignVertical: "top",
     minHeight: 70,
     marginBottom: 20,
@@ -1362,9 +1408,9 @@ const styles = StyleSheet.create({
   modalCancelBtn: {
     flex: 1,
     height: 48,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
@@ -1372,7 +1418,7 @@ const styles = StyleSheet.create({
   modalCancelText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   modalSubmitBtn: {
     flex: 1,
@@ -1439,6 +1485,38 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     color: "#FFFFFF",
+  },
+  groceryCardWrap: {
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: Colors.mutedTint,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: 14,
+    padding: 10,
+  },
+  groceryBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+  },
+  groceryBadgeText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: Colors.textPrimary,
+  },
+  groceryContentBox: {
+    backgroundColor: Colors.backgroundWhite,
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
+  groceryListText: {
+    fontSize: 13,
+    color: Colors.darkText,
+    lineHeight: 18,
   },
 });
 

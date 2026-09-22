@@ -1,6 +1,6 @@
-# 🛵 Quick Livraison — Application Mobile de Livraison (Style Glovo)
+# 🛵 Quickly Livraison — Application Mobile de Livraison (Style Glovo)
 
-> **Quick Livraison** est une application mobile et web complète de commande et de livraison à domicile (repas de restaurants, courses de supermarché, boutiques et colis express), optimisée pour le marché marocain (ville pilote : **Oujda**) et extensible à d'autres villes.
+> **Quickly Livraison** est une application mobile et web complète de commande et de livraison à domicile (repas de restaurants, courses de supermarché, boutiques et colis express), optimisée pour le marché marocain (ville pilote : **Oujda**) et extensible à d'autres villes.
 
 Développée avec **React Native**, **Expo** (SDK 54), **TypeScript** et propulsée par **Supabase**, elle propose une double expérience fluide : une interface **Client** intuitive inspirée des standards internationaux (Glovo, Uber Eats) et un panneau d'administration **Admin** temps réel pour le suivi opérationnel, la mise à jour des prix en direct et la gestion de flotte.
 
@@ -35,27 +35,28 @@ Développée avec **React Native**, **Expo** (SDK 54), **TypeScript** et propuls
 ## 🎯 Aperçu & Philosophie du Projet
 
 Le projet a été pensé pour être :
-* **Temps Réel & Réactif** : Toute modification de prix, de plat ou de statut effectuée dans l'Admin est immédiatement visible côté Client grâce à Supabase Realtime et un système d'overrides locaux.
-* **Prêt à l'emploi (Zero Setup Barrier)** : Fonctionne immédiatement en mode démo avec des données locales riches même sans connexion Supabase active.
-* **Sécurisé par Défaut** : Protection intégrée contre le brute force, validation et assainissement des entrées, et procédures PostgreSQL `SECURITY DEFINER`.
-* **Robuste & Isomorphe** : Compatible **Android**, **iOS** et **Web (navigateur)** sans régression d'interface.
-* **Adapté au Contexte Local** : Devise en Dirham marocain (DH / MAD), sélection des quartiers réels d'Oujda (Hay Al Qods, Lazaret, Centre-Ville, etc.), moyens de paiement adaptés (Espèces à la livraison, Virement, Carte).
+
+- **Temps Réel & Réactif** : Toute modification de prix, de plat ou de statut effectuée dans l'Admin est immédiatement visible côté Client grâce à Supabase Realtime et un système d'overrides locaux.
+- **Prêt à l'emploi (Zero Setup Barrier)** : Fonctionne immédiatement en mode démo avec des données locales riches même sans connexion Supabase active.
+- **Sécurisé par Défaut** : Protection intégrée contre le brute force, validation et assainissement des entrées, et procédures PostgreSQL `SECURITY DEFINER`.
+- **Robuste & Isomorphe** : Compatible **Android**, **iOS** et **Web (navigateur)** sans régression d'interface.
+- **Adapté au Contexte Local** : Devise en Dirham marocain (DH / MAD), sélection des quartiers réels d'Oujda (Hay Al Qods, Lazaret, Centre-Ville, etc.), moyens de paiement adaptés (Espèces à la livraison, Virement, Carte).
 
 ---
 
 ## 🛠 Stack Technologique
 
-| Domaine | Technologies | Rôle & Justification |
-| :--- | :--- | :--- |
-| **Framework Mobile** | [React Native](https://reactnative.dev/) + [Expo](https://expo.dev/) (SDK 54) | Développement cross-platform natif rapide et performant. |
-| **Langage** | [TypeScript](https://www.typescriptlang.org/) (Strict Mode) | Typage statique fort pour sécuriser le code (0 erreur avec `npx tsc --noEmit`). |
-| **Routage** | [Expo Router](https://docs.expo.dev/router/introduction/) v6 | Routage basé sur le système de fichiers (File-based Routing), Deep Linking et Route Groups. |
-| **BaaS / Base de données** | [Supabase](https://supabase.com/) | PostgreSQL hébergé, authentification JWT, Row Level Security (RLS) et Realtime Channels. |
-| **Edge Functions** | Deno / Supabase Functions | Envoi d'OTP WhatsApp pour l'authentification sans mot de passe. |
-| **Sécurité & Protection** | Rate Limiter + Input Sanitizer | Blocage des abus par force brute et nettoyage strict des données entrantes. |
-| **Stockage Local** | `expo-secure-store` / `localStorage` | Persistance sécurisée des sessions et cache offline selon la plateforme (Mobile/Web). |
-| **UI & Animations** | `react-native-reanimated`, `react-native-safe-area-context` | Composants UI personnalisés et animations fluides. |
-| **Géolocalisation & Cartes** | `expo-location` + Module GPS interactif | Simulation haute précision du trajet coursier rue par rue. |
+| Domaine                      | Technologies                                                                  | Rôle & Justification                                                                        |
+| :--------------------------- | :---------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
+| **Framework Mobile**         | [React Native](https://reactnative.dev/) + [Expo](https://expo.dev/) (SDK 54) | Développement cross-platform natif rapide et performant.                                    |
+| **Langage**                  | [TypeScript](https://www.typescriptlang.org/) (Strict Mode)                   | Typage statique fort pour sécuriser le code (0 erreur avec `npx tsc --noEmit`).             |
+| **Routage**                  | [Expo Router](https://docs.expo.dev/router/introduction/) v6                  | Routage basé sur le système de fichiers (File-based Routing), Deep Linking et Route Groups. |
+| **BaaS / Base de données**   | [Supabase](https://supabase.com/)                                             | PostgreSQL hébergé, authentification JWT, Row Level Security (RLS) et Realtime Channels.    |
+| **Edge Functions**           | Deno / Supabase Functions                                                     | Envoi d'OTP WhatsApp pour l'authentification sans mot de passe.                             |
+| **Sécurité & Protection**    | Rate Limiter + Input Sanitizer                                                | Blocage des abus par force brute et nettoyage strict des données entrantes.                 |
+| **Stockage Local**           | `expo-secure-store` / `localStorage`                                          | Persistance sécurisée des sessions et cache offline selon la plateforme (Mobile/Web).       |
+| **UI & Animations**          | `react-native-reanimated`, `react-native-safe-area-context`                   | Composants UI personnalisés et animations fluides.                                          |
+| **Géolocalisation & Cartes** | `expo-location` + Module GPS interactif                                       | Simulation haute précision du trajet coursier rue par rue.                                  |
 
 ---
 
@@ -65,12 +66,12 @@ Le projet a été pensé pour être :
 
 1. **Écran d'Accueil (Glovo Hub)** :
    - Sélecteur de quartier de livraison avec géolocalisation GPS automatique ou manuelle (20+ quartiers d'Oujda).
-   - 5 bulles de services interactives : *Restaurants*, *Courses/Supermarché*, *Boutiques*, *Pharmacie*, *Service Coursier Colis*.
+   - 5 bulles de services interactives : _Restaurants_, _Courses/Supermarché_, _Boutiques_, _Pharmacie_, _Service Coursier Colis_.
    - Widget dynamique « Commande en cours » affichant l'état et l'heure estimée avec accès direct au suivi.
    - Compteur en direct des restaurants ouverts dans la ville.
 2. **Exploration des Restaurants & Menus** :
    - Catalogue réel des snacks et restaurants d'Oujda (Pizza Hut, BroFood, Chawarma Oujda, Tacos de Lyon, Pasticcio...).
-   - Filtres thématiques (*Tous, Promotions, Shawarma & Tacos, Burgers, Pizzas, Plats Marocains, Desserts*).
+   - Filtres thématiques (_Tous, Promotions, Shawarma & Tacos, Burgers, Pizzas, Plats Marocains, Desserts_).
    - Fiche restaurant avec temps de livraison, note, frais de port dynamiques et badges promo.
    - Fiche produit personnalisable : choix obligatoire de la boisson, choix des sauces gratuites (jusqu'à 2), suppléments gourmands payants et instructions spéciales.
 3. **Catalogue Produits / Supermarché** :
@@ -83,10 +84,10 @@ Le projet a été pensé pour être :
    - Application de codes promo (réductions en % ou montant fixe).
 5. **Tunnel de Commande (Checkout)** :
    - Sélection ou saisie rapide de l'adresse de livraison.
-   - Sélection du moyen de paiement : *Espèces à la livraison (Cash on Delivery)*, *Virement bancaire*, *Carte bancaire*.
+   - Sélection du moyen de paiement : _Espèces à la livraison (Cash on Delivery)_, _Virement bancaire_, _Carte bancaire_.
    - Récapitulatif clair et validation en 1 clic.
 6. **Suivi en Temps Réel & Carte GPS Interactive** :
-   - Frise chronologique visuelle à 5 étapes (*Reçue ➔ Confirmée ➔ En cuisine ➔ En livraison ➔ Livrée*).
+   - Frise chronologique visuelle à 5 étapes (_Reçue ➔ Confirmée ➔ En cuisine ➔ En livraison ➔ Livrée_).
    - **Modal de tracking GPS live** : parcours coursier animé étape par étape sur la carte d'Oujda (du restaurant jusqu'au quartier client) avec estimation du temps d'arrivée (ETA), vitesse et nom de la rue en cours.
    - Bouton d'appel direct du livreur assigné.
    - Formulaire d'avis et notation (étoiles + commentaire) une fois la commande livrée.
@@ -101,7 +102,7 @@ Le projet a été pensé pour être :
    - Vue rapide sur les livreurs en service et les codes promotionnels actifs.
    - Synchronisation automatique toutes les 3 secondes + écouteur temps réel Supabase.
 2. **Gestion des Commandes** :
-   - Filtrage par statut (*Toutes, En attente, En cours, Livrées, Annulées*).
+   - Filtrage par statut (_Toutes, En attente, En cours, Livrées, Annulées_).
    - Avancement rapide du statut en un clic.
    - Attribution/Assignation dynamique d'un livreur à une commande.
    - Consultation des détails complets (articles, options choisies, coordonnées client, notes).
@@ -131,22 +132,22 @@ flowchart LR
     E --> G["Panier Client (Recalcul automatique)"]
 ```
 
-* **Whitelist stricte des colonnes** : Seules les colonnes existant en base sont envoyées, éliminant les erreurs `400 Bad Request`.
-* **Procédures stockées `SECURITY DEFINER`** : `rpc_update_restaurant`, `rpc_update_menu_item`, `rpc_update_product` garantissent l'enregistrement des modifications même sans compte admin pré-authentifié.
-* **Registre d'Overrides Locaux** : Aucune mise à jour locale n'est écrasée par une ancienne version de la base de données.
-* **Synchronisation du Panier** : Le panier recalcule instantanément le sous-total et les frais de livraison dès qu'un tarif change.
+- **Whitelist stricte des colonnes** : Seules les colonnes existant en base sont envoyées, éliminant les erreurs `400 Bad Request`.
+- **Procédures stockées `SECURITY DEFINER`** : `rpc_update_restaurant`, `rpc_update_menu_item`, `rpc_update_product` garantissent l'enregistrement des modifications même sans compte admin pré-authentifié.
+- **Registre d'Overrides Locaux** : Aucune mise à jour locale n'est écrasée par une ancienne version de la base de données.
+- **Synchronisation du Panier** : Le panier recalcule instantanément le sous-total et les frais de livraison dès qu'un tarif change.
 
 ---
 
 ### 🛡️ Sécurité & Protection contre les Attaques
 
-* **Rate Limiting Client & Base (`lib/rateLimiter.ts`)** :
+- **Rate Limiting Client & Base (`lib/rateLimiter.ts`)** :
   - Protection contre les attaques par force brute (connexion, OTP WhatsApp, création abusive de commandes, requêtes API répétées).
-* **Nettoyage et Assainissement des Entrées (`lib/sanitize.ts`)** :
+- **Nettoyage et Assainissement des Entrées (`lib/sanitize.ts`)** :
   - Élimination des balises HTML, scripts XSS et caractères malveillants sur les noms, adresses, descriptions et numéros de téléphone.
-* **Protection contre la manipulation de prix** :
+- **Protection contre la manipulation de prix** :
   - Les prix et totaux sont validés et recalculés côté serveur lors de la soumission de commande.
-* **Ségrégation stricte des Rôles (RLS)** :
+- **Ségrégation stricte des Rôles (RLS)** :
   - Empêche l'escalade de privilèges (Client ➔ Admin, Livreur ➔ Admin).
 
 ---
@@ -154,9 +155,10 @@ flowchart LR
 ### 🚀 Mode Démo Intégré (Zéro Friction)
 
 L'application intègre un mécanisme de repli (**fallback demo mode**) :
-* Si les clés Supabase ne sont pas configurées ou en cas de coupure réseau, l'application **ne plante jamais**.
-* Elle bascule de manière transparente sur des données de démonstration interactives stockées localement (`mockData.ts`, `localStorage` / `SecureStore`).
-* Les commandes passées par le client apparaissent instantanément dans l'interface administrateur (même sur deux onglets de navigateur distincts via le système d'événements `storage`).
+
+- Si les clés Supabase ne sont pas configurées ou en cas de coupure réseau, l'application **ne plante jamais**.
+- Elle bascule de manière transparente sur des données de démonstration interactives stockées localement (`mockData.ts`, `localStorage` / `SecureStore`).
+- Les commandes passées par le client apparaissent instantanément dans l'interface administrateur (même sur deux onglets de navigateur distincts via le système d'événements `storage`).
 
 ---
 
@@ -214,7 +216,7 @@ App-livraison-/
 │       └── RestaurantCard.tsx        # Carte restaurant avec badges et notes
 │
 ├── constants/                        # Données statiques & configurations
-│   ├── Colors.ts                     # Palette de couleurs (Thème Quick Livraison)
+│   ├── Colors.ts                     # Palette de couleurs (Thème Quickly Livraison)
 │   ├── Maps.ts                       # Configuration cartographique
 │   ├── glovoRestaurants.ts           # Catalogue complet des snacks & restaurants d'Oujda
 │   └── mockData.ts                   # Quartiers d'Oujda, statuts, données de test
@@ -249,11 +251,13 @@ App-livraison-/
 ## ⚡ Installation & Démarrage Rapide
 
 ### 1. Prérequis
-* [Node.js](https://nodejs.org/) (v18 ou supérieur)
-* [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/)
-* Application [Expo Go](https://expo.dev/go) sur smartphone (Android/iOS) pour tester sur mobile physique.
+
+- [Node.js](https://nodejs.org/) (v18 ou supérieur)
+- [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/)
+- Application [Expo Go](https://expo.dev/go) sur smartphone (Android/iOS) pour tester sur mobile physique.
 
 ### 2. Cloner et Installer les dépendances
+
 ```bash
 # Cloner le dépôt
 git clone https://github.com/yassinechidm/App-livraison-.git
@@ -264,7 +268,9 @@ npm install
 ```
 
 ### 3. Configurer l'environnement
+
 Créez un fichier `.env` à la racine à partir de `.env.example` :
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://<votre-projet>.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=<votre-cle-publique-anon>
@@ -272,21 +278,24 @@ EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=<votre-cle-google-maps>
 ```
 
 ### 4. Lancer le serveur de développement
+
 ```bash
 # Démarrer Expo Metro Bundler
 npm start
 ```
 
-* **Web** : Appuyez sur `w` ou lancez `npm run web`.
-* **Android** : Appuyez sur `a` (émulateur Android ou USB).
-* **iOS** : Appuyez sur `i` (macOS avec simulateur Xcode).
-* **Mobile physique** : Scannez le QR Code avec **Expo Go**.
+- **Web** : Appuyez sur `w` ou lancez `npm run web`.
+- **Android** : Appuyez sur `a` (émulateur Android ou USB).
+- **iOS** : Appuyez sur `i` (macOS avec simulateur Xcode).
+- **Mobile physique** : Scannez le QR Code avec **Expo Go**.
 
 ### 5. Vérifier la compilation TypeScript
+
 ```bash
 npx tsc --noEmit
 ```
-*(Le projet doit compiler avec 0 erreur).*
+
+_(Le projet doit compiler avec 0 erreur)._
 
 ---
 
@@ -294,10 +303,10 @@ npx tsc --noEmit
 
 Des comptes prédéfinis permettent de tester instantanément les deux rôles :
 
-| Espace | Email | Mot de passe | Rôle | Accès Rapide |
-| :--- | :--- | :--- | :--- | :--- |
-| **Administrateur** | `admin@quicklivraison.ma` | `123456` | `ADMIN` | Bouton « Connexion Démo Admin » |
-| **Client** | `client@quicklivraison.ma` | `123456` | `CLIENT` | Bouton « Connexion Démo Client » |
+| Espace             | Email                        | Mot de passe | Rôle     | Accès Rapide                     |
+| :----------------- | :--------------------------- | :----------- | :------- | :------------------------------- |
+| **Administrateur** | `admin@quicklylivraison.ma`  | `123456`     | `ADMIN`  | Bouton « Connexion Démo Admin »  |
+| **Client**         | `client@quicklylivraison.ma` | `123456`     | `CLIENT` | Bouton « Connexion Démo Client » |
 
 ---
 
@@ -350,14 +359,17 @@ stateDiagram-v2
 ## ❓ Dépannage & FAQ
 
 ### 1. Erreur « Could not find the 'opening_hours' column of 'restaurants' »
+
 Exécutez la migration `supabase/migrations/20260916000003_allow_admin_product_and_menu_updates.sql` dans le SQL Editor de Supabase pour ajouter la colonne et recharger le cache PostgREST (`NOTIFY pgrst, 'reload schema'`).
 
 ### 2. Réinitialiser le cache Expo en cas de bug d'affichage
+
 ```bash
 npx expo start -c
 ```
 
 ### 3. Les modifications de prix n'apparaissent pas sur un autre appareil
+
 Vérifiez que la publication Realtime est bien active sur Supabase en ré-exécutant la migration `20260916000003_allow_admin_product_and_menu_updates.sql`.
 
 ---

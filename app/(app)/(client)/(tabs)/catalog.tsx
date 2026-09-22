@@ -10,18 +10,18 @@ import { PharmacyOptionsModal } from "@/src/components/PharmacyOptionsModal";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { Category, Product } from "@/types/product.types";
 import { useRouter } from "expo-router";
-import { Search, Store, X } from "lucide-react-native";
+import { Search, Store, UtensilsCrossed, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
-  Dimensions,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -93,7 +93,7 @@ export default function DiscoverCatalogScreen() {
               {t("catalog.title", "Discover")}
             </Text>
             <View style={styles.magnifierCircle}>
-              <Search size={28} color="#3C3489" strokeWidth={2.4} />
+              <Search size={26} color={Colors.primary} strokeWidth={2.4} />
             </View>
           </View>
         </SafeAreaView>
@@ -111,9 +111,13 @@ export default function DiscoverCatalogScreen() {
           />
         }
       >
-        {/* Rounded Search Bar (Screenshot #1) */}
+        {/* Rounded Search Bar */}
         <View style={styles.searchBarContainer}>
-          <Search size={20} color="#7F77DD" style={{ marginRight: 10 }} />
+          <Search
+            size={20}
+            color={Colors.textSecondary}
+            style={{ marginRight: 10 }}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder={t(
@@ -126,8 +130,12 @@ export default function DiscoverCatalogScreen() {
             returnKeyType="search"
           />
           {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <X size={18} color="#7F77DD" />
+            <TouchableOpacity
+              onPress={() => setSearchQuery("")}
+              accessibilityRole="button"
+              accessibilityLabel="Effacer la recherche"
+            >
+              <X size={18} color={Colors.textMuted} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -145,6 +153,8 @@ export default function DiscoverCatalogScreen() {
                 selectedCategory === "all" && styles.categoryChipActive,
               ]}
               onPress={() => setSelectedCategory("all")}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: selectedCategory === "all" }}
             >
               <Text
                 style={[
@@ -162,6 +172,8 @@ export default function DiscoverCatalogScreen() {
                   styles.categoryChip,
                   selectedCategory === cat.id && styles.categoryChipActive,
                 ]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: selectedCategory === cat.id }}
                 onPress={() => {
                   const isPharmacy =
                     cat.id === "33333333-3333-3333-3333-333333333333" ||
@@ -189,7 +201,7 @@ export default function DiscoverCatalogScreen() {
           </ScrollView>
         )}
 
-        {/* ── Empty Discovery State (Screenshot #1) ── */}
+        {/* ── Empty Discovery State ── */}
         {!searchQuery.trim() && selectedCategory === "all" && (
           <View style={styles.emptyDiscoverBox}>
             <View style={styles.emptyStoreIconCircle}>
@@ -208,9 +220,16 @@ export default function DiscoverCatalogScreen() {
               style={styles.exploreRestoBtn}
               onPress={() => router.push("/(app)/(client)/restaurants" as any)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Découvrir les restaurants et snacks d'Oujda"
             >
+              <UtensilsCrossed
+                size={18}
+                color={Colors.white}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.exploreRestoBtnText}>
-                🍔 Découvrir les Restaurants & Snacks d'Oujda
+                Découvrir les Restaurants & Snacks d'Oujda
               </Text>
             </TouchableOpacity>
           </View>
@@ -285,7 +304,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   organicHeader: {
-    backgroundColor: Colors.primary, // Glovo signature warm yellow
+    backgroundColor: Colors.primary,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
     paddingBottom: 28,
@@ -320,11 +339,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#FFD166",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2.5,
-    borderColor: "#FFFFFF",
+    borderWidth: 2,
+    borderColor: "#E0F2FE",
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -339,7 +358,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     marginHorizontal: 16,
     marginTop: 20,
     borderRadius: 24,
@@ -349,7 +368,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   categoriesScroll: {
     paddingHorizontal: 16,
@@ -362,22 +381,23 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   categoryChipActive: {
     backgroundColor: Colors.primaryMuted,
+    borderColor: Colors.primary,
   },
   categoryChipText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   categoryChipTextActive: {
     color: Colors.primary,
     fontWeight: "800",
   },
 
-  // Empty state matching Screenshot #1
+  // Empty state
   emptyDiscoverBox: {
     alignItems: "center",
     paddingHorizontal: 36,
@@ -397,17 +417,20 @@ const styles = StyleSheet.create({
   emptyDiscoverTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
     textAlign: "center",
     marginBottom: 8,
   },
   emptyDiscoverSubtitle: {
     fontSize: 14,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     textAlign: "center",
     lineHeight: 20,
   },
   exploreRestoBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 20,
     backgroundColor: Colors.primary,
     paddingVertical: 14,
@@ -439,12 +462,12 @@ const styles = StyleSheet.create({
   noResultsTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginBottom: 6,
   },
   noResultsSub: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     textAlign: "center",
   },
 });

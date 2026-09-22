@@ -37,9 +37,11 @@ const Colors = {
   // CTA & Highlights
   cta: colors.cta,
   badge: colors.badge,
+  badgeText: colors.badgeText,
   highlight: colors.highlight,
   darkText: colors.text,
   cardBorder: colors.border,
+  mutedTint: colors.mutedTint,
 
   // Status
   success: colors.success,

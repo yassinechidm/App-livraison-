@@ -5,6 +5,7 @@ import Colors from "@/constants/Colors";
 import { productService } from "@/services/product.service";
 import { PromoCode, promoService } from "@/services/promo.service";
 import { Category, Product } from "@/types/product.types";
+import { FolderTree, Package, Plus, Tag, Trash2, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Alert,
@@ -147,7 +148,7 @@ export default function AdminCategoriesScreen() {
       setMinOrder("60");
       setPromoDesc("");
       await loadData();
-      Alert.alert("Succès", "Code promo créé avec succès ! 🏷️");
+      Alert.alert("Succès", "Code promo créé avec succès !");
     } catch {
       Alert.alert("Erreur", "Impossible de créer le code promo.");
     } finally {
@@ -163,14 +164,21 @@ export default function AdminCategoriesScreen() {
           style={[styles.topTab, activeTab === "promos" && styles.topTabActive]}
           onPress={() => setActiveTab("promos")}
           activeOpacity={0.8}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: activeTab === "promos" }}
         >
+          <Tag
+            size={16}
+            color={activeTab === "promos" ? Colors.primary : Colors.textMuted}
+            style={{ marginRight: 6 }}
+          />
           <Text
             style={[
               styles.topTabText,
               activeTab === "promos" && styles.topTabTextActive,
             ]}
           >
-            🏷️ Codes Promo ({promoCodes.length})
+            Codes Promo ({promoCodes.length})
           </Text>
         </TouchableOpacity>
 
@@ -181,14 +189,23 @@ export default function AdminCategoriesScreen() {
           ]}
           onPress={() => setActiveTab("categories")}
           activeOpacity={0.8}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: activeTab === "categories" }}
         >
+          <FolderTree
+            size={16}
+            color={
+              activeTab === "categories" ? Colors.primary : Colors.textMuted
+            }
+            style={{ marginRight: 6 }}
+          />
           <Text
             style={[
               styles.topTabText,
               activeTab === "categories" && styles.topTabTextActive,
             ]}
           >
-            📂 Catégories ({categories.length})
+            Catégories ({categories.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -206,16 +223,22 @@ export default function AdminCategoriesScreen() {
             style={styles.addBtn}
             onPress={() => setShowAddPromoModal(true)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Ajouter un nouveau code promo"
           >
-            <Text style={styles.addBtnText}>+ Nouveau Code</Text>
+            <Plus size={14} color={Colors.white} style={{ marginRight: 4 }} />
+            <Text style={styles.addBtnText}>Nouveau Code</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
             style={styles.addBtn}
             onPress={() => setShowAddCatModal(true)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Ajouter une nouvelle catégorie"
           >
-            <Text style={styles.addBtnText}>+ Nouvelle Catégorie</Text>
+            <Plus size={14} color={Colors.white} style={{ marginRight: 4 }} />
+            <Text style={styles.addBtnText}>Nouvelle Catégorie</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -240,7 +263,7 @@ export default function AdminCategoriesScreen() {
               <Card key={promo.id} style={styles.promoCard}>
                 <View style={styles.promoRow}>
                   <View style={styles.promoIconBox}>
-                    <Text style={{ fontSize: 22 }}>🏷️</Text>
+                    <Tag size={20} color={Colors.primary} strokeWidth={2} />
                   </View>
 
                   <View style={{ flex: 1 }}>
@@ -294,10 +317,15 @@ export default function AdminCategoriesScreen() {
                     />
                     <TouchableOpacity
                       onPress={() => handleDeletePromo(promo.id, promo.code)}
-                      style={{ padding: 4 }}
+                      style={{ padding: 6 }}
+                      accessibilityRole="button"
                       accessibilityLabel={`Supprimer le code promo ${promo.code}`}
                     >
-                      <Text style={{ fontSize: 16 }}>🗑️</Text>
+                      <Trash2
+                        size={16}
+                        color={Colors.error}
+                        strokeWidth={1.8}
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -328,9 +356,18 @@ export default function AdminCategoriesScreen() {
                       <Text style={styles.catDescription} numberOfLines={2}>
                         {cat.description}
                       </Text>
-                      <Text style={styles.productCount}>
-                        📦 {prodsInCat.length} articles associés
-                      </Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <Package size={12} color={Colors.primary} />
+                        <Text style={styles.productCount}>
+                          {prodsInCat.length} articles associés
+                        </Text>
+                      </View>
                     </View>
 
                     <View style={styles.toggleGroup}>
@@ -371,9 +408,18 @@ export default function AdminCategoriesScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🏷️ Nouveau Code Promo</Text>
-              <TouchableOpacity onPress={() => setShowAddPromoModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <Tag size={18} color={Colors.primary} strokeWidth={2} />
+                <Text style={styles.modalTitle}>Nouveau Code Promo</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowAddPromoModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer la fenêtre"
+              >
+                <X size={20} color={Colors.textMuted} />
               </TouchableOpacity>
             </View>
 
@@ -441,7 +487,7 @@ export default function AdminCategoriesScreen() {
             />
 
             <Button
-              title="Créer le Code Promo 🚀"
+              title="Créer le Code Promo"
               onPress={handleCreatePromo}
               isLoading={isSubmitting}
               style={{ marginTop: 12 }}
@@ -455,9 +501,18 @@ export default function AdminCategoriesScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Créer une Catégorie</Text>
-              <TouchableOpacity onPress={() => setShowAddCatModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <FolderTree size={18} color={Colors.primary} strokeWidth={2} />
+                <Text style={styles.modalTitle}>Créer une Catégorie</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowAddCatModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer la fenêtre"
+              >
+                <X size={20} color={Colors.textMuted} />
               </TouchableOpacity>
             </View>
 
@@ -499,7 +554,7 @@ export default function AdminCategoriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
   },
   topTabsContainer: {
     flexDirection: "row",
@@ -512,8 +567,10 @@ const styles = StyleSheet.create({
   },
   topTab: {
     flex: 1,
+    flexDirection: "row",
     paddingVertical: 10,
     alignItems: "center",
+    justifyContent: "center",
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
   },
@@ -535,7 +592,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
   },
   headerTitle: {
     fontSize: 14,
@@ -543,9 +600,11 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   addBtn: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.primary,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 12,
   },
   addBtnText: {
@@ -562,7 +621,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   promoRow: {
     flexDirection: "row",
@@ -573,7 +632,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "#FFFBEB",
+    backgroundColor: "#E0F2FE",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -615,7 +674,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   typeTabActive: {
-    backgroundColor: "#EBF2FF",
+    backgroundColor: "#E0F2FE",
     borderWidth: 1,
     borderColor: Colors.primary,
   },
@@ -629,7 +688,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   catRow: {
     flexDirection: "row",
@@ -640,7 +699,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#EBF2FF",
+    backgroundColor: "#E0F2FE",
     justifyContent: "center",
     alignItems: "center",
   },

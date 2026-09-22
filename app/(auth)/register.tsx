@@ -2,13 +2,13 @@ import { sanitizeEmail, sanitizeName, sanitizePhone } from "@/lib/sanitize";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -135,7 +135,7 @@ export default function RegisterScreen() {
           <Logo size={56} style={styles.logo} />
           <Text style={styles.title}>Créer un compte</Text>
           <Text style={styles.subtitle}>
-            Rejoignez la communauté Quick Livraison à Oujda 🇲🇦
+            Rejoignez la communauté Quickly Livraison à Oujda 🇲🇦
           </Text>
         </View>
 

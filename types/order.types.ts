@@ -24,10 +24,15 @@ export interface Address {
 export interface OrderItem {
   id?: string;
   order_id?: string;
-  item_type?: "product" | "restaurant_menu_item" | "prescription" | "parcel";
-  product_id: string;
-  menu_item_id?: string;
-  raw_item_id?: string;
+  item_type?:
+    | "product"
+    | "restaurant_menu_item"
+    | "prescription"
+    | "parcel"
+    | "grocery";
+  product_id?: string | null;
+  menu_item_id?: string | null;
+  raw_item_id?: string | null;
   product_name: string;
   quantity: number;
   unit_price: number;
@@ -90,10 +95,15 @@ export interface CreateOrderInput {
   package_details?: any;
   promo_code?: string;
   items: {
-    item_type?: "product" | "restaurant_menu_item" | "prescription" | "parcel";
-    product_id: string;
-    menu_item_id?: string;
-    raw_item_id?: string;
+    item_type?:
+      | "product"
+      | "restaurant_menu_item"
+      | "prescription"
+      | "parcel"
+      | "grocery";
+    product_id?: string | null;
+    menu_item_id?: string | null;
+    raw_item_id?: string | null;
     product_name: string;
     quantity: number;
     unit_price: number;

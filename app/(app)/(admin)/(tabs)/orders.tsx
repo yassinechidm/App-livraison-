@@ -5,7 +5,20 @@ import { Courier, courierService } from "@/services/courier.service";
 import { orderService } from "@/services/order.service";
 import { PrescriptionImageViewerModal } from "@/src/components/PrescriptionImageViewerModal";
 import { Order, ORDER_STATUS_CONFIG, OrderStatus } from "@/types/order.types";
-import { FileText, Pill } from "lucide-react-native";
+import {
+    Banknote,
+    Bike,
+    CheckCircle2,
+    CreditCard,
+    FileText,
+    MapPin,
+    Pill,
+    Printer,
+    ShoppingCart,
+    Trash2,
+    User,
+    X
+} from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Alert,
@@ -175,7 +188,6 @@ export default function AdminOrdersScreen() {
           {STATUS_FILTERS.map((st) => {
             const isAll = st === "ALL";
             const label = isAll ? "Toutes" : ORDER_STATUS_CONFIG[st].label;
-            const icon = isAll ? "📋" : ORDER_STATUS_CONFIG[st].icon;
             const isSelected = selectedFilter === st;
 
             return (
@@ -186,6 +198,8 @@ export default function AdminOrdersScreen() {
                   isSelected && styles.filterPillActive,
                 ]}
                 onPress={() => setSelectedFilter(st)}
+                accessibilityRole="button"
+                accessibilityLabel={`Filtrer par statut: ${label}`}
               >
                 <Text
                   style={[
@@ -193,7 +207,7 @@ export default function AdminOrdersScreen() {
                     isSelected && styles.filterPillTextActive,
                   ]}
                 >
-                  {icon} {label}
+                  {label}
                 </Text>
               </TouchableOpacity>
             );
@@ -226,9 +240,23 @@ export default function AdminOrdersScreen() {
               <View style={styles.orderCardHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.orderNumber}>{order.order_number}</Text>
-                  <Text style={styles.customerName}>
-                    👤 {order.customer_name} • {order.customer_phone}
-                  </Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 5,
+                      marginTop: 3,
+                    }}
+                  >
+                    <User
+                      size={13}
+                      color={Colors.textSecondary}
+                      strokeWidth={1.8}
+                    />
+                    <Text style={styles.customerName}>
+                      {order.customer_name} • {order.customer_phone}
+                    </Text>
+                  </View>
                 </View>
 
                 {/* Status Changer Button */}
@@ -241,18 +269,33 @@ export default function AdminOrdersScreen() {
                     },
                   ]}
                   onPress={() => setSelectedOrderForStatus(order)}
+                  accessibilityRole="button"
                   accessibilityLabel={`Changer le statut de la commande ${order.order_number}`}
                 >
-                  <Text style={styles.statusIcon}>{config.icon}</Text>
                   <Text style={[styles.statusText, { color: config.color }]}>
                     {config.label} ▾
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.addressText}>
-                📍 {order.delivery_address_text}
-              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 5,
+                  marginBottom: 8,
+                  marginTop: 2,
+                }}
+              >
+                <MapPin
+                  size={13}
+                  color={Colors.textSecondary}
+                  strokeWidth={1.8}
+                />
+                <Text style={styles.addressText}>
+                  {order.delivery_address_text}
+                </Text>
+              </View>
 
               {/* Items in order */}
               <View style={styles.itemsList}>
@@ -285,7 +328,7 @@ export default function AdminOrdersScreen() {
               {order.prescription_image_url ? (
                 <View style={styles.prescriptionCardWrap}>
                   <View style={styles.prescriptionBadgeRow}>
-                    <Pill size={14} color="#059669" />
+                    <Pill size={14} color="#059669" strokeWidth={2.0} />
                     <Text style={styles.prescriptionBadgeText}>
                       Ordonnance Médicale
                     </Text>
@@ -301,6 +344,8 @@ export default function AdminOrdersScreen() {
                       })
                     }
                     activeOpacity={0.88}
+                    accessibilityRole="button"
+                    accessibilityLabel="Agrandir l'ordonnance médicale"
                   >
                     <Image
                       source={{ uri: order.prescription_image_url }}
@@ -311,6 +356,7 @@ export default function AdminOrdersScreen() {
                       <FileText
                         size={12}
                         color="#FFFFFF"
+                        strokeWidth={2.0}
                         style={{ marginRight: 4 }}
                       />
                       <Text style={styles.zoomOverlayText}>
@@ -321,17 +367,54 @@ export default function AdminOrdersScreen() {
                 </View>
               ) : null}
 
-              {order.notes ? (
-                <Text style={styles.notesText}>
-                  📝 Instructions client : {order.notes}
-                </Text>
+              {/* Grocery Request Card for Admin */}
+              {order.notes && order.notes.includes("[GROCERY") ? (
+                <View style={styles.groceryCardWrap}>
+                  <View style={styles.groceryBadgeRow}>
+                    <ShoppingCart
+                      size={14}
+                      color={Colors.primary}
+                      strokeWidth={2.0}
+                    />
+                    <Text style={styles.groceryBadgeText}>
+                      Demande de Courses (Supermarché)
+                    </Text>
+                  </View>
+                  <View style={styles.groceryContentBox}>
+                    <Text style={styles.groceryListText}>
+                      {order.notes.replace(/\[GROCERY[^\]]*\]\s*/i, "")}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+
+              {order.notes && !order.notes.includes("[GROCERY") ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    gap: 5,
+                    marginTop: 4,
+                  }}
+                >
+                  <FileText
+                    size={12}
+                    color={Colors.textMuted}
+                    strokeWidth={1.8}
+                    style={{ marginTop: 2 }}
+                  />
+                  <Text style={styles.notesText}>
+                    Instructions client : {order.notes}
+                  </Text>
+                </View>
               ) : null}
 
               {/* Courier info if assigned */}
               {order.driver_name && (
                 <View style={styles.driverAssignedBox}>
+                  <Bike size={14} color={Colors.primary} strokeWidth={2.0} />
                   <Text style={styles.driverAssignedText}>
-                    🛵 Coursier :{" "}
+                    Coursier :{" "}
                     <Text style={{ fontWeight: "800" }}>
                       {order.driver_name}
                     </Text>{" "}
@@ -341,14 +424,32 @@ export default function AdminOrdersScreen() {
               )}
 
               <View style={styles.orderFooter}>
-                <Text style={styles.paymentMethod}>
-                  {order.payment_method === "TRANSFER"
-                    ? "🏦 Virement Bancaire"
-                    : order.payment_method === "CARD"
-                      ? "💳 Carte"
-                      : "💵 Cash"}{" "}
-                  • Total :{" "}
-                  <Text style={styles.bold}>{order.total.toFixed(2)} DH</Text>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                >
+                  {order.payment_method === "CARD" ? (
+                    <CreditCard
+                      size={13}
+                      color={Colors.textSecondary}
+                      strokeWidth={1.8}
+                    />
+                  ) : (
+                    <Banknote
+                      size={13}
+                      color={Colors.textSecondary}
+                      strokeWidth={1.8}
+                    />
+                  )}
+                  <Text style={styles.paymentMethod}>
+                    {order.payment_method === "TRANSFER"
+                      ? "Virement Bancaire"
+                      : order.payment_method === "CARD"
+                        ? "Carte Bancaire"
+                        : "Paiement Cash"}
+                  </Text>
+                </View>
+                <Text style={styles.bold}>
+                  Total : {order.total.toFixed(2)} DH
                 </Text>
               </View>
 
@@ -358,9 +459,15 @@ export default function AdminOrdersScreen() {
                   style={styles.printTicketBtn}
                   onPress={() => setTicketOrder(order)}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
                   accessibilityLabel="Imprimer bon de cuisine"
                 >
-                  <Text style={styles.printTicketText}>🧾 Bon Cuisine</Text>
+                  <Printer
+                    size={13}
+                    color={Colors.textPrimary}
+                    strokeWidth={1.8}
+                  />
+                  <Text style={styles.printTicketText}>Bon Cuisine</Text>
                 </TouchableOpacity>
 
                 {order.status === "PENDING" && (
@@ -368,10 +475,11 @@ export default function AdminOrdersScreen() {
                     style={[styles.pipelineBtn, { backgroundColor: "#8B5CF6" }]}
                     onPress={() => handleQuickAdvance(order)}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
                     accessibilityLabel="Lancer en cuisine"
                   >
                     <Text style={styles.pipelineBtnText}>
-                      🍳 Lancer en cuisine →
+                      Lancer en cuisine →
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -381,11 +489,10 @@ export default function AdminOrdersScreen() {
                     style={[styles.pipelineBtn, { backgroundColor: "#06B6D4" }]}
                     onPress={() => handleQuickAdvance(order)}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
                     accessibilityLabel="Marquer comme prête"
                   >
-                    <Text style={styles.pipelineBtnText}>
-                      🛍️ Marquer Prête →
-                    </Text>
+                    <Text style={styles.pipelineBtnText}>Marquer Prête →</Text>
                   </TouchableOpacity>
                 )}
 
@@ -397,10 +504,11 @@ export default function AdminOrdersScreen() {
                     ]}
                     onPress={() => handleQuickAdvance(order)}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
                     accessibilityLabel="Assigner coursier"
                   >
                     <Text style={styles.pipelineBtnText}>
-                      🛵 Assigner Coursier →
+                      Assigner Coursier →
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -413,11 +521,10 @@ export default function AdminOrdersScreen() {
                     ]}
                     onPress={() => handleQuickAdvance(order)}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
                     accessibilityLabel="Marquer comme livrée"
                   >
-                    <Text style={styles.pipelineBtnText}>
-                      ✅ Marquer Livrée →
-                    </Text>
+                    <Text style={styles.pipelineBtnText}>Marquer Livrée →</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -431,12 +538,22 @@ export default function AdminOrdersScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.ticketCard}>
             <View style={styles.ticketHeader}>
-              <Text style={styles.ticketTitle}>🧾 BON DE COMMANDE CUISINE</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Printer
+                  size={16}
+                  color={Colors.textPrimary}
+                  strokeWidth={2.0}
+                />
+                <Text style={styles.ticketTitle}>BON DE COMMANDE CUISINE</Text>
+              </View>
               <TouchableOpacity
                 onPress={() => setTicketOrder(null)}
+                accessibilityRole="button"
                 accessibilityLabel="Fermer le bon de cuisine"
               >
-                <Text style={styles.modalClose}>✕</Text>
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -474,7 +591,7 @@ export default function AdminOrdersScreen() {
                   )}
                   {item.special_instructions && (
                     <Text style={styles.ticketItemNote}>
-                      ⚠️ NOTE DU CHEF : "{item.special_instructions}"
+                      NOTE DU CHEF : "{item.special_instructions}"
                     </Text>
                   )}
                 </View>
@@ -491,7 +608,7 @@ export default function AdminOrdersScreen() {
             </View>
 
             <Button
-              title="🖨️ Imprimer le Bon de Cuisine"
+              title="Imprimer le Bon de Cuisine"
               onPress={() => {
                 Alert.alert(
                   "Impression",
@@ -510,11 +627,20 @@ export default function AdminOrdersScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.courierModalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                🛵 Assigner un coursier à Oujda
-              </Text>
-              <TouchableOpacity onPress={() => setAssignCourierOrder(null)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Bike size={18} color={Colors.primary} strokeWidth={2.0} />
+                <Text style={styles.modalTitle}>
+                  Assigner un coursier à Oujda
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setAssignCourierOrder(null)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -529,12 +655,14 @@ export default function AdminOrdersScreen() {
                 style={styles.courierSelectOption}
                 onPress={() => handleAssignCourier(cour)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={`Assigner à ${cour.name}`}
               >
-                <Text style={{ fontSize: 24 }}>🛵</Text>
+                <Bike size={22} color={Colors.primary} strokeWidth={2.0} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.courierSelectName}>{cour.name}</Text>
                   <Text style={styles.courierSelectMeta}>
-                    {cour.vehicle} • 📞 {cour.phone} • ⭐ {cour.rating}/5
+                    {cour.vehicle} • {cour.phone} • Note: {cour.rating}/5
                   </Text>
                 </View>
                 <View
@@ -574,8 +702,12 @@ export default function AdminOrdersScreen() {
               <Text style={styles.modalTitle}>
                 Modifier le statut • {selectedOrderForStatus?.order_number}
               </Text>
-              <TouchableOpacity onPress={() => setSelectedOrderForStatus(null)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <TouchableOpacity
+                onPress={() => setSelectedOrderForStatus(null)}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <X size={18} color={Colors.textMuted} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -600,8 +732,9 @@ export default function AdminOrdersScreen() {
                     ]}
                     onPress={() => handleUpdateStatus(statusKey)}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Définir le statut à ${conf.label}`}
                   >
-                    <Text style={styles.statusOptionIcon}>{conf.icon}</Text>
                     <View style={{ flex: 1 }}>
                       <Text
                         style={[
@@ -615,7 +748,13 @@ export default function AdminOrdersScreen() {
                         {conf.description}
                       </Text>
                     </View>
-                    {isCurrent && <Text style={styles.checkIcon}>✓</Text>}
+                    {isCurrent && (
+                      <CheckCircle2
+                        size={16}
+                        color={conf.color}
+                        strokeWidth={2.2}
+                      />
+                    )}
                   </TouchableOpacity>
                 );
               },
@@ -627,9 +766,17 @@ export default function AdminOrdersScreen() {
                 style={styles.deleteOrderBtn}
                 onPress={() => handleDeleteOrder(selectedOrderForStatus)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Supprimer définitivement la commande"
               >
+                <Trash2
+                  size={16}
+                  color="#DC2626"
+                  strokeWidth={2.0}
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={styles.deleteOrderBtnText}>
-                  🗑️ Supprimer définitivement de la base
+                  Supprimer définitivement de la base
                 </Text>
               </TouchableOpacity>
             )}
@@ -653,13 +800,13 @@ export default function AdminOrdersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
   },
   filterSection: {
     backgroundColor: Colors.white,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: Colors.cardBorder,
   },
   filterScroll: {
     paddingHorizontal: 16,
@@ -669,7 +816,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 16,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.mutedTint,
   },
   filterPillActive: {
     backgroundColor: Colors.primary,
@@ -697,7 +844,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   orderCardHeader: {
     flexDirection: "row",
@@ -714,7 +861,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     color: Colors.textPrimary,
-    marginTop: 2,
   },
   statusChangeBtn: {
     flexDirection: "row",
@@ -725,9 +871,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 4,
   },
-  statusIcon: {
-    fontSize: 11,
-  },
   statusText: {
     fontSize: 11,
     fontWeight: "800",
@@ -735,13 +878,14 @@ const styles = StyleSheet.create({
   addressText: {
     fontSize: 12,
     color: Colors.textSecondary,
-    marginBottom: 8,
   },
   itemsList: {
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderRadius: 12,
     padding: 10,
     marginVertical: 6,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
   itemRow: {
     flexDirection: "row",
@@ -768,7 +912,7 @@ const styles = StyleSheet.create({
   customNote: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#D97706",
+    color: Colors.warning,
     marginTop: 2,
   },
   itemPrice: {
@@ -780,13 +924,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textMuted,
     fontStyle: "italic",
-    marginTop: 4,
+    flex: 1,
   },
   driverAssignedBox: {
-    backgroundColor: "#EFF6FF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Colors.mutedTint,
     padding: 8,
     borderRadius: 8,
     marginTop: 6,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
   driverAssignedText: {
     fontSize: 11,
@@ -797,13 +946,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: Colors.cardBorder,
     paddingTop: 8,
     marginTop: 6,
   },
   paymentMethod: {
     fontSize: 11,
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     fontWeight: "600",
   },
   bold: {
@@ -817,14 +966,19 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: Colors.cardBorder,
   },
   printTicketBtn: {
-    backgroundColor: "#F7F7FF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: Colors.mutedTint,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 10,
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
   printTicketText: {
     fontSize: 11,
@@ -865,7 +1019,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ticketTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "900",
     letterSpacing: 0.5,
     color: Colors.textPrimary,
@@ -926,7 +1080,7 @@ const styles = StyleSheet.create({
   ticketItemNote: {
     fontSize: 11,
     fontWeight: "900",
-    color: "#D97706",
+    color: Colors.warning,
     marginTop: 2,
   },
   ticketTotalRow: {
@@ -950,6 +1104,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 20,
     padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
   courierSelectOption: {
     flexDirection: "row",
@@ -957,7 +1113,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     marginBottom: 10,
     gap: 12,
   },
@@ -987,6 +1143,8 @@ const styles = StyleSheet.create({
     maxHeight: "80%",
     width: "100%",
     maxWidth: 400,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
   modalHeader: {
     flexDirection: "row",
@@ -999,11 +1157,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: Colors.textPrimary,
   },
-  modalClose: {
-    fontSize: 18,
-    color: Colors.textMuted,
-    padding: 4,
-  },
   modalSubtitle: {
     fontSize: 12,
     color: Colors.textMuted,
@@ -1015,12 +1168,9 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     marginBottom: 8,
     gap: 12,
-  },
-  statusOptionIcon: {
-    fontSize: 18,
   },
   statusOptionTitle: {
     fontSize: 14,
@@ -1031,11 +1181,6 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: 1,
   },
-  checkIcon: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: Colors.primary,
-  },
   deleteOrderBtn: {
     marginTop: 12,
     paddingVertical: 12,
@@ -1043,6 +1188,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FEF2F2",
     borderWidth: 1,
     borderColor: "#FECACA",
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1096,7 +1242,39 @@ const styles = StyleSheet.create({
   },
   zoomOverlayText: {
     fontSize: 11,
-    fontWeight: "800",
+    fontWeight: "700",
     color: "#FFFFFF",
+  },
+  groceryCardWrap: {
+    marginTop: 8,
+    marginBottom: 10,
+    backgroundColor: Colors.mutedTint,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: 14,
+    padding: 12,
+  },
+  groceryBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  groceryBadgeText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: Colors.textPrimary,
+  },
+  groceryContentBox: {
+    backgroundColor: Colors.backgroundWhite,
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
+  groceryListText: {
+    fontSize: 14,
+    color: Colors.darkText,
+    lineHeight: 20,
   },
 });

@@ -10,6 +10,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.quickly.livraison",
+      "infoPlist": {
+        "CFBundleDisplayName": "Quickly Livraison"
+      },
       "config": {
         "googleMapsApiKey": "AIzaSyDWlDCjLf_BL85fhXhdLHOqOvgVKSjVbbw"
       }

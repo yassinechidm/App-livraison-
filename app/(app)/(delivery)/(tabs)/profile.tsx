@@ -1,3 +1,4 @@
+import Colors from "@/constants/Colors";
 import { authService } from "@/services/auth.service";
 import { orderService } from "@/services/order.service";
 import { useLanguage } from "@/src/context/LanguageContext";
@@ -10,12 +11,16 @@ import {
     Edit3,
     Image as ImageIcon,
     LogOut,
+    MapPin,
     Plus,
+    ShieldCheck,
+    Smile,
     Star,
     ThumbsUp,
     Trash2,
     User as UserIcon,
     X,
+    Zap
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
@@ -173,7 +178,7 @@ export default function CourierProfileScreen() {
           rating: 5,
           reviewText:
             "Livreur ponctuel et très courtois, commande arrivée bien chaude !",
-          tags: ["⚡ Ultra Fast", "😊 Very Polite", "🛵 Careful with package"],
+          tags: ["Ultra Rapide", "Poli & Souriant", "Soin du colis"],
           date: "Il y a 20 min",
         },
         {
@@ -182,7 +187,7 @@ export default function CourierProfileScreen() {
           clientName: "Sara M. (Lazaret)",
           rating: 5,
           reviewText: "Trouve l'adresse sans problème, très professionnel.",
-          tags: ["📍 Found address easily", "📞 Great communication"],
+          tags: ["Adresse trouvée vite", "Communication parfaite"],
           date: "Aujourd'hui",
         },
         {
@@ -191,7 +196,7 @@ export default function CourierProfileScreen() {
           clientName: "Karim T. (Bd Mohammed V)",
           rating: 5,
           reviewText: "Parfait comme toujours. Merci Yassine !",
-          tags: ["⚡ Ultra Fast", "🛵 Careful with package"],
+          tags: ["Ultra Rapide", "Soin du colis"],
           date: "Hier",
         },
       ];
@@ -205,7 +210,7 @@ export default function CourierProfileScreen() {
           `Client (${o.delivery_address_text?.split(",")[0] || "Oujda"})`,
         rating: o.courier_rating || 5,
         reviewText: o.courier_review_text || "Livraison effectuée avec succès.",
-        tags: o.courier_tags || ["⚡ Ultra Fast"],
+        tags: o.courier_tags || ["Ultra Rapide"],
         date: "À l'instant",
       }));
 
@@ -254,7 +259,7 @@ export default function CourierProfileScreen() {
           vehiclePhotos,
         });
         Alert.alert(
-          "Photo mise à jour ! 📸",
+          "Photo mise à jour",
           "Votre photo de profil livreur a été enregistrée.",
         );
       }
@@ -296,7 +301,7 @@ export default function CourierProfileScreen() {
           vehiclePhotos: newPhotos,
         });
         Alert.alert(
-          "Photo ajoutée ! 🛵",
+          "Photo ajoutée",
           "Photo de votre véhicule/équipement ajoutée à votre profil.",
         );
       }
@@ -394,6 +399,8 @@ export default function CourierProfileScreen() {
               style={styles.avatarWrapper}
               onPress={handlePickProfilePhoto}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Changer la photo de profil"
             >
               {profilePhoto ? (
                 <Image
@@ -402,11 +409,11 @@ export default function CourierProfileScreen() {
                 />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Bike size={34} color="#5C5BDB" strokeWidth={2.2} />
+                  <Bike size={34} color={Colors.primary} strokeWidth={2.0} />
                 </View>
               )}
               <View style={styles.cameraPill}>
-                <Camera size={13} color="#FFFFFF" />
+                <Camera size={13} color="#FFFFFF" strokeWidth={2.2} />
               </View>
             </TouchableOpacity>
 
@@ -418,8 +425,10 @@ export default function CourierProfileScreen() {
                   style={styles.editIconBtn}
                   onPress={handleOpenEditModal}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Modifier le profil"
                 >
-                  <Edit3 size={15} color="#FFFFFF" />
+                  <Edit3 size={15} color="#FFFFFF" strokeWidth={2.0} />
                 </TouchableOpacity>
               </View>
 
@@ -430,8 +439,8 @@ export default function CourierProfileScreen() {
                 <View style={styles.ratingHeroPill}>
                   <Star
                     size={12}
-                    color="#FFD166"
-                    fill="#FFD166"
+                    color="#F59E0B"
+                    fill="#F59E0B"
                     style={{ marginRight: 3 }}
                   />
                   <Text style={styles.ratingHeroText}>
@@ -480,8 +489,8 @@ export default function CourierProfileScreen() {
             <Switch
               value={isOnline}
               onValueChange={setIsOnline}
-              trackColor={{ false: "#E2E8F0", true: "#5C5BDB80" }}
-              thumbColor={isOnline ? "#5C5BDB" : "#94A3B8"}
+              trackColor={{ false: "#E2E8F0", true: "rgba(2, 136, 209, 0.35)" }}
+              thumbColor={isOnline ? Colors.primary : "#94A3B8"}
             />
           </View>
         </View>
@@ -489,7 +498,7 @@ export default function CourierProfileScreen() {
         {/* ── Real-Time Performance & Ratings Summary ── */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <Star size={18} color="#FFD166" fill="#FFD166" />
+            <Star size={18} color="#F59E0B" fill="#F59E0B" />
             <Text style={styles.cardTitle}>
               Performance & Avis Clients Directs
             </Text>
@@ -497,7 +506,12 @@ export default function CourierProfileScreen() {
 
           <View style={styles.statsSummaryGrid}>
             <View style={styles.statMetricBox}>
-              <Text style={styles.statMetricValue}>{averageRating} ⭐</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
+              >
+                <Text style={styles.statMetricValue}>{averageRating}</Text>
+                <Star size={14} color="#F59E0B" fill="#F59E0B" />
+              </View>
               <Text style={styles.statMetricLabel}>Note Moyenne</Text>
             </View>
             <View style={styles.statMetricBox}>
@@ -505,7 +519,7 @@ export default function CourierProfileScreen() {
               <Text style={styles.statMetricLabel}>Courses Réussies</Text>
             </View>
             <View style={styles.statMetricBox}>
-              <Text style={[styles.statMetricValue, { color: "#10B981" }]}>
+              <Text style={[styles.statMetricValue, { color: "#00ACC1" }]}>
                 99%
               </Text>
               <Text style={styles.statMetricLabel}>Satisfaction</Text>
@@ -519,19 +533,25 @@ export default function CourierProfileScreen() {
             </Text>
             <View style={styles.tagsPillsRow}>
               <View style={styles.compBadge}>
-                <Text style={styles.compBadgeText}>⚡ Ultra Rapide (38)</Text>
+                <Zap size={13} color={Colors.primary} strokeWidth={2.0} />
+                <Text style={styles.compBadgeText}>Ultra Rapide (38)</Text>
               </View>
               <View style={styles.compBadge}>
+                <Smile size={13} color={Colors.secondary} strokeWidth={2.0} />
+                <Text style={styles.compBadgeText}>Poli & Souriant (29)</Text>
+              </View>
+              <View style={styles.compBadge}>
+                <ShieldCheck
+                  size={13}
+                  color={Colors.secondary}
+                  strokeWidth={2.0}
+                />
+                <Text style={styles.compBadgeText}>Soin du colis (24)</Text>
+              </View>
+              <View style={styles.compBadge}>
+                <MapPin size={13} color={Colors.primary} strokeWidth={2.0} />
                 <Text style={styles.compBadgeText}>
-                  😊 Poli & Souriant (29)
-                </Text>
-              </View>
-              <View style={styles.compBadge}>
-                <Text style={styles.compBadgeText}>🛵 Soin du colis (24)</Text>
-              </View>
-              <View style={styles.compBadge}>
-                <Text style={styles.compBadgeText}>
-                  📍 Adresse trouvée vite (19)
+                  Adresse trouvée vite (19)
                 </Text>
               </View>
             </View>
@@ -544,15 +564,17 @@ export default function CourierProfileScreen() {
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
-              <ImageIcon size={18} color="#5C5BDB" />
+              <ImageIcon size={18} color={Colors.primary} strokeWidth={2.0} />
               <Text style={styles.cardTitle}>Photos & Équipement</Text>
             </View>
             <TouchableOpacity
               style={styles.addPhotoBtnPill}
               onPress={handleAddVehiclePhoto}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Ajouter une photo"
             >
-              <Plus size={14} color="#5C5BDB" />
+              <Plus size={14} color={Colors.primary} strokeWidth={2.2} />
               <Text style={styles.addPhotoBtnText}>Ajouter photo</Text>
             </TouchableOpacity>
           </View>
@@ -573,6 +595,8 @@ export default function CourierProfileScreen() {
               style={styles.galleryThumbnailCard}
               onPress={handlePickProfilePhoto}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Modifier photo profil"
             >
               {profilePhoto ? (
                 <Image
@@ -581,7 +605,11 @@ export default function CourierProfileScreen() {
                 />
               ) : (
                 <View style={styles.galleryPlaceholderBox}>
-                  <Camera size={24} color="#7F77DD" />
+                  <Camera
+                    size={24}
+                    color={Colors.textSecondary}
+                    strokeWidth={1.8}
+                  />
                   <Text style={styles.galleryPlaceholderText}>
                     Photo Profil
                   </Text>
@@ -600,8 +628,10 @@ export default function CourierProfileScreen() {
                   style={styles.deletePhotoBtn}
                   onPress={() => handleRemoveVehiclePhoto(index)}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Supprimer la photo de véhicule ${index + 1}`}
                 >
-                  <Trash2 size={12} color="#FFFFFF" />
+                  <Trash2 size={12} color="#FFFFFF" strokeWidth={2.0} />
                 </TouchableOpacity>
                 <View style={styles.thumbnailLabelTag}>
                   <Text style={styles.thumbnailLabelText}>
@@ -616,8 +646,10 @@ export default function CourierProfileScreen() {
               style={styles.addPhotoBox}
               onPress={handleAddVehiclePhoto}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Ajouter une photo de véhicule"
             >
-              <Plus size={24} color="#5C5BDB" />
+              <Plus size={24} color={Colors.primary} strokeWidth={2.0} />
               <Text style={styles.addPhotoBoxText}>+ Ajouter</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -629,10 +661,15 @@ export default function CourierProfileScreen() {
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
-              <UserIcon size={18} color="#5C5BDB" />
+              <UserIcon size={18} color={Colors.primary} strokeWidth={2.0} />
               <Text style={styles.cardTitle}>Détails & Véhicule</Text>
             </View>
-            <TouchableOpacity onPress={handleOpenEditModal} activeOpacity={0.8}>
+            <TouchableOpacity
+              onPress={handleOpenEditModal}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Modifier les détails"
+            >
               <Text style={styles.editActionText}>Modifier</Text>
             </TouchableOpacity>
           </View>
@@ -676,7 +713,7 @@ export default function CourierProfileScreen() {
         {/* ── Section: Real-Time Client Reviews Feed ── */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <ThumbsUp size={18} color="#5C5BDB" />
+            <ThumbsUp size={18} color={Colors.primary} strokeWidth={2.0} />
             <Text style={styles.cardTitle}>
               Derniers Avis Clients en Direct
             </Text>
@@ -700,7 +737,7 @@ export default function CourierProfileScreen() {
                     </Text>
                   </View>
                   <View style={styles.reviewStarsBox}>
-                    <Star size={13} color="#FFD166" fill="#FFD166" />
+                    <Star size={13} color="#F59E0B" fill="#F59E0B" />
                     <Text style={styles.reviewScoreText}>{rev.rating}.0</Text>
                   </View>
                 </View>
@@ -733,9 +770,16 @@ export default function CourierProfileScreen() {
           onPress={handleLogout}
           disabled={isLoggingOut}
           activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel="Se déconnecter"
         >
           <View style={styles.logoutLeft}>
-            <LogOut size={20} color="#FF4D6D" style={{ marginRight: 12 }} />
+            <LogOut
+              size={20}
+              color="#EF4444"
+              strokeWidth={2.0}
+              style={{ marginRight: 12 }}
+            />
             <Text style={styles.logoutText}>
               {isLoggingOut
                 ? "Déconnexion..."
@@ -761,8 +805,10 @@ export default function CourierProfileScreen() {
               <TouchableOpacity
                 onPress={() => setIsEditModalVisible(false)}
                 style={styles.closeModalBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
               >
-                <X size={20} color="#3C3489" />
+                <X size={20} color={Colors.darkText} strokeWidth={2.0} />
               </TouchableOpacity>
             </View>
 
@@ -776,7 +822,7 @@ export default function CourierProfileScreen() {
                 value={tempName}
                 onChangeText={setTempName}
                 placeholder="ex. Yassine Chidm"
-                placeholderTextColor="#7F77DD"
+                placeholderTextColor={Colors.textSecondary}
               />
 
               <Text style={styles.inputLabel}>Numéro de téléphone :</Text>
@@ -785,7 +831,7 @@ export default function CourierProfileScreen() {
                 value={tempPhone}
                 onChangeText={setTempPhone}
                 placeholder="+212 6 XX XX XX XX"
-                placeholderTextColor="#7F77DD"
+                placeholderTextColor={Colors.textSecondary}
                 keyboardType="phone-pad"
               />
 
@@ -795,7 +841,7 @@ export default function CourierProfileScreen() {
                 value={tempVehicle}
                 onChangeText={setTempVehicle}
                 placeholder="ex. Scooter Yamaha NMAX 125cc"
-                placeholderTextColor="#7F77DD"
+                placeholderTextColor={Colors.textSecondary}
               />
 
               <Text style={styles.inputLabel}>Matricule du véhicule :</Text>
@@ -804,7 +850,7 @@ export default function CourierProfileScreen() {
                 value={tempPlate}
                 onChangeText={setTempPlate}
                 placeholder="ex. 18492 | أ | 48"
-                placeholderTextColor="#7F77DD"
+                placeholderTextColor={Colors.textSecondary}
               />
 
               <Text style={styles.inputLabel}>
@@ -818,7 +864,7 @@ export default function CourierProfileScreen() {
                 value={tempBio}
                 onChangeText={setTempBio}
                 placeholder="Quelques mots pour vous présenter..."
-                placeholderTextColor="#7F77DD"
+                placeholderTextColor={Colors.textSecondary}
                 multiline
                 numberOfLines={3}
               />
@@ -828,12 +874,16 @@ export default function CourierProfileScreen() {
               <TouchableOpacity
                 style={styles.cancelModalBtn}
                 onPress={() => setIsEditModalVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Annuler"
               >
                 <Text style={styles.cancelModalBtnText}>Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.saveModalBtn}
                 onPress={handleSaveEditModal}
+                accessibilityRole="button"
+                accessibilityLabel="Enregistrer"
               >
                 <Text style={styles.saveModalBtnText}>Enregistrer</Text>
               </TouchableOpacity>
@@ -848,14 +898,14 @@ export default function CourierProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
   },
   organicHeader: {
-    backgroundColor: "#5C5BDB",
+    backgroundColor: Colors.primary,
     paddingBottom: 24,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    shadowColor: "#3C3489",
+    shadowColor: Colors.darkText,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 10,
@@ -889,7 +939,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderColor: "rgba(255, 255, 255, 0.6)",
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
@@ -903,7 +953,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#FF4D6D",
+    backgroundColor: Colors.secondary,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
@@ -984,8 +1034,8 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "#CECBF6",
-    shadowColor: "#3C3489",
+    borderColor: Colors.cardBorder,
+    shadowColor: Colors.darkText,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -1006,16 +1056,16 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   editActionText: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#5C5BDB",
+    color: Colors.primary,
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginBottom: 12,
     lineHeight: 17,
   },
@@ -1033,24 +1083,24 @@ const styles = StyleSheet.create({
   switchTitle: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   switchSub: {
     fontSize: 12,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginTop: 2,
   },
 
   // Performance metrics
   statsSummaryGrid: {
     flexDirection: "row",
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 8,
     justifyContent: "space-around",
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     marginBottom: 12,
   },
   statMetricBox: {
@@ -1059,12 +1109,12 @@ const styles = StyleSheet.create({
   statMetricValue: {
     fontSize: 17,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   statMetricLabel: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   complimentsContainer: {
@@ -1073,7 +1123,7 @@ const styles = StyleSheet.create({
   complimentsHeading: {
     fontSize: 12,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginBottom: 6,
   },
   tagsPillsRow: {
@@ -1082,17 +1132,20 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   compBadge: {
-    backgroundColor: "rgba(92, 91, 219, 0.1)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: Colors.badge,
     paddingHorizontal: 9,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   compBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.badgeText,
   },
 
   // Photos & Gallery
@@ -1100,17 +1153,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(92, 91, 219, 0.1)",
+    backgroundColor: "rgba(2, 136, 209, 0.1)",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   addPhotoBtnText: {
     fontSize: 12,
     fontWeight: "800",
-    color: "#5C5BDB",
+    color: Colors.primary,
   },
   galleryScroll: {
     gap: 10,
@@ -1123,7 +1176,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
     borderWidth: 1.5,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   galleryImage: {
     width: "100%",
@@ -1131,7 +1184,7 @@ const styles = StyleSheet.create({
   },
   galleryPlaceholderBox: {
     flex: 1,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
@@ -1139,7 +1192,7 @@ const styles = StyleSheet.create({
   galleryPlaceholderText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   thumbnailLabelTag: {
     position: "absolute",
@@ -1171,9 +1224,9 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: "#5C5BDB",
+    borderColor: Colors.primary,
     borderStyle: "dashed",
-    backgroundColor: "rgba(92, 91, 219, 0.05)",
+    backgroundColor: "rgba(2, 136, 209, 0.05)",
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
@@ -1181,7 +1234,7 @@ const styles = StyleSheet.create({
   addPhotoBoxText: {
     fontSize: 12,
     fontWeight: "800",
-    color: "#5C5BDB",
+    color: Colors.primary,
   },
 
   // Info rows
@@ -1191,47 +1244,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#F7F7FF",
+    borderBottomColor: Colors.background,
   },
   infoLabel: {
     fontSize: 13,
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     fontWeight: "600",
   },
   infoValue: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   bioContainer: {
     marginTop: 10,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderRadius: 12,
     padding: 10,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   bioHeading: {
     fontSize: 11,
     fontWeight: "800",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginBottom: 4,
   },
   bioText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#3C3489",
+    color: Colors.darkText,
     lineHeight: 18,
     fontStyle: "italic",
   },
 
   // Client reviews feed
   clientReviewCard: {
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
   },
   reviewCardHeader: {
     flexDirection: "row",
@@ -1242,12 +1295,12 @@ const styles = StyleSheet.create({
   reviewClientName: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   reviewOrderRef: {
     fontSize: 10.5,
     fontWeight: "600",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
     marginTop: 1,
   },
   reviewStarsBox: {
@@ -1258,13 +1311,13 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#FFD166",
+    borderColor: "#F59E0B",
     gap: 3,
   },
   reviewScoreText: {
     fontSize: 12,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   reviewTagsRow: {
     flexDirection: "row",
@@ -1273,7 +1326,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   reviewTagPill: {
-    backgroundColor: "rgba(92, 91, 219, 0.12)",
+    backgroundColor: Colors.badge,
     paddingHorizontal: 8,
     paddingVertical: 2.5,
     borderRadius: 6,
@@ -1281,18 +1334,18 @@ const styles = StyleSheet.create({
   reviewTagPillText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#5C5BDB",
+    color: Colors.badgeText,
   },
   reviewCommentText: {
     fontSize: 12,
-    color: "#3C3489",
+    color: Colors.darkText,
     fontWeight: "600",
     lineHeight: 16,
     marginBottom: 4,
   },
   reviewDateText: {
     fontSize: 10,
-    color: "#9CA3AF",
+    color: Colors.textSecondary,
     textAlign: "right",
   },
 
@@ -1307,8 +1360,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: "#FF4D6D30",
-    shadowColor: "#FF4D6D",
+    borderColor: "rgba(239, 68, 68, 0.2)",
+    shadowColor: "#EF4444",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
@@ -1321,7 +1374,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#FF4D6D",
+    color: "#EF4444",
   },
 
   // Edit Modal
@@ -1336,7 +1389,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
@@ -1352,7 +1405,7 @@ const styles = StyleSheet.create({
   editModalTitle: {
     fontSize: 17,
     fontWeight: "900",
-    color: "#3C3489",
+    color: Colors.darkText,
   },
   closeModalBtn: {
     padding: 4,
@@ -1360,19 +1413,19 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#3C3489",
+    color: Colors.darkText,
     marginBottom: 4,
     marginTop: 8,
   },
   textInput: {
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: "#CECBF6",
+    borderColor: Colors.cardBorder,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 9,
     fontSize: 13,
-    color: "#3C3489",
+    color: Colors.darkText,
     fontWeight: "600",
   },
   editModalActions: {
@@ -1382,24 +1435,24 @@ const styles = StyleSheet.create({
     marginTop: 18,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#F7F7FF",
+    borderTopColor: Colors.background,
   },
   cancelModalBtn: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: "#F7F7FF",
+    backgroundColor: Colors.background,
   },
   cancelModalBtnText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#7F77DD",
+    color: Colors.textSecondary,
   },
   saveModalBtn: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: "#5C5BDB",
+    backgroundColor: Colors.primary,
   },
   saveModalBtnText: {
     fontSize: 13,

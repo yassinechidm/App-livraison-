@@ -7,7 +7,7 @@ import { restaurantService } from "@/services/restaurant.service";
 import { AnyPurchasableItem, SelectedCustomization } from "@/types/cart.types";
 import { CustomizationGroup } from "@/types/restaurant.types";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ShieldCheck, UtensilsCrossed } from "lucide-react-native";
+import { ArrowLeft, ShieldCheck, UtensilsCrossed } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
     Image,
@@ -66,7 +66,9 @@ export default function ProductDetailScreen() {
                   initialSelected[group.id] = defaults;
                 }
               });
-              setSelectedOptions((prev) => Object.keys(prev).length > 0 ? prev : initialSelected);
+              setSelectedOptions((prev) =>
+                Object.keys(prev).length > 0 ? prev : initialSelected,
+              );
             }
           } else if (prod) {
             setProduct({
@@ -202,7 +204,7 @@ export default function ProductDetailScreen() {
           style={styles.backBtn}
           activeOpacity={0.8}
         >
-          <Text style={styles.backIcon}>‹</Text>
+          <ArrowLeft size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           Personnaliser votre plat

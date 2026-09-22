@@ -16,6 +16,7 @@ import {
     PhoneCall,
     Pill,
     ShoppingBag,
+    ShoppingCart,
     User,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
@@ -283,6 +284,23 @@ export default function CourierActiveDeliveriesScreen() {
                     </Text>
                   ))}
                 </View>
+
+                {/* Grocery Request Details for Courier */}
+                {order.notes && order.notes.includes("[GROCERY") ? (
+                  <View style={styles.groceryCardWrap}>
+                    <View style={styles.groceryBadgeRow}>
+                      <ShoppingCart size={14} color={Colors.primary} />
+                      <Text style={styles.groceryBadgeText}>
+                        Liste de courses à acheter
+                      </Text>
+                    </View>
+                    <View style={styles.groceryContentBox}>
+                      <Text style={styles.groceryListText}>
+                        {order.notes.replace(/\[GROCERY[^\]]*\]\s*/i, "")}
+                      </Text>
+                    </View>
+                  </View>
+                ) : null}
 
                 {/* Prescription Preview for Courier */}
                 {order.prescription_image_url ? (
@@ -584,5 +602,37 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     color: "#FFFFFF",
+  },
+  groceryCardWrap: {
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: Colors.mutedTint,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: 14,
+    padding: 10,
+  },
+  groceryBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+  },
+  groceryBadgeText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: Colors.textPrimary,
+  },
+  groceryContentBox: {
+    backgroundColor: Colors.backgroundWhite,
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
+  groceryListText: {
+    fontSize: 13,
+    color: Colors.darkText,
+    lineHeight: 18,
   },
 });
