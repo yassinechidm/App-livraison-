@@ -1,32 +1,42 @@
 -- ==============================================================================
--- QUICKLY LIVRAISON — ADMIN CATALOG & MENU SYNCHRONIZATION (HARDENED)
--- Migration File: supabase/migrations/20260916000003_allow_admin_product_and_menu_updates.sql
--- Description: Enables secure live updates of dishes, restaurants, and products
---              between Admin panel and Client apps. Sets up SECURITY DEFINER RPCs
---              with strict is_admin() authorization checks, fine-grained RLS,
---              and configures Supabase Realtime publication.
+-- QUICKLY LIVRAISON — PRODUCTION CATALOG HARDENING & SECURITY REMEDIATION
+-- File: supabase/migrations/20260922000000_harden_catalog_security_and_admin_rpcs.sql
+-- Description: Completely purges permissive RLS bypass policies, revokes anon
+--              mutation grants, enforces strict is_admin() checks inside
+--              SECURITY DEFINER RPCs, and configures realtime publications.
 -- ==============================================================================
 
--- 1. EXTEND TABLES IF NEEDED
+BEGIN;
+
+-- ------------------------------------------------------------------------------
+-- 1. DEFENSIVE TABLE EXTENSIONS
+-- ------------------------------------------------------------------------------
 ALTER TABLE public.restaurants ADD COLUMN IF NOT EXISTS opening_hours TEXT DEFAULT '11:30 - 02:00';
 
--- 2. RESTAURANT MENU ITEMS RLS POLICIES & GRANTS
+
+-- ==============================================================================
+-- 2. RESTAURANT MENU ITEMS — CLEANUP, POLICIES & GRANTS
+-- ==============================================================================
 ALTER TABLE public.restaurant_menu_items ENABLE ROW LEVEL SECURITY;
 
+-- 2.1 Drop all existing legacy, permissive, and redundant policies
+DROP POLICY IF EXISTS "menu_items_all_policy" ON public.restaurant_menu_items;
+DROP POLICY IF EXISTS "menu_items_write_policy" ON public.restaurant_menu_items;
+DROP POLICY IF EXISTS "menu_items_insert" ON public.restaurant_menu_items;
+DROP POLICY IF EXISTS "menu_items_update" ON public.restaurant_menu_items;
+DROP POLICY IF EXISTS "menu_items_delete" ON public.restaurant_menu_items;
+DROP POLICY IF EXISTS "menu_items_select" ON public.restaurant_menu_items;
 DROP POLICY IF EXISTS "menu_items_select_policy" ON public.restaurant_menu_items;
 DROP POLICY IF EXISTS "menu_items_insert_policy" ON public.restaurant_menu_items;
 DROP POLICY IF EXISTS "menu_items_update_policy" ON public.restaurant_menu_items;
 DROP POLICY IF EXISTS "menu_items_delete_policy" ON public.restaurant_menu_items;
-DROP POLICY IF EXISTS "menu_items_write_policy" ON public.restaurant_menu_items;
-DROP POLICY IF EXISTS "menu_items_all_policy" ON public.restaurant_menu_items;
 DROP POLICY IF EXISTS "Public can view menu items" ON public.restaurant_menu_items;
 DROP POLICY IF EXISTS "Admin can manage menu items" ON public.restaurant_menu_items;
 
--- Public and authenticated users can view available menu items (or admins view all)
+-- 2.2 Create canonical hardened RLS policies
 CREATE POLICY "menu_items_select_policy" ON public.restaurant_menu_items
 FOR SELECT USING (is_available = TRUE OR public.is_admin());
 
--- Mutations restricted strictly to administrators
 CREATE POLICY "menu_items_insert_policy" ON public.restaurant_menu_items
 FOR INSERT WITH CHECK (public.is_admin() OR (current_setting('request.jwt.claim.role', true) = 'service_role'));
 
@@ -37,27 +47,36 @@ WITH CHECK (public.is_admin() OR (current_setting('request.jwt.claim.role', true
 CREATE POLICY "menu_items_delete_policy" ON public.restaurant_menu_items
 FOR DELETE USING (public.is_admin() OR (current_setting('request.jwt.claim.role', true) = 'service_role'));
 
-REVOKE ALL ON TABLE public.restaurant_menu_items FROM anon, authenticated;
-GRANT SELECT ON TABLE public.restaurant_menu_items TO anon, authenticated;
-GRANT ALL ON TABLE public.restaurant_menu_items TO authenticated, service_role;
+-- 2.3 Table Grants
+REVOKE ALL ON TABLE public.restaurant_menu_items FROM PUBLIC, anon;
+GRANT SELECT ON TABLE public.restaurant_menu_items TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.restaurant_menu_items TO authenticated;
+GRANT ALL ON TABLE public.restaurant_menu_items TO service_role;
 
--- 3. RESTAURANTS RLS POLICIES & GRANTS
+
+-- ==============================================================================
+-- 3. RESTAURANTS — CLEANUP, POLICIES & GRANTS
+-- ==============================================================================
 ALTER TABLE public.restaurants ENABLE ROW LEVEL SECURITY;
 
+-- 3.1 Drop all existing legacy, permissive, and redundant policies
+DROP POLICY IF EXISTS "restaurants_all_policy" ON public.restaurants;
+DROP POLICY IF EXISTS "restaurants_write_policy" ON public.restaurants;
+DROP POLICY IF EXISTS "restaurants_insert" ON public.restaurants;
+DROP POLICY IF EXISTS "restaurants_update" ON public.restaurants;
+DROP POLICY IF EXISTS "restaurants_delete" ON public.restaurants;
+DROP POLICY IF EXISTS "restaurants_select" ON public.restaurants;
 DROP POLICY IF EXISTS "restaurants_select_policy" ON public.restaurants;
 DROP POLICY IF EXISTS "restaurants_insert_policy" ON public.restaurants;
 DROP POLICY IF EXISTS "restaurants_update_policy" ON public.restaurants;
 DROP POLICY IF EXISTS "restaurants_delete_policy" ON public.restaurants;
-DROP POLICY IF EXISTS "restaurants_write_policy" ON public.restaurants;
-DROP POLICY IF EXISTS "restaurants_all_policy" ON public.restaurants;
 DROP POLICY IF EXISTS "Public can view active restaurants" ON public.restaurants;
 DROP POLICY IF EXISTS "Admin can manage restaurants" ON public.restaurants;
 
--- Public can view active restaurants (admins view all)
+-- 3.2 Create canonical hardened RLS policies
 CREATE POLICY "restaurants_select_policy" ON public.restaurants
 FOR SELECT USING (is_active = TRUE OR public.is_admin());
 
--- Mutations restricted strictly to administrators
 CREATE POLICY "restaurants_insert_policy" ON public.restaurants
 FOR INSERT WITH CHECK (public.is_admin() OR (current_setting('request.jwt.claim.role', true) = 'service_role'));
 
@@ -68,26 +87,36 @@ WITH CHECK (public.is_admin() OR (current_setting('request.jwt.claim.role', true
 CREATE POLICY "restaurants_delete_policy" ON public.restaurants
 FOR DELETE USING (public.is_admin() OR (current_setting('request.jwt.claim.role', true) = 'service_role'));
 
-REVOKE ALL ON TABLE public.restaurants FROM anon, authenticated;
-GRANT SELECT ON TABLE public.restaurants TO anon, authenticated;
-GRANT ALL ON TABLE public.restaurants TO authenticated, service_role;
+-- 3.3 Table Grants
+REVOKE ALL ON TABLE public.restaurants FROM PUBLIC, anon;
+GRANT SELECT ON TABLE public.restaurants TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.restaurants TO authenticated;
+GRANT ALL ON TABLE public.restaurants TO service_role;
 
--- 4. PRODUCTS RLS POLICIES & GRANTS
+
+-- ==============================================================================
+-- 4. PRODUCTS — CLEANUP, POLICIES & GRANTS
+-- ==============================================================================
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
+-- 4.1 Drop all existing legacy, permissive, and redundant policies
+DROP POLICY IF EXISTS "products_all_policy" ON public.products;
+DROP POLICY IF EXISTS "products_write_policy" ON public.products;
+DROP POLICY IF EXISTS "products_insert" ON public.products;
+DROP POLICY IF EXISTS "products_update" ON public.products;
+DROP POLICY IF EXISTS "products_delete" ON public.products;
+DROP POLICY IF EXISTS "products_select" ON public.products;
 DROP POLICY IF EXISTS "products_select_policy" ON public.products;
 DROP POLICY IF EXISTS "products_insert_policy" ON public.products;
 DROP POLICY IF EXISTS "products_update_policy" ON public.products;
 DROP POLICY IF EXISTS "products_delete_policy" ON public.products;
-DROP POLICY IF EXISTS "products_all_policy" ON public.products;
 DROP POLICY IF EXISTS "Anyone can view available products" ON public.products;
 DROP POLICY IF EXISTS "Admins can manage products" ON public.products;
 
--- Public can view available products (admins view all)
+-- 4.2 Create canonical hardened RLS policies
 CREATE POLICY "products_select_policy" ON public.products
 FOR SELECT USING (is_available = TRUE OR public.is_admin());
 
--- Mutations restricted strictly to administrators
 CREATE POLICY "products_insert_policy" ON public.products
 FOR INSERT WITH CHECK (public.is_admin() OR (current_setting('request.jwt.claim.role', true) = 'service_role'));
 
@@ -98,16 +127,21 @@ WITH CHECK (public.is_admin() OR (current_setting('request.jwt.claim.role', true
 CREATE POLICY "products_delete_policy" ON public.products
 FOR DELETE USING (public.is_admin() OR (current_setting('request.jwt.claim.role', true) = 'service_role'));
 
-REVOKE ALL ON TABLE public.products FROM anon, authenticated;
-GRANT SELECT ON TABLE public.products TO anon, authenticated;
-GRANT ALL ON TABLE public.products TO authenticated, service_role;
+-- 4.3 Table Grants
+REVOKE ALL ON TABLE public.products FROM PUBLIC, anon;
+GRANT SELECT ON TABLE public.products TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.products TO authenticated;
+GRANT ALL ON TABLE public.products TO service_role;
 
--- 5. SECURITY DEFINER STORED PROCEDURES (RPCs) WITH AUTHORIZATION CHECKS
 
+-- ==============================================================================
+-- 5. HARDENED SECURITY DEFINER RPCs (WITH INTERNAL AUTHORIZATION)
+-- ==============================================================================
+
+-- 5.1 Update Restaurant Menu Item
 DROP FUNCTION IF EXISTS public.rpc_update_menu_item(UUID, TEXT, NUMERIC, TEXT, TEXT, TEXT, BOOLEAN, BOOLEAN);
 DROP FUNCTION IF EXISTS public.rpc_update_menu_item(TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, BOOLEAN, BOOLEAN);
 
--- 5.1 Update Restaurant Menu Item RPC
 CREATE OR REPLACE FUNCTION public.rpc_update_menu_item(
   p_id TEXT,
   p_name TEXT DEFAULT NULL,
@@ -155,10 +189,10 @@ BEGIN
 END;
 $$;
 
+-- 5.2 Update Product
 DROP FUNCTION IF EXISTS public.rpc_update_product(UUID, TEXT, NUMERIC, TEXT, INT, UUID, TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS public.rpc_update_product(TEXT, TEXT, NUMERIC, TEXT, INT, TEXT, TEXT, BOOLEAN);
 
--- 5.2 Update Product RPC
 CREATE OR REPLACE FUNCTION public.rpc_update_product(
   p_id TEXT,
   p_name TEXT DEFAULT NULL,
@@ -215,10 +249,10 @@ BEGIN
 END;
 $$;
 
+-- 5.3 Update Restaurant
 DROP FUNCTION IF EXISTS public.rpc_update_restaurant(UUID, TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, BOOLEAN, TEXT);
 DROP FUNCTION IF EXISTS public.rpc_update_restaurant(TEXT, TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, BOOLEAN, TEXT);
 
--- 5.3 Update Restaurant RPC
 CREATE OR REPLACE FUNCTION public.rpc_update_restaurant(
   p_id TEXT,
   p_name TEXT DEFAULT NULL,
@@ -268,16 +302,20 @@ BEGIN
 END;
 $$;
 
--- Revoke execute from public/anon; grant strictly to authenticated and service_role
-REVOKE EXECUTE ON FUNCTION public.rpc_update_restaurant FROM anon, public;
-REVOKE EXECUTE ON FUNCTION public.rpc_update_menu_item FROM anon, public;
-REVOKE EXECUTE ON FUNCTION public.rpc_update_product FROM anon, public;
+-- 5.4 Revoke execute from PUBLIC and anon roles
+REVOKE EXECUTE ON FUNCTION public.rpc_update_restaurant(TEXT, TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, BOOLEAN, TEXT) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.rpc_update_menu_item(TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, BOOLEAN, BOOLEAN) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.rpc_update_product(TEXT, TEXT, NUMERIC, TEXT, INT, TEXT, TEXT, BOOLEAN) FROM PUBLIC, anon;
 
-GRANT EXECUTE ON FUNCTION public.rpc_update_restaurant TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.rpc_update_menu_item TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.rpc_update_product TO authenticated, service_role;
+-- 5.5 Grant execute strictly to authenticated users and service_role
+GRANT EXECUTE ON FUNCTION public.rpc_update_restaurant(TEXT, TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, BOOLEAN, TEXT) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.rpc_update_menu_item(TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, BOOLEAN, BOOLEAN) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.rpc_update_product(TEXT, TEXT, NUMERIC, TEXT, INT, TEXT, TEXT, BOOLEAN) TO authenticated, service_role;
 
--- 6. ENABLE SUPABASE REALTIME PUBLICATION
+
+-- ==============================================================================
+-- 6. REALTIME PUBLICATION CONFIGURATION
+-- ==============================================================================
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -304,5 +342,8 @@ EXCEPTION WHEN OTHERS THEN
   NULL;
 END $$;
 
--- 7. RELOAD SCHEMA CACHE IN POSTGREST IMMEDIATELY
+COMMIT;
+
+-- 7. NOTIFY POSTGREST SCHEMA CACHE TO RELOAD IMMEDIATELY
 NOTIFY pgrst, 'reload schema';
+

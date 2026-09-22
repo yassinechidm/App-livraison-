@@ -2,13 +2,13 @@ import { sanitizeEmail, sanitizeName, sanitizePhone } from "@/lib/sanitize";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -93,7 +93,11 @@ export default function RegisterScreen() {
               onPress: () =>
                 router.push({
                   pathname: "/(auth)/otp" as any,
-                  params: { email: email.trim() },
+                  params: {
+                    email: cleanEmail,
+                    phone: cleanPhone || undefined,
+                    type: "signup",
+                  },
                 }),
             },
           ],

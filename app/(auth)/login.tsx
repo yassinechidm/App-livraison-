@@ -91,7 +91,7 @@ export default function LoginScreen() {
       await authService.signInWithPhone(cleanPhone);
       router.push({
         pathname: "/(auth)/otp" as any,
-        params: { phone: cleanPhone, isWhatsApp: "false" },
+        params: { phone: cleanPhone, isWhatsApp: "false", type: "sms" },
       });
     } catch (err: any) {
       Alert.alert(
@@ -112,7 +112,7 @@ export default function LoginScreen() {
       await authService.requestWhatsAppOtp(cleanPhone);
       router.push({
         pathname: "/(auth)/otp" as any,
-        params: { phone: cleanPhone, isWhatsApp: "true" },
+        params: { phone: cleanPhone, isWhatsApp: "true", type: "whatsapp" },
       });
     } catch (err: any) {
       Alert.alert(
@@ -150,7 +150,10 @@ export default function LoginScreen() {
       await authService.signIn({ email: cleanEmail, password });
       redirectByRole();
     } catch (err: any) {
-      Alert.alert("Erreur de connexion", err?.message || "Identifiants invalides");
+      Alert.alert(
+        "Erreur de connexion",
+        err?.message || "Identifiants invalides",
+      );
     } finally {
       setIsLoadingSocial(false);
     }

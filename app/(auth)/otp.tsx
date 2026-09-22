@@ -15,17 +15,19 @@ import Colors from "../../constants/Colors";
 import { authService } from "../../services/auth.service";
 
 export default function OtpScreen() {
-  const { email, phone, isWhatsApp } = useLocalSearchParams<{
+  const { email, phone, isWhatsApp, type } = useLocalSearchParams<{
     email?: string;
     phone?: string;
     isWhatsApp?: string;
+    type?: string;
   }>();
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(60);
   const router = useRouter();
-  const target = phone || email || "";
+  const target = (phone || email || "").trim();
+  const isEmail = target.includes("@");
 
   useEffect(() => {
     let interval: any;
@@ -54,7 +56,8 @@ export default function OtpScreen() {
       if (isWhatsApp === "true") {
         await authService.verifyWhatsAppOtp(target, cleanToken);
       } else {
-        await authService.verifyOtp(target, cleanToken, "sms");
+        const verifyType = (type as any) || (isEmail ? "signup" : "sms");
+        await authService.verifyOtp(target, cleanToken, verifyType);
       }
 
       const role = authService.getUserRole()?.toLowerCase();
@@ -77,17 +80,19 @@ export default function OtpScreen() {
 
   async function handleResend() {
     if (cooldown > 0 || isResending) return;
+    if (!target) {
+      Alert.alert("Erreur", "Numéro de téléphone ou email manquant.");
+      return;
+    }
     setIsResending(true);
     try {
-      if (isWhatsApp === "true") {
-        const res = await authService.requestWhatsAppOtp(target);
-        setCooldown(res.cooldownSeconds || 60);
-        Alert.alert("Code renvoyé", "Un nouveau code WhatsApp a été envoyé.");
-      } else {
-        await authService.signInWithPhone(target);
-        setCooldown(60);
-        Alert.alert("Code renvoyé", "Un nouveau code SMS a été envoyé.");
-      }
+      const res = await authService.resendOtp({
+        target,
+        isWhatsApp: isWhatsApp === "true",
+        type: (type as any) || (isEmail ? "signup" : "sms"),
+      });
+      setCooldown(res.cooldownSeconds || 60);
+      Alert.alert("Code renvoyé", res.message);
     } catch (err: any) {
       Alert.alert("Erreur", err?.message || "Impossible de renvoyer le code.");
     } finally {
@@ -105,9 +110,11 @@ export default function OtpScreen() {
         <Text style={styles.subtitle}>
           {isWhatsApp === "true"
             ? "Saisissez le code à 6 chiffres envoyé sur votre WhatsApp au"
-            : "Saisissez le code à 6 chiffres envoyé par SMS au"}
+            : isEmail
+              ? "Saisissez le code à 6 chiffres envoyé par email à"
+              : "Saisissez le code à 6 chiffres envoyé par SMS au"}
           {"\n"}
-          <Text style={styles.targetText}>{target || "votre numéro"}</Text>
+          <Text style={styles.targetText}>{target || "votre compte"}</Text>
         </Text>
 
         <TextInput

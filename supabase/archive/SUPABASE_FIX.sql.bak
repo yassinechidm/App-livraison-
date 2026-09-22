@@ -1,3 +1,6 @@
+-- DEPRECATED & INSECURE: Do not execute in Supabase SQL editor.
+-- Contains orders_full_access and auth.role() bypasses.
+
 -- ==========================================================
 -- QUICK LIVRAISON - MIGRATION SUPABASE OBLIGATOIRE
 -- Copiez et collez tout ce contenu dans :

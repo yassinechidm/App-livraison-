@@ -234,16 +234,20 @@ export const authService = {
         (email ? email.split("@")[0] : "Client");
       const phone = user.user_metadata?.phone || user.phone || null;
 
+      const profilePayload: Record<string, any> = {
+        id: user.id,
+        full_name: fullName,
+        phone,
+        role: "client",
+      };
+      if (email) {
+        profilePayload.email = email;
+      }
+
       const { data: newProfile, error: insertError } = await (
         supabase.from("profiles") as any
       )
-        .insert({
-          id: user.id,
-          email,
-          full_name: fullName,
-          phone,
-          role: "client",
-        })
+        .upsert(profilePayload, { onConflict: "id" })
         .select("role")
         .single();
 
@@ -462,27 +466,38 @@ export const authService = {
     token: string,
     type: "signup" | "email" | "sms" = "sms",
   ) {
-    const isEmail = emailOrPhone.includes("@");
-    let cleanTarget = emailOrPhone.trim();
+    const cleanTarget = (emailOrPhone || "").trim();
+    const isEmail = cleanTarget.includes("@");
+    const cleanToken = sanitizeOtp(token);
+
+    if (!cleanToken || cleanToken.length !== 6) {
+      throw new Error(
+        "Veuillez saisir votre code de confirmation à 6 chiffres.",
+      );
+    }
+
+    let phoneNormalized: string | null = null;
     if (!isEmail) {
-      const norm = this.normalizePhoneNumber(cleanTarget);
-      if (norm) cleanTarget = norm;
+      phoneNormalized = this.normalizePhoneNumber(cleanTarget);
+      if (!phoneNormalized) {
+        throw new Error("Numéro de téléphone invalide.");
+      }
     }
 
     try {
-      const { data, error } = await supabase.auth.verifyOtp(
-        isEmail
-          ? {
-              email: cleanTarget,
-              token: token.trim(),
-              type: type as any,
-            }
-          : {
-              phone: cleanTarget,
-              token: token.trim(),
-              type: "sms",
-            },
-      );
+      const verifyParams = isEmail
+        ? {
+            email: cleanTarget,
+            token: cleanToken,
+            type: (type === "sms" ? "signup" : type) as any,
+          }
+        : {
+            phone: phoneNormalized!,
+            token: cleanToken,
+            type: "sms" as const,
+          };
+
+      const { data, error } = await supabase.auth.verifyOtp(verifyParams);
       if (error) {
         throw new Error(error.message || "Code incorrect ou expiré.");
       }
@@ -501,6 +516,60 @@ export const authService = {
     } catch (err: any) {
       throw new Error(err?.message || "Code incorrect ou expiré.");
     }
+  },
+
+  async resendOtp({
+    target,
+    isWhatsApp,
+    type = "signup",
+  }: {
+    target: string;
+    isWhatsApp?: boolean;
+    type?: "signup" | "sms" | "email";
+  }): Promise<{ success: boolean; message: string; cooldownSeconds?: number }> {
+    const cleanTarget = (target || "").trim();
+    if (!cleanTarget) {
+      throw new Error(
+        "Veuillez saisir un numéro de téléphone ou un email valide.",
+      );
+    }
+
+    const isEmail = cleanTarget.includes("@");
+
+    if (isWhatsApp) {
+      const res = await this.requestWhatsAppOtp(cleanTarget);
+      return {
+        success: true,
+        message: res.message || "Un nouveau code WhatsApp a été envoyé.",
+        cooldownSeconds: res.cooldownSeconds || 60,
+      };
+    }
+
+    if (isEmail) {
+      clientRateLimiter.assert("auth:resend-email", cleanTarget);
+      const { error } = await supabase.auth.resend({
+        type: type === "signup" ? "signup" : "email_change",
+        email: cleanTarget,
+      });
+      if (error) {
+        throw new Error(
+          error.message || "Impossible de renvoyer l'email de confirmation.",
+        );
+      }
+      return {
+        success: true,
+        message: "Un nouveau code de confirmation a été envoyé par email.",
+        cooldownSeconds: 60,
+      };
+    }
+
+    // Phone SMS resend
+    await this.signInWithPhone(cleanTarget);
+    return {
+      success: true,
+      message: "Un nouveau code SMS a été envoyé.",
+      cooldownSeconds: 60,
+    };
   },
 
   async signInWithPhone(phone: string) {
@@ -554,7 +623,11 @@ export const authService = {
 
       if (error) {
         const errMsg = error.message || "";
-        if (errMsg.includes("429") || errMsg.includes("Trop de tentatives") || errMsg.includes("patienter")) {
+        if (
+          errMsg.includes("429") ||
+          errMsg.includes("Trop de tentatives") ||
+          errMsg.includes("patienter")
+        ) {
           throw new Error(errMsg);
         }
         throw new Error(

@@ -1,3 +1,5 @@
+-- DEPRECATED: Redundant scratch file with open USING (TRUE) policies.
+
 -- ==============================================================================
 -- MIGRATION SUPABASE : RESTAURANTS & PLATS (SNACKS OUJDA)
 -- À exécuter dans : https://supabase.com/dashboard/project/srgzjplfzunkgjqmgtub/sql
