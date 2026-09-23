@@ -7,32 +7,32 @@ import { useLanguage } from "@/src/context/LanguageContext";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
-    Camera,
-    CheckCircle2,
-    Image as ImageIcon,
-    MapPin,
-    PhoneCall,
-    Pill,
-    Trash2,
-    Upload,
-    X,
+  Camera,
+  CheckCircle2,
+  Image as ImageIcon,
+  MapPin,
+  PhoneCall,
+  Pill,
+  Trash2,
+  Upload,
+  X,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Image,
-    KeyboardAvoidingView,
-    Linking,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Linking,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export const COMPANY_PHARMACY_PHONE = "+212 5 36 60 00 00";
@@ -219,11 +219,47 @@ export const PharmacyOptionsModal: React.FC<PharmacyOptionsModalProps> = ({
       let storagePath: string | undefined = undefined;
 
       try {
-        const response = await fetch(selectedImage);
-        const blob = await response.blob();
+        const uriScheme =
+          selectedImage.substring(0, selectedImage.indexOf(":") + 1) ||
+          "unknown:";
+        if (__DEV__) {
+          console.info(
+            "[PharmacyOptionsModal] Starting upload. URI scheme:",
+            uriScheme,
+            "Path:",
+            filePath,
+          );
+        }
+
+        let uploadData: Uint8Array | Blob;
+
+        if (selectedImage.startsWith("data:")) {
+          const base64Index = selectedImage.indexOf("base64,");
+          const base64String =
+            base64Index !== -1
+              ? selectedImage.substring(base64Index + 7)
+              : selectedImage;
+          const binaryString = atob(base64String);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          uploadData = bytes;
+          if (__DEV__) {
+            console.info(
+              "[PharmacyOptionsModal] Decoded base64 data to byte array. Byte length:",
+              bytes.byteLength,
+            );
+          }
+        } else {
+          // Fallback fetch for standard web/http blobs
+          const response = await fetch(selectedImage);
+          uploadData = await response.blob();
+        }
+
         const { error: uploadError } = await supabase.storage
           .from("prescriptions")
-          .upload(filePath, blob, {
+          .upload(filePath, uploadData, {
             contentType: "image/jpeg",
             upsert: false,
           });
