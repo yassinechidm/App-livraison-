@@ -5,7 +5,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY =
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const OPENWA_BASE_URL = Deno.env.get("OPENWA_BASE_URL") ?? "";
 const OPENWA_API_KEY = Deno.env.get("OPENWA_API_KEY") ?? "";
@@ -13,11 +14,34 @@ const OPENWA_SESSION_ID = Deno.env.get("OPENWA_SESSION_ID") ?? "default";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
+// Safe phone masking for diagnostic server logs (e.g. +2126****1234)
+function maskPhone(phone: string): string {
+  if (!phone || phone.length < 6) return "***";
+  return phone.slice(0, 5) + "****" + phone.slice(-4);
+}
+
+// OpenWA URL builder with robust base URL sanitization
+function buildOpenWaUrl(
+  baseUrl: string,
+  sessionId: string,
+  path: string,
+): string {
+  let cleanBase = baseUrl.trim().replace(/\/+$/, "");
+  if (cleanBase.endsWith("/api")) {
+    cleanBase = cleanBase.substring(0, cleanBase.length - 4);
+  }
+  const cleanPath = path.replace(/^\/+/, "");
+  return `${cleanBase}/api/sessions/${encodeURIComponent(sessionId)}/${cleanPath}`;
+}
+
 // Strict Moroccan & E.164 phone normalization and validation
-function validateAndNormalizePhone(raw: string): { e164: string; chatId: string } | null {
+function validateAndNormalizePhone(
+  raw: string,
+): { e164: string; chatId: string; digits: string } | null {
   if (!raw || typeof raw !== "string") return null;
 
   // Strip all non-digit and non-plus characters
@@ -27,30 +51,30 @@ function validateAndNormalizePhone(raw: string): { e164: string; chatId: string 
   // Local format: 06XXXXXXXX or 07XXXXXXXX (10 digits)
   if (/^0[67]\d{8}$/.test(clean)) {
     const digits = "212" + clean.substring(1);
-    return { e164: "+" + digits, chatId: digits + "@c.us" };
+    return { e164: "+" + digits, chatId: digits + "@c.us", digits };
   }
 
   // Without leading +: 2126XXXXXXXX or 2127XXXXXXXX (12 digits)
   if (/^212[67]\d{8}$/.test(clean)) {
-    return { e164: "+" + clean, chatId: clean + "@c.us" };
+    return { e164: "+" + clean, chatId: clean + "@c.us", digits: clean };
   }
 
   // With leading 00: 002126XXXXXXXX
   if (/^00212[67]\d{8}$/.test(clean)) {
     const digits = clean.substring(2);
-    return { e164: "+" + digits, chatId: digits + "@c.us" };
+    return { e164: "+" + digits, chatId: digits + "@c.us", digits };
   }
 
   // Full international format: +2126XXXXXXXX
   if (/^\+212[67]\d{8}$/.test(clean)) {
     const digits = clean.substring(1);
-    return { e164: clean, chatId: digits + "@c.us" };
+    return { e164: clean, chatId: digits + "@c.us", digits };
   }
 
   // General international mobile format: +[country_code][number] (between 8 and 15 digits)
   if (/^\+[1-9]\d{7,14}$/.test(clean)) {
     const digits = clean.substring(1);
-    return { e164: clean, chatId: digits + "@c.us" };
+    return { e164: clean, chatId: digits + "@c.us", digits };
   }
 
   return null;
@@ -88,7 +112,7 @@ function checkEdgeRateLimit(
   map: Map<string, EdgeRateRecord>,
   key: string,
   limit: number,
-  windowMs: number
+  windowMs: number,
 ): { allowed: boolean; remaining: number; resetSec: number } {
   const now = Date.now();
   const record = map.get(key) || { timestamps: [] };
@@ -118,21 +142,37 @@ serve(async (req) => {
   try {
     // 1. Fail-fast environment secret validation
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("[Config Error] SUPABASE_SERVICE_ROLE_KEY is not configured.");
+      console.error(
+        "[Config Error] SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL is not configured.",
+      );
       return new Response(
-        JSON.stringify({ success: false, error: "Configuration serveur incomplète." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: false,
+          error: "Configuration serveur incomplète.",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    const supabaseAdmin = createClient(
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: { persistSession: false, autoRefreshToken: false },
+      },
+    );
 
     const body = await req.json().catch(() => ({}));
-    const rawAction = typeof body.action === "string" ? body.action.trim().toLowerCase() : "";
+    const rawAction =
+      typeof body.action === "string" ? body.action.trim().toLowerCase() : "";
     const rawPhone = typeof body.phone === "string" ? body.phone.trim() : "";
-    const rawOtp = typeof body.otp === "string" ? body.otp.replace(/\D/g, "").slice(0, 6) : "";
+    const rawOtp =
+      typeof body.otp === "string"
+        ? body.otp.replace(/\D/g, "").slice(0, 6)
+        : "";
 
     // 2. Global IP Rate Limiting (15 req/min per IP)
     const clientIp = getClientIp(req);
@@ -151,8 +191,67 @@ serve(async (req) => {
           success: false,
           error: `Trop de requêtes depuis votre adresse IP. Veuillez patienter ${ipLimit.resetSec}s avant de réessayer.`,
         }),
-        { status: 429, headers: rateHeaders }
+        { status: 429, headers: rateHeaders },
       );
+    }
+
+    // ==========================================
+    // ACTION: CHECK STATUS (Health & Session Probe)
+    // ==========================================
+    if (rawAction === "check-status") {
+      if (!OPENWA_BASE_URL || !OPENWA_API_KEY) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            configured: false,
+            error: "OPENWA_BASE_URL ou OPENWA_API_KEY non configuré.",
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      const statusUrl = buildOpenWaUrl(OPENWA_BASE_URL, OPENWA_SESSION_ID, "");
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const checkRes = await fetch(statusUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": OPENWA_API_KEY,
+          },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        return new Response(
+          JSON.stringify({
+            success: checkRes.ok,
+            configured: true,
+            status: checkRes.status,
+            sessionReady: checkRes.ok,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      } catch (checkErr: any) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            configured: true,
+            error: checkErr?.message || "Passerelle OpenWA inaccessible.",
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
     }
 
     // 3. Strict phone validation & sanitization
@@ -161,9 +260,10 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Numéro de téléphone invalide. Veuillez entrer un numéro mobile valide (ex: 06 12 34 56 78).",
+          error:
+            "Numéro de téléphone invalide. Veuillez entrer un numéro mobile valide (ex: 06 12 34 56 78).",
         }),
-        { status: 400, headers: rateHeaders }
+        { status: 400, headers: rateHeaders },
       );
     }
 
@@ -177,13 +277,19 @@ serve(async (req) => {
     if (action === "request-otp") {
       // Check OpenWA configuration
       if (!OPENWA_BASE_URL || !OPENWA_API_KEY) {
-        console.error("[Config Error] OPENWA_BASE_URL or OPENWA_API_KEY is not configured.");
+        console.error(
+          "[Config Error] OPENWA_BASE_URL or OPENWA_API_KEY is not configured.",
+        );
         return new Response(
           JSON.stringify({
             success: false,
-            error: "Le service d'envoi WhatsApp n'est pas configuré. Veuillez contacter le support.",
+            error:
+              "Le service d'envoi WhatsApp n'est pas configuré. Veuillez contacter le support.",
           }),
-          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 503,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
@@ -199,16 +305,23 @@ serve(async (req) => {
         .order("created_at", { ascending: false });
 
       if (!rateError && recentChallenges && recentChallenges.length > 0) {
-        const lastCreatedAt = new Date(recentChallenges[0].created_at).getTime();
+        const lastCreatedAt = new Date(
+          recentChallenges[0].created_at,
+        ).getTime();
         if (Date.now() - lastCreatedAt < 60 * 1000) {
-          const remainingSec = Math.ceil((60 * 1000 - (Date.now() - lastCreatedAt)) / 1000);
+          const remainingSec = Math.ceil(
+            (60 * 1000 - (Date.now() - lastCreatedAt)) / 1000,
+          );
           return new Response(
             JSON.stringify({
               success: false,
               error: `Veuillez patienter ${remainingSec}s avant de demander un nouveau code.`,
               cooldownSeconds: remainingSec,
             }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            {
+              status: 429,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
           );
         }
 
@@ -218,7 +331,10 @@ serve(async (req) => {
               success: false,
               error: "Trop de tentatives. Veuillez réessayer dans une heure.",
             }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            {
+              status: 429,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
           );
         }
       }
@@ -235,7 +351,11 @@ serve(async (req) => {
 
       // 4. Send message via OpenWA REST API FIRST
       const messageText = `🛵 *Quickly Livraison*\n\nVotre code de confirmation est : *${generatedOtp}*\n\nCe code est valable pendant 5 minutes. Ne le partagez avec personne.`;
-      const openWaUrl = `${OPENWA_BASE_URL.replace(/\/+$/, "")}/api/sessions/${OPENWA_SESSION_ID}/messages/send-text`;
+      const openWaUrl = buildOpenWaUrl(
+        OPENWA_BASE_URL,
+        OPENWA_SESSION_ID,
+        "messages/send-text",
+      );
 
       let openWaResponse: Response;
       try {
@@ -251,50 +371,95 @@ serve(async (req) => {
           body: JSON.stringify({
             chatId,
             text: messageText,
+            to: chatId,
+            message: messageText,
+            content: messageText,
           }),
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
       } catch (networkErr: any) {
-        console.error("[OpenWA Network Error]", networkErr?.message);
+        console.error(
+          "[OpenWA Network Error]",
+          networkErr?.message || "Network timeout / connection refused",
+        );
         return new Response(
           JSON.stringify({
             success: false,
-            error: "Impossible de joindre la passerelle WhatsApp. Veuillez réessayer plus tard.",
+            error:
+              "Impossible de joindre la passerelle WhatsApp. Veuillez réessayer plus tard.",
           }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 502,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
       if (!openWaResponse.ok) {
-        console.error("[OpenWA HTTP Error]", openWaResponse.status, openWaResponse.statusText);
+        console.error(
+          "[OpenWA HTTP Error]",
+          openWaResponse.status,
+          openWaResponse.statusText,
+          "for recipient:",
+          maskPhone(e164),
+        );
+
+        let userError =
+          "Échec de l'envoi du message WhatsApp. Veuillez vérifier votre numéro et réessayer.";
+        if (openWaResponse.status === 401 || openWaResponse.status === 403) {
+          userError = "Erreur d'authentification avec la passerelle WhatsApp.";
+        } else if (openWaResponse.status === 404) {
+          userError =
+            "Session WhatsApp introuvable. Veuillez contacter le support.";
+        } else if (
+          openWaResponse.status === 500 ||
+          openWaResponse.status === 503
+        ) {
+          userError =
+            "La session WhatsApp est momentanément indisponible. Veuillez réessayer par SMS.";
+        }
+
         return new Response(
           JSON.stringify({
             success: false,
-            error: "Échec de l'envoi du message WhatsApp. Veuillez vérifier votre numéro et réessayer.",
+            error: userError,
           }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 502,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
       // 5. OpenWA delivery confirmed: Create active OTP challenge in database
-      const { error: insertError } = await supabaseAdmin.from("auth_otp_challenges").insert({
-        phone: e164,
-        otp_hash: otpHash,
-        salt,
-        status: "SENT",
-        expires_at: expiresAt,
-        attempts: 0,
-        max_attempts: 5,
-      });
+      const { error: insertError } = await supabaseAdmin
+        .from("auth_otp_challenges")
+        .insert({
+          phone: e164,
+          otp_hash: otpHash,
+          salt,
+          status: "SENT",
+          expires_at: expiresAt,
+          attempts: 0,
+          max_attempts: 5,
+        });
 
       if (insertError) {
         console.error("[DB Challenge Insert Error]", insertError);
         return new Response(
-          JSON.stringify({ success: false, error: "Erreur lors de l'enregistrement du code." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: false,
+            error: "Erreur lors de l'enregistrement du code.",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
+
+      console.info("[WhatsApp OTP Dispatched] Success for", maskPhone(e164));
 
       return new Response(
         JSON.stringify({
@@ -302,7 +467,10 @@ serve(async (req) => {
           message: "Code de confirmation envoyé par WhatsApp.",
           cooldownSeconds: 60,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -311,21 +479,29 @@ serve(async (req) => {
     // ==========================================
     if (action === "verify-otp") {
       // Rate limit verification attempts per phone (max 5 attempts per 15 minutes)
-      const verifyLimit = checkEdgeRateLimit(phoneVerifyRateMap, e164, 5, 15 * 60 * 1000);
+      const verifyLimit = checkEdgeRateLimit(
+        phoneVerifyRateMap,
+        e164,
+        5,
+        15 * 60 * 1000,
+      );
       if (!verifyLimit.allowed) {
         return new Response(
           JSON.stringify({
             success: false,
             error: `Trop de tentatives de vérification pour ce numéro. Veuillez patienter ${verifyLimit.resetSec}s avant de réessayer.`,
           }),
-          { status: 429, headers: rateHeaders }
+          { status: 429, headers: rateHeaders },
         );
       }
 
       if (!otp || typeof otp !== "string" || otp.trim().length !== 6) {
         return new Response(
-          JSON.stringify({ success: false, error: "Veuillez saisir un code valide à 6 chiffres." }),
-          { status: 400, headers: rateHeaders }
+          JSON.stringify({
+            success: false,
+            error: "Veuillez saisir un code valide à 6 chiffres.",
+          }),
+          { status: 400, headers: rateHeaders },
         );
       }
 
@@ -335,14 +511,20 @@ serve(async (req) => {
         {
           p_phone: e164,
           p_otp_raw: otp.trim(),
-        }
+        },
       );
 
       if (rpcError) {
         console.error("[RPC Verify Error]", rpcError);
         return new Response(
-          JSON.stringify({ success: false, error: "Erreur lors de la vérification du code." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: false,
+            error: "Erreur lors de la vérification du code.",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
@@ -352,11 +534,13 @@ serve(async (req) => {
         const errCode = verification?.error_code;
         let userMessage = "Code incorrect ou expiré.";
         if (errCode === "NO_ACTIVE_CHALLENGE") {
-          userMessage = "Aucun code actif trouvé pour ce numéro. Veuillez en demander un nouveau.";
+          userMessage =
+            "Aucun code actif trouvé pour ce numéro. Veuillez en demander un nouveau.";
         } else if (errCode === "CHALLENGE_EXPIRED") {
           userMessage = "Ce code a expiré. Veuillez en demander un nouveau.";
         } else if (errCode === "MAX_ATTEMPTS_EXCEEDED") {
-          userMessage = "Nombre maximal de tentatives atteint. Veuillez demander un nouveau code.";
+          userMessage =
+            "Nombre maximal de tentatives atteint. Veuillez demander un nouveau code.";
         } else if (errCode === "INVALID_OTP") {
           const remaining = verification?.remaining_attempts ?? 0;
           userMessage = `Code incorrect. ${remaining > 0 ? `${remaining} tentative(s) restante(s).` : "Nombre maximal de tentatives atteint."}`;
@@ -364,7 +548,10 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({ success: false, error: userMessage }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
@@ -375,7 +562,7 @@ serve(async (req) => {
       // Check if user exists in profiles (O(1) indexed lookup)
       const { data: existingProfile } = await supabaseAdmin
         .from("profiles")
-        .select("id, email")
+        .select("id, email, full_name, phone, role")
         .eq("phone", e164)
         .maybeSingle();
 
@@ -383,33 +570,45 @@ serve(async (req) => {
 
       // Ensure user exists in Supabase Auth
       if (!existingProfile) {
-        const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-          phone: e164,
-          email: targetEmail,
-          email_confirm: true,
-          phone_confirm: true,
-          user_metadata: {
+        const { data: createData, error: createError } =
+          await supabaseAdmin.auth.admin.createUser({
             phone: e164,
-            auth_provider: "whatsapp",
-          },
-        });
+            email: targetEmail,
+            email_confirm: true,
+            phone_confirm: true,
+            user_metadata: {
+              phone: e164,
+              auth_provider: "whatsapp",
+              role: "client",
+            },
+          });
 
-        if (createError && !createError.message?.includes("already registered")) {
+        if (
+          createError &&
+          !createError.message?.includes("already registered")
+        ) {
           console.error("[Auth User Create Error]", createError);
         }
       }
 
       // 3. Mint official Supabase session via generateLink without password mutation
-      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-        type: "magiclink",
-        email: targetEmail,
-      });
+      const { data: linkData, error: linkError } =
+        await supabaseAdmin.auth.admin.generateLink({
+          type: "magiclink",
+          email: targetEmail,
+        });
 
       if (linkError || !linkData?.properties?.hashed_token) {
         console.error("[GenerateLink Error]", linkError);
         return new Response(
-          JSON.stringify({ success: false, error: "Impossible de créer la session d'authentification." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: false,
+            error: "Impossible de créer la session d'authentification.",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
@@ -418,18 +617,30 @@ serve(async (req) => {
         auth: { persistSession: false, autoRefreshToken: false },
       });
 
-      const { data: sessionData, error: verifySessionError } = await clientSupabase.auth.verifyOtp({
-        token_hash: linkData.properties.hashed_token,
-        type: "email",
-      });
+      const { data: sessionData, error: verifySessionError } =
+        await clientSupabase.auth.verifyOtp({
+          token_hash: linkData.properties.hashed_token,
+          type: "email",
+        });
 
       if (verifySessionError || !sessionData?.session) {
         console.error("[Session Token Exchange Error]", verifySessionError);
         return new Response(
-          JSON.stringify({ success: false, error: "Erreur lors de la génération de session." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: false,
+            error: "Erreur lors de la génération de session.",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
+
+      console.info(
+        "[WhatsApp OTP Verified] Successfully authenticated",
+        maskPhone(e164),
+      );
 
       return new Response(
         JSON.stringify({
@@ -437,19 +648,31 @@ serve(async (req) => {
           session: sessionData.session,
           user: sessionData.user,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
     return new Response(
       JSON.stringify({ success: false, error: "Action non supportée." }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (err: any) {
-    console.error("[Unhandled Server Error]", err);
+    console.error("[Unhandled Server Error]", err?.message || err);
     return new Response(
-      JSON.stringify({ success: false, error: err?.message || "Erreur interne du serveur." }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        success: false,
+        error: err?.message || "Erreur interne du serveur.",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
